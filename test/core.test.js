@@ -196,4 +196,158 @@ test('dışa aktarma geçerli JSON üretir', () => {
   assert.strictEqual(JSON.parse(C.exportData(s)).pkg, 'free');
 });
 
+// ---------- v0.2: kazanç herkese açık, grafikler, hedef, seri, tema ----------
+
+test('kazanç ve grafikler ücretsiz pakette de açık', () => {
+  assert.strictEqual(C.entitlements(C.defaultState()).finance, true);
+});
+
+test('kayıt: tarih ve kategori doğrulanır, gelecek tarih reddedilir', () => {
+  const s = C.defaultState();
+  const r = C.addFinance(s, { type: 'in', amount: 100, cat: 'satis', date: '2026-10-20' }, T0);
+  assert.ok(r);
+  assert.strictEqual(r.cat, 'satis');
+  assert.strictEqual(C.dateInputValue(r.date), '2026-10-20');
+  assert.strictEqual(C.addFinance(s, { type: 'in', amount: 5, date: '2026-10-25' }, T0), null, 'gelecek');
+  assert.strictEqual(C.addFinance(s, { type: 'in', amount: 5, date: '2026-02-31' }, T0), null, 'geçersiz gün');
+  assert.strictEqual(C.addFinance(s, { type: 'in', amount: 5, date: 'abc' }, T0), null);
+  assert.ok(C.addFinance(s, { type: 'in', amount: 5, date: '2026-10-23' }, T0), 'bugün olur');
+  assert.strictEqual(C.addFinance(s, { type: 'out', amount: 5, cat: 'satis' }, T0).cat, 'diger', 'gider için geçersiz kategori');
+  assert.strictEqual(C.addFinance(s, { type: 'in', amount: 1e12 }, T0), null);
+});
+
+test('grafik serisi: 7 gün, 30 gün, 12 ay kova sayıları ve toplamlar', () => {
+  const s = C.defaultState();
+  C.addFinance(s, { type: 'in', amount: 300, date: '2026-10-23' }, T0);
+  C.addFinance(s, { type: 'out', amount: 100, date: '2026-10-23' }, T0);
+  C.addFinance(s, { type: 'in', amount: 50, date: '2026-10-20' }, T0);
+  C.addFinance(s, { type: 'in', amount: 1000, date: '2026-01-05' }, T0);      // 7 günden önce
+  const w = C.financeSeries(s, '7d', T0);
+  assert.strictEqual(w.buckets.length, 7);
+  assert.strictEqual(w.totals.in, 350);
+  assert.strictEqual(w.totals.out, 100);
+  assert.strictEqual(w.totals.net, 250);
+  const last = w.buckets[6];
+  assert.strictEqual(last.in, 300); assert.strictEqual(last.out, 100); assert.strictEqual(last.net, 200);
+  assert.strictEqual(w.buckets[0].cum, 1000, 'birikim dönem öncesini içerir');
+  assert.strictEqual(last.cum, 1250);
+  assert.strictEqual(w.max, 300);
+  assert.strictEqual(C.financeSeries(s, '30d', T0).buckets.length, 30);
+  const y = C.financeSeries(s, '12m', T0);
+  assert.strictEqual(y.buckets.length, 12);
+  assert.strictEqual(y.totals.in, 1350);
+  assert.strictEqual(y.buckets[11].label, 'Eki');
+  assert.strictEqual(y.buckets[0].label, 'Kas');
+  assert.ok(!w.empty);
+  assert.ok(C.financeSeries(C.defaultState(), '7d', T0).empty);
+  assert.strictEqual(C.financeSeries(s, 'saçma', T0).buckets.length, 7, 'bilinmeyen dönem 7 güne düşer');
+});
+
+test('kategori dağılımı: yüzdeler 100 eder, büyükten küçüğe', () => {
+  const s = C.defaultState();
+  C.addFinance(s, { type: 'in', amount: 300, cat: 'satis', date: '2026-10-22' }, T0);
+  C.addFinance(s, { type: 'in', amount: 100, cat: 'hizmet', date: '2026-10-21' }, T0);
+  C.addFinance(s, { type: 'in', amount: 600, cat: 'satis', date: '2026-10-01' }, T0);   // 7 gün dışı
+  const w = C.categorySplit(s, 'in', '7d', T0);
+  assert.strictEqual(w.total, 400);
+  assert.strictEqual(w.items[0].id, 'satis');
+  assert.strictEqual(Math.round(w.items.reduce((a, b) => a + b.pct, 0)), 100);
+  assert.strictEqual(C.categorySplit(s, 'in', '30d', T0).total, 1000);
+  assert.deepStrictEqual(C.categorySplit(s, 'out', '7d', T0), { items: [], total: 0 });
+});
+
+test('aylık hedef: ilerleme, tamamlanma, geçersiz değer', () => {
+  const s = C.defaultState();
+  assert.strictEqual(C.goalProgress(s, T0).pct, 0);
+  assert.ok(C.setGoal(s, '1000,5'));
+  assert.strictEqual(s.goal.monthly, 1000.5);
+  C.addFinance(s, { type: 'in', amount: 500, date: '2026-10-10' }, T0);
+  let g = C.goalProgress(s, T0);
+  assert.strictEqual(g.pct, 50); assert.ok(!g.reached); assert.strictEqual(g.left, 500.5);
+  C.addFinance(s, { type: 'in', amount: 600, date: '2026-10-11' }, T0);
+  g = C.goalProgress(s, T0);
+  assert.ok(g.reached); assert.strictEqual(g.pct, 100); assert.strictEqual(g.left, 0);
+  C.addFinance(s, { type: 'in', amount: 9999, date: '2026-09-11' }, T0);        // geçen ay sayılmaz
+  assert.strictEqual(C.financeSummary(s, T0).monthIn, 1100);
+  assert.strictEqual(C.setGoal(s, -5), false);
+  assert.strictEqual(C.setGoal(s, 'abc'), false);
+  assert.strictEqual(s.goal.monthly, 1000.5);
+});
+
+test('seri: ardışık günler, bugün boşsa dünden sayar, kopunca sıfırlanır', () => {
+  const s = C.defaultState();
+  assert.deepStrictEqual(C.streak(s, T0), { current: 0, best: 0, activeToday: false });
+  C.addFinance(s, { type: 'in', amount: 1 }, T0 - 2 * DAY);
+  C.addFinance(s, { type: 'in', amount: 1 }, T0 - 1 * DAY);
+  let st = C.streak(s, T0);
+  assert.strictEqual(st.current, 2); assert.ok(!st.activeToday);
+  C.addFinance(s, { type: 'in', amount: 1 }, T0);
+  st = C.streak(s, T0);
+  assert.strictEqual(st.current, 3); assert.ok(st.activeToday);
+  assert.strictEqual(C.streak(s, T0 + 3 * DAY).current, 0, 'iki gün boş geçince seri biter');
+  assert.strictEqual(C.streak(s, T0 + 3 * DAY).best, 3);
+  // sohbet ve görev de seriyi sürdürür
+  const s2 = C.defaultState();
+  C.setPackage(s2, 'manual', T0);
+  const p = C.startProject(s2, 'freelance', T0);
+  C.setTaskDone(s2, p.id, 't1', true, T0 - DAY);
+  s2.chat.push({ role: 'user', text: 'merhaba', at: T0 });
+  assert.strictEqual(C.streak(s2, T0).current, 2);
+});
+
+test('rozetler: koşullar sağlanınca kazanılır', () => {
+  const s = C.defaultState();
+  const get = id => C.badges(s, T0).find(b => b.id === id).earned;
+  assert.ok(!get('first-task') && !get('first-record') && !get('first-income') && !get('goal'));
+  C.addFinance(s, { type: 'out', amount: 10 }, T0);
+  assert.ok(get('first-record') && !get('first-income'));
+  C.addFinance(s, { type: 'in', amount: 10 }, T0);
+  assert.ok(get('first-income'));
+  C.setGoal(s, 5); assert.ok(get('goal'));
+  C.setPackage(s, 'manual', T0);
+  const p = C.startProject(s, 'freelance', T0);
+  C.setTaskDone(s, p.id, 't1', true, T0);
+  assert.ok(get('first-task') && !get('project'));
+  D.MODELS.find(m => m.id === 'freelance').tasks.forEach(t => C.setTaskDone(s, p.id, t.id, true, T0));
+  assert.ok(get('project'));
+});
+
+test('tema: geçerli değerler kabul, eski kayıt varsayılana düşer', () => {
+  const s = C.defaultState();
+  assert.strictEqual(s.settings.theme, 'dark');
+  assert.ok(C.setTheme(s, 'light') && s.settings.theme === 'light');
+  assert.ok(C.setTheme(s, 'system'));
+  assert.strictEqual(C.setTheme(s, 'pembe'), false);
+  assert.strictEqual(s.settings.theme, 'system');
+  const old = C.migrate({ pkg: 'free', finance: [{ id: 'x', type: 'in', amount: 5, date: T0 }] });
+  assert.strictEqual(old.settings.theme, 'dark');
+  assert.strictEqual(old.finance[0].cat, 'diger');
+  assert.strictEqual(C.migrate({ settings: { theme: 'pembe' } }).settings.theme, 'dark');
+  assert.strictEqual(C.migrate({ goal: { monthly: -3 } }).goal.monthly, 0);
+});
+
+test('CSV: başlık, Türkçe ondalık, tırnak ve formül enjeksiyonu', () => {
+  const s = C.defaultState();
+  C.addFinance(s, { type: 'in', amount: '12,5', cat: 'satis', note: '=HYPERLINK("x")', date: '2026-10-22' }, T0);
+  C.addFinance(s, { type: 'out', amount: 3, note: 'a "b" c', date: '2026-10-21' }, T0);
+  const csv = C.exportCsv(s);
+  assert.ok(csv.startsWith('﻿Tarih;Tür;Kategori;Tutar (TL);Not'));
+  const lines = csv.split('\r\n');
+  assert.strictEqual(lines.length, 3);
+  assert.ok(lines[1].includes('"Gider"'), 'tarihe göre sıralı');
+  assert.ok(lines[1].includes('"a ""b"" c"'));
+  assert.ok(lines[2].includes('"12,5"'));
+  assert.ok(lines[2].includes('"\'=HYPERLINK'), 'formül başındaki = etkisizleştirildi');
+});
+
+test('AI: kazanç ve grafik sorusu Kazanç sekmesine yönlendirir, "hedef kitle" karışmaz', () => {
+  const s = C.defaultState();
+  assert.ok(C.aiReply(s, 'grafiklerimi nerede görürüm', T0).includes('Kazanç sekmesinden'));
+  assert.ok(C.aiReply(s, 'Hedef kitle ne demek?', T0).includes('insan grubu'));
+  assert.ok(C.chatSuggestions(s).length === 4);
+  C.chatSuggestions(s).forEach(q => assert.ok(C.aiReply(s, q, T0).length > 30, 'öneri cevabı var: ' + q));
+  assert.ok(C.aiReply(s, 'Garanti kazanç var mı?', T0).includes('garanti verilemez'), 'garanti sorusu kazanç yönlendirmesine karışmaz');
+  assert.ok(C.aiReply(s, 'Kazancımı nasıl takip ederim?', T0).includes('Kazanç sekmesinden'));
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

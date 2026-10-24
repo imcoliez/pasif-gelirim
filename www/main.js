@@ -1,8 +1,12 @@
-/* Pasif Gelirim - tarayıcı/APK denetleyicisi: olaylar, kayıt, sesli okuma, sohbet sayacı */
+/* Pasif Gelirim - tarayıcı/APK denetleyicisi: gezinme, olaylar, kayıt, tema, sesli okuma, sohbet sayacı */
 (function () {
   'use strict';
-  var Core = window.Core, App = window.App, Data = window.Data;
+  var Core = window.Core, App = window.App;
 
+  var reduce = false;
+  try { reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { }
+
+  // ---------- Kayıt ----------
   var mem = null;                       // localStorage çalışmazsa bellekte tut
   function load() {
     try {
@@ -17,28 +21,164 @@
   }
 
   var S = load();
-  var ui = { route: S.user.name ? 'home' : 'welcome', quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '' };
-  var root = document.getElementById('app');
-  var toastTimer = null;
+  var ui = {
+    route: S.user.name ? 'home' : 'welcome', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
+    period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false,
+    exportText: null, exportTitle: '', resolvedTheme: 'dark', enter: 'fade', draft: {}
+  };
+  var elApp = document.getElementById('app'), elTop = document.getElementById('top'), elMain = document.getElementById('main'),
+      elTabs = document.getElementById('tabs'), elLayer = document.getElementById('layer');
+  var toastTimer = null, lastRoute = null;
 
   function now() { return Date.now(); }
+  function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
 
-  function toast(msg) {
-    ui.toast = msg;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { ui.toast = ''; var t = document.querySelector('.toast'); if (t) t.remove(); }, 2500);
+  // ---------- Tema ----------
+  function resolveTheme() {
+    var t = S.settings.theme;
+    if (t === 'system') {
+      try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { return 'dark'; }
+    }
+    return t === 'light' ? 'light' : 'dark';
+  }
+  function applyTheme() {
+    var r = resolveTheme();
+    ui.resolvedTheme = r;
+    document.documentElement.setAttribute('data-theme', r);
+    var meta = document.querySelector('meta[name=theme-color]');
+    if (meta) meta.setAttribute('content', r === 'dark' ? '#0a0e11' : '#0f9d58');
+    try {
+      var sb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar;
+      if (sb) {
+        sb.setBackgroundColor({ color: r === 'dark' ? '#0a0e11' : '#0f9d58' });
+        sb.setStyle({ style: 'DARK' });          // 'DARK' = açık renkli yazı (iki temada da koyu zemin)
+      }
+    } catch (e) { }
+  }
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+      if (S.settings.theme === 'system') { applyTheme(); render(); }
+    });
+  } catch (e) { }
+
+  // ---------- Çizim ----------
+  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'chatInput', 'setName'];
+  function captureDraft() {
+    if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
+    if (lastRoute !== ui.route) { ui.draft = {}; return; }
+    DRAFT_IDS.forEach(function (id) { var e = document.getElementById(id); if (e) ui.draft[id] = e.value; });
+  }
+  function restoreDraft() {
+    DRAFT_IDS.forEach(function (id) {
+      var e = document.getElementById(id);
+      if (e && ui.draft[id] != null && ui.draft[id] !== '') e.value = ui.draft[id];
+    });
+  }
+
+  function prepare() {
+    if (ui.route !== 'auto') return;
+    var ent = Core.entitlements(S), p = Core.activeProject(S);
+    if (ent.ceo && p) {
+      var before = S.decisions.length;
+      Core.ensureDecisions(S, p, now());
+      if (S.decisions.length !== before) save();
+    }
   }
 
   function render() {
-    root.innerHTML = App.shell(S, ui, now());
+    captureDraft();
+    prepare();
+    var p = App.parts(S, ui, now());
+    elApp.classList.toggle('no-chrome', !p.chrome);
+    elTop.innerHTML = p.top;
+    elMain.innerHTML = p.main;
+    elLayer.innerHTML = p.layer;
+    restoreDraft();
+    // sayfa geçiş animasyonu
+    elMain.className = 'main';
+    if (ui.enter && !reduce) {
+      void elMain.offsetWidth;
+      elMain.className = 'main anim enter-' + ui.enter;
+    }
+    ui.enter = '';
+    // alt menü: aktif sekme + kayan çizgi
+    var tabs = elTabs.querySelectorAll('.tab'), idx = -1;
+    for (var i = 0; i < tabs.length; i++) {
+      var on = tabs[i].getAttribute('data-route') === p.activeTab;
+      tabs[i].classList.toggle('on', on);
+      if (on) idx = i;
+    }
+    var ind = elTabs.querySelector('.ind');
+    if (ind) { ind.style.opacity = idx < 0 ? '0' : '1'; ind.style.transform = 'translateX(' + Math.max(idx, 0) * 100 + '%)'; }
     var box = document.getElementById('chatBox');
     if (box) box.scrollTop = box.scrollHeight;
+    lastRoute = ui.route;
   }
-  function go(route) {
+
+  var lastReward = { msg: '', at: 0 };
+  function toast(msg) {
+    // Rozet bildirimi hemen ardından gelen genel bildirimle ezilmesin: ikisini birleştir.
+    if (lastReward.msg && Date.now() - lastReward.at < 200 && msg !== lastReward.msg) msg = msg + ' · ' + lastReward.msg;
+    ui.toast = msg;
+    clearTimeout(toastTimer);
+    var old = elLayer.querySelector('.toast'); if (old) old.remove();
+    var t = document.createElement('div');
+    t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
+    elLayer.appendChild(t);
+    toastTimer = setTimeout(function () { ui.toast = ''; var x = elLayer.querySelector('.toast'); if (x) x.remove(); }, 2600);
+  }
+
+  // ---------- Gezinme (Android geri tuşu dahil) ----------
+  function isTop(r) { return App.TOP.indexOf(r) !== -1; }
+  function direction(a, b) {
+    if (a === b) return 'fade';
+    var ia = App.TOP.indexOf(a), ib = App.TOP.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ib > ia ? 'fwd' : 'back';
+    if (ib !== -1) return 'back';
+    return 'fwd';
+  }
+  function pushNav(route, prev) {
+    try {
+      if (isTop(route) || route === prev) {
+        window.history.replaceState({ route: route, taskId: ui.taskId, depth: isTop(route) ? 0 : ui.depth }, '');
+        if (isTop(route)) ui.depth = 0;
+      } else {
+        ui.depth += 1;
+        window.history.pushState({ route: route, taskId: ui.taskId, depth: ui.depth }, '');
+      }
+    } catch (e) { }
+  }
+  function go(route, extra) {
     stopSpeak();
-    ui.route = route; ui.narr = null; ui.narrAnswer = ''; if (route !== 'tasks') ui.quiz = null;
-    render(); window.scrollTo(0, 0);
+    var prev = ui.route;
+    var dir = direction(prev, route);
+    ui.route = route; ui.narr = null; ui.narrAnswer = ''; ui.exportText = null;
+    if (route !== 'tasks') ui.quiz = null;
+    if (route === 'charts') ui.chartSel = null;
+    if (extra) for (var k in extra) ui[k] = extra[k];
+    ui.enter = dir;
+    pushNav(route, prev);
+    render();
+    window.scrollTo(0, 0);
   }
+  function back() {
+    var st = null;
+    try { st = window.history.state; } catch (e) { }
+    if (st && st.depth > 0) { try { window.history.back(); return; } catch (e) { } }
+    go('home');
+  }
+  window.addEventListener('popstate', function (e) {
+    var st = e.state, r = (st && st.route) || (S.user.name ? 'home' : 'welcome');
+    if (r === 'welcome' && S.user.name) r = 'home';
+    stopSpeak();
+    ui.enter = direction(ui.route, r) === 'fwd' ? 'back' : direction(ui.route, r);
+    ui.route = r; ui.depth = (st && st.depth) || 0;
+    if (st && st.taskId) ui.taskId = st.taskId;
+    ui.narr = null; ui.narrAnswer = ''; ui.exportText = null;
+    if (r !== 'tasks') ui.quiz = null;
+    render();
+  });
+  try { window.history.replaceState({ route: ui.route, depth: 0 }, ''); } catch (e) { }
 
   // ---------- Sesli okuma (cihazın kendi sesi, ücretsiz) ----------
   function stopSpeak() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { } }
@@ -52,7 +192,83 @@
     } catch (e) { toast('Sesli okuma başlatılamadı.'); }
   }
 
-  // ---------- Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar ----------
+  // ---------- Kutlama ----------
+  function celebrate(big) {
+    if (reduce) return;
+    var box = document.createElement('div');
+    box.className = 'confetti';
+    var emojis = ['💚', '✨', '🎉', '⭐', '🟢'], n = big ? 46 : 22, html = '';
+    for (var i = 0; i < n; i++) {
+      html += '<span style="--x:' + Math.round(Math.random() * 100) + '%;--s:' + (14 + Math.round(Math.random() * 14)) + 'px;--d:' +
+        (1.3 + Math.random() * 1.2).toFixed(2) + 's;--r:' + Math.round(Math.random() * 720 - 360) + 'deg;animation-delay:' + (Math.random() * 0.4).toFixed(2) + 's">' +
+        emojis[i % emojis.length] + '</span>';
+    }
+    box.innerHTML = html;
+    document.body.appendChild(box);
+    setTimeout(function () { box.remove(); }, 3200);
+    try { if (navigator.vibrate) navigator.vibrate(big ? [30, 40, 30] : 20); } catch (e) { }
+  }
+
+  // Yeni kazanılan rozetleri ve hedefi yakala
+  function earnedIds() {
+    var o = {}; Core.badges(S, now()).forEach(function (b) { if (b.earned) o[b.id] = b; }); return o;
+  }
+  function withRewards(fn) {
+    var before = earnedIds();
+    var res = fn();
+    var after = earnedIds(), fresh = [];
+    for (var k in after) if (!before[k]) fresh.push(after[k]);
+    if (fresh.length) {
+      var rmsg = 'Yeni rozet: ' + fresh.map(function (b) { return b.emoji + ' ' + b.title; }).join(', ');
+      toast(rmsg);
+      lastReward = { msg: rmsg, at: Date.now() };
+      celebrate(fresh.some(function (b) { return b.id === 'goal' || b.id === 'project'; }));
+    }
+    return res;
+  }
+
+  // ---------- Dışa aktarma (APK'da paylaşma menüsü, tarayıcıda indirme, olmazsa kopyalama) ----------
+  function showExportText(title, text) { ui.exportTitle = title; ui.exportText = text; render(); }
+  function exportFile(name, text, mime, title) {
+    var cap = window.Capacitor, P = cap && cap.Plugins;
+    var native = false;
+    try { native = !!(cap && cap.isNativePlatform && cap.isNativePlatform()); } catch (e) { }
+    if (native && P && P.Filesystem && P.Share) {
+      P.Filesystem.writeFile({ path: name, data: text, directory: 'CACHE', encoding: 'utf8' })
+        .then(function (r) { return P.Share.share({ title: title, url: r.uri, dialogTitle: title }); })
+        .catch(function (e) {
+          if (e && /cancel/i.test(String(e.message || e))) return;
+          showExportText(title, text);
+        });
+      return;
+    }
+    try {
+      var blob = new Blob([text], { type: mime });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('Dosya indirildi.');
+    } catch (e) { showExportText(title, text); }
+  }
+
+  // ---------- Sohbet ----------
+  function sendChat(text) {
+    text = String(text || '').trim(); if (!text) return;
+    if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
+    var reply = Core.aiReply(S, text, now());
+    withRewards(function () { S.chat.push({ role: 'user', text: text, at: now() }); });
+    ui.typing = true; ui.noDraft = true; save(); render();
+    var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
+    setTimeout(function () {
+      ui.typing = false;
+      S.chat.push({ role: 'ai', text: reply, at: now() });
+      if (S.chat.length > 200) S.chat = S.chat.slice(-200);
+      save();
+      if (ui.route === 'chat') { render(); var i3 = document.getElementById('chatInput'); if (i3) i3.focus(); }
+    }, reduce ? 0 : 650);
+  }
+
+  // Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar
   setInterval(function () {
     if (ui.route !== 'chat' || document.hidden) return;
     if (Core.remainingSeconds(S, now()) <= 0) return;
@@ -63,37 +279,39 @@
   }, 1000);
 
   // ---------- Olaylar ----------
-  function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
-
   var actions = {
-    start: function () {
-      var n = val('nameInput').trim();
-      S.user.name = n; save(); go('home');
-    },
+    start: function () { S.user.name = val('nameInput').trim(); save(); go('home'); },
     go: function (el) { go(el.getAttribute('data-route')); },
-    quizStart: function () { ui.quiz = { step: 0, answers: {} }; ui.route = 'tasks'; render(); },
+    back: function () { back(); },
+    toggleTheme: function () {
+      Core.setTheme(S, ui.resolvedTheme === 'dark' ? 'light' : 'dark'); applyTheme(); save(); render();
+    },
+    setTheme: function (el) { Core.setTheme(S, el.getAttribute('data-v')); applyTheme(); save(); render(); },
+    quizStart: function () { ui.quiz = { step: 0, answers: {} }; ui.route = 'tasks'; ui.enter = 'fade'; render(); },
     quizCancel: function () { ui.quiz = null; render(); },
     answer: function (el) {
       ui.quiz.answers[el.getAttribute('data-q')] = el.getAttribute('data-v');
-      ui.quiz.step += 1; render(); window.scrollTo(0, 0);
+      ui.quiz.step += 1; ui.enter = 'fwd'; render(); window.scrollTo(0, 0);
     },
     pickModel: function (el) {
       if (!Core.entitlements(S).selectModel) { toast('Model seçmek için Manuel paket gerekir.'); return; }
       Core.startProject(S, el.getAttribute('data-id'), now());
-      ui.quiz = null; save(); toast('Proje başlatıldı!'); go('tasks');
+      ui.quiz = null; save(); toast('Proje başlatıldı!'); celebrate(false); go('tasks');
     },
-    switchProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); render(); },
+    switchProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); ui.enter = 'fade'; render(); },
     viewProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); go('tasks'); },
-    openTask: function (el) { ui.taskId = el.getAttribute('data-id'); ui.route = 'task'; ui.narr = null; ui.narrAnswer = ''; render(); window.scrollTo(0, 0); },
+    openTask: function (el) { go('task', { taskId: el.getAttribute('data-id') }); },
     toggleTask: function (el) {
       var p = Core.activeProject(S); if (!p) return;
       var id = el.getAttribute('data-id');
       var cur = p.tasks[id] && p.tasks[id].done;
-      var note = val('noteInput'); if (note !== undefined) Core.setTaskNote(S, p.id, id, note, now());
-      Core.setTaskDone(S, p.id, id, !cur, now()); save();
-      toast(cur ? 'Görev tekrar açıldı.' : 'Görev tamamlandı! 👏');
-      if (!cur) { var nt = Core.nextTask(p); if (nt) { ui.taskId = nt.id; } else { ui.route = 'tasks'; } }
-      render(); window.scrollTo(0, 0);
+      Core.setTaskNote(S, p.id, id, val('noteInput'), now());
+      withRewards(function () { Core.setTaskDone(S, p.id, id, !cur, now()); });
+      save();
+      if (cur) { toast('Görev tekrar açıldı.'); render(); return; }
+      var nt = Core.nextTask(p);
+      if (nt) { toast('Görev tamamlandı! 👏'); celebrate(false); go('task', { taskId: nt.id }); }
+      else { toast('Tebrikler, tüm görevleri tamamladın! 🏆'); celebrate(true); go('tasks'); }
     },
     narrOpen: function () { ui.narr = Core.entitlements(S).narration ? 'panel' : 'offer'; render(); },
     narrClose: function () { stopSpeak(); ui.narr = null; ui.narrAnswer = ''; render(); },
@@ -114,30 +332,42 @@
       ui.narrAnswer = terms.length ? terms.join('\n\n') : Core.aiReply(S, q, now());
       render(); speak(ui.narrAnswer);
     },
-    send: function () {
-      var inp = document.getElementById('chatInput'); if (!inp) return;
-      var text = inp.value.trim(); if (!text) return;
-      if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
-      S.chat.push({ role: 'user', text: text, at: now() });
-      S.chat.push({ role: 'ai', text: Core.aiReply(S, text, now()), at: now() });
-      if (S.chat.length > 200) S.chat = S.chat.slice(-200);
-      save(); render();
-      var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
+    send: function () { sendChat(val('chatInput')); },
+    suggest: function (el) { sendChat(el.getAttribute('data-t')); },
+    finType: function (el) {
+      ui.finType = el.getAttribute('data-v') === 'out' ? 'out' : 'in';
+      var btns = elMain.querySelectorAll('[data-act=finType]');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-v') === ui.finType);
+      var cat = document.getElementById('finCat'); if (cat) cat.innerHTML = App.catOptions(ui.finType);
     },
+    finFilter: function (el) { ui.finFilter = el.getAttribute('data-v'); render(); },
     addFin: function () {
-      var rec = Core.addFinance(S, { type: val('finType'), amount: val('finAmount'), note: val('finNote') }, now());
-      if (!rec) { toast('Geçerli bir tutar yaz (0\'dan büyük).'); return; }
-      save(); toast('Kaydedildi.'); render();
+      var rec = withRewards(function () {
+        return Core.addFinance(S, { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote') }, now());
+      });
+      if (!rec) { toast('Tutarı ve tarihi kontrol et (gelecek tarih olamaz).'); return; }
+      ui.noDraft = true; save(); toast('Kaydedildi.'); render();
     },
-    delFin: function (el) { Core.removeFinance(S, el.getAttribute('data-id')); save(); render(); },
+    delFin: function (el) {
+      if (!window.confirm('Bu kayıt silinsin mi?')) return;
+      Core.removeFinance(S, el.getAttribute('data-id')); save(); render();
+    },
+    saveGoal: function () {
+      var ok = withRewards(function () { return Core.setGoal(S, val('goalInput')); });
+      if (!ok) { toast('Geçerli bir tutar yaz.'); return; }
+      ui.noDraft = true; save(); toast('Hedef kaydedildi.'); render();
+    },
+    period: function (el) { ui.period = el.getAttribute('data-v'); ui.chartSel = null; ui.enter = 'fade'; render(); },
+    chartPick: function (el) { ui.chartSel = parseInt(el.getAttribute('data-i'), 10); render(); },
     makePlan: function () {
       var p = Core.activeProject(S); if (!p || !Core.entitlements(S).automation) return;
-      Core.generatePlan(S, p, parseInt(val('planDays'), 10) || 7, now()); save(); toast('Plan hazırlandı.'); render();
+      withRewards(function () { Core.generatePlan(S, p, parseInt(val('planDays'), 10) || 7, now()); });
+      save(); toast('Plan hazırlandı.'); render();
     },
     copyPlan: function (el) {
       var pl = S.plans.find(function (x) { return x.id === el.getAttribute('data-id'); }); if (!pl) return;
-      try { navigator.clipboard.writeText(pl.text).then(function () { toast('Kopyalandı.'); render(); }, function () { toast('Kopyalanamadı.'); render(); }); }
-      catch (e) { toast('Kopyalanamadı.'); render(); }
+      try { navigator.clipboard.writeText(pl.text).then(function () { toast('Kopyalandı.'); }, function () { toast('Kopyalanamadı.'); }); }
+      catch (e) { toast('Kopyalanamadı.'); }
     },
     decide: function (el) { Core.decide(S, el.getAttribute('data-id'), el.getAttribute('data-s'), now()); save(); render(); },
     setPkg: function (el) {
@@ -146,22 +376,23 @@
       Core.setPackage(S, id, now()); save(); toast(id === 'free' ? 'Ücretsiz pakete dönüldü.' : 'Paket değişti (test).'); render();
     },
     saveName: function () { S.user.name = val('setName').trim(); save(); toast('Kaydedildi.'); render(); },
-    export: function () {
-      var json = Core.exportData(S);
-      try {
-        var blob = new Blob([json], { type: 'application/json' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob); a.download = 'pasif-gelirim-verilerim.json';
-        document.body.appendChild(a); a.click(); a.remove();
-        toast('Dosya indirildi.');
-      } catch (e) { toast('Dışa aktarma başarısız.'); }
-      render();
+    export: function () { exportFile('pasif-gelirim-verilerim.json', Core.exportData(S), 'application/json', 'Verilerim (JSON)'); },
+    exportCsv: function () { exportFile('pasif-gelirim-kayitlar.csv', Core.exportCsv(S), 'text/csv;charset=utf-8', 'Gelir-gider kayıtları (CSV)'); },
+    copyExport: function () {
+      var t = ui.exportText || '';
+      try { navigator.clipboard.writeText(t).then(function () { toast('Kopyalandı.'); }, fallbackCopy); } catch (e) { fallbackCopy(); }
+      function fallbackCopy() {
+        var b = document.getElementById('exportBox');
+        if (b) { b.removeAttribute('readonly'); b.select(); try { document.execCommand('copy'); toast('Kopyalandı.'); } catch (e) { toast('Metni elle seçip kopyala.'); } }
+      }
     },
+    closeExport: function () { ui.exportText = null; render(); },
     wipe: function () {
       if (!window.confirm('Tüm verilerin kalıcı olarak silinecek. Emin misin?')) return;
       S = Core.defaultState(); mem = null;
       try { window.localStorage.removeItem(App.STORAGE_KEY); } catch (e) { }
-      ui = { route: 'welcome', quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '' }; render();
+      applyTheme(); ui.noDraft = true; ui.depth = 0;
+      go('welcome');
     },
     resetUsage: function () { S.usage.seconds = 0; S.usage.date = Core.dayKey(now()); save(); toast('Sohbet süresi sıfırlandı.'); render(); },
     fillUsage: function () { Core.addUsage(S, 999999, now()); save(); toast('Süre bitirildi.'); render(); }
@@ -175,9 +406,12 @@
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
-    if (e.target && e.target.id === 'chatInput') actions.send();
-    else if (e.target && e.target.id === 'askInput') actions.askNarr();
-    else if (e.target && e.target.id === 'nameInput') actions.start();
+    var id = e.target && e.target.id;
+    if (id === 'chatInput') actions.send();
+    else if (id === 'askInput') actions.askNarr();
+    else if (id === 'nameInput') actions.start();
+    else if (id === 'goalInput') actions.saveGoal();
+    else if (id === 'finNote' || id === 'finAmount') actions.addFin();
   });
   document.addEventListener('change', function (e) {
     var t = e.target;
@@ -189,5 +423,8 @@
   window.addEventListener('error', function (e) { try { toast('Hata: ' + e.message); } catch (x) { } });
   document.addEventListener('visibilitychange', function () { if (document.hidden) save(); });
 
+  // ---------- Başlat ----------
+  applyTheme();
   render();
+  setTimeout(function () { var s = document.getElementById('splash'); if (s) s.remove(); }, reduce ? 100 : 1750);
 })();

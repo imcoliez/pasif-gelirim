@@ -12,9 +12,9 @@
   // Varsayım: Sesli anlatım Yarı Otomasyon ve CEO paketlerinde dahil. Değiştirmek için narrationIncluded.
   const PACKAGES = {
     free:   { id: 'free',   tier: 0, name: 'Ücretsiz',       emoji: '🌱', price: 0,    narrationIncluded: false,
-              features: ['Günlük 1 saat yapay zekâ sohbeti', 'Geçmiş İşlemler arşivi', 'Verini dışa aktarma ve silme'] },
+              features: ['Gelir-gider takibi ve grafikler', 'Aylık hedef, çalışma serisi ve rozetler', 'Günlük 1 saat yapay zekâ sohbeti', 'Geçmiş İşlemler arşivi', 'Verini dışa aktarma ve silme'] },
     manual: { id: 'manual', tier: 1, name: 'Manuel',         emoji: '📗', price: null, narrationIncluded: false,
-              features: ['İnteraktif soru-cevap ile gelir modeli seçimi', 'Görev listesi ve yazılı açıklamalar', 'Gelir-gider takibi', 'Günlük 1 saat yapay zekâ sohbeti', '+150 TL ile sesli yapay zekâ anlatımı'] },
+              features: ['Ücretsiz paketin tüm özellikleri', 'İnteraktif soru-cevap ile gelir modeli seçimi', 'Görev listesi ve yazılı açıklamalar', '+150 TL ile sesli yapay zekâ anlatımı'] },
     semi:   { id: 'semi',   tier: 2, name: 'Yarı Otomasyon', emoji: '⚙️', price: null, narrationIncluded: true,
               features: ['Manuel paketin tüm özellikleri', 'Otomatik içerik/iş planı hazırlama', 'Sesli anlatım dahil'] },
     ceo:    { id: 'ceo',    tier: 3, name: 'CEO Modu',       emoji: '👑', price: null, narrationIncluded: true,
@@ -32,10 +32,14 @@
   function monthKey(now) { const d = new Date(now); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
   function formatDate(now) { const d = new Date(now); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear(); }
 
+  const THEMES = ['system', 'light', 'dark'];
+
   function defaultState() {
     return {
       v: STATE_VERSION,
       user: { name: '' },
+      settings: { theme: 'dark' },
+      goal: { monthly: 0 },
       pkg: 'free',
       addonNarration: false,
       cancelledAt: null,
@@ -56,8 +60,13 @@
     const out = Object.assign(d, s);
     out.user = Object.assign({ name: '' }, s.user || {});
     out.usage = Object.assign({ date: '', seconds: 0 }, s.usage || {});
+    out.settings = Object.assign({ theme: 'dark' }, s.settings || {});
+    if (THEMES.indexOf(out.settings.theme) === -1) out.settings.theme = 'dark';
+    out.goal = Object.assign({ monthly: 0 }, s.goal || {});
+    if (!isFinite(out.goal.monthly) || out.goal.monthly < 0) out.goal.monthly = 0;
     ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) { if (!Array.isArray(out[k])) out[k] = []; });
     if (!PACKAGES[out.pkg]) out.pkg = 'free';
+    out.finance.forEach(function (f) { if (!f.cat) f.cat = 'diger'; if (!f.at) f.at = f.date; });
     return out;
   }
 
@@ -71,7 +80,7 @@
       history: true,
       selectModel: p.tier >= 1,
       tasks: p.tier >= 1 || hasWork,           // abonelik bitse de kendi emeğine manuel devam edebilir
-      finance: p.tier >= 1 || state.finance.length > 0,
+      finance: true,                            // gelir-gider takibi ve grafikler herkese açık
       automation: p.tier >= 2,
       ceo: p.tier >= 3,
       narration: p.tier >= 1 && (p.narrationIncluded || !!state.addonNarration),
@@ -177,11 +186,45 @@
   }
 
   // ---------- Gelir - gider ----------
+  const CATEGORIES = {
+    in: [
+      { id: 'satis', name: 'Satış' }, { id: 'hizmet', name: 'Hizmet bedeli' },
+      { id: 'ortaklik', name: 'Ortaklık / reklam' }, { id: 'diger', name: 'Diğer' }
+    ],
+    out: [
+      { id: 'arac', name: 'Araç / abonelik' }, { id: 'reklam', name: 'Reklam gideri' },
+      { id: 'malzeme', name: 'Malzeme / ürün' }, { id: 'diger', name: 'Diğer' }
+    ]
+  };
+  function categoryName(type, id) {
+    const c = CATEGORIES[type === 'out' ? 'out' : 'in'].find(function (x) { return x.id === id; });
+    return c ? c.name : 'Diğer';
+  }
+  function startOfDay(ts) { const d = new Date(ts); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+  function endOfDay(ts) { const d = new Date(ts); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime() - 1; }
+  // "2026-10-23" -> o günün öğlen 12:00'si (yerel saat). Geçersizse null.
+  function parseDateInput(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const dt = new Date(y, mo - 1, d, 12, 0, 0);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+    return dt.getTime();
+  }
+  function dateInputValue(ts) { return dayKey(ts); }
+
   function addFinance(state, entry, now) {
     const amount = Number(String(entry.amount).replace(',', '.'));
-    if (!isFinite(amount) || amount <= 0) return null;
+    if (!isFinite(amount) || amount <= 0 || amount > 1e9) return null;
     const type = entry.type === 'out' ? 'out' : 'in';
-    const rec = { id: uid('fin'), type: type, amount: Math.round(amount * 100) / 100, note: String(entry.note || '').slice(0, 120), date: now };
+    let date = now;
+    if (entry.date) {
+      date = parseDateInput(entry.date);
+      if (date == null) return null;
+      if (date > endOfDay(now)) return null;       // gelecek tarihe kayıt girilmez
+    }
+    const cat = CATEGORIES[type].some(function (c) { return c.id === entry.cat; }) ? entry.cat : 'diger';
+    const rec = { id: uid('fin'), type: type, amount: Math.round(amount * 100) / 100, cat: cat, note: String(entry.note || '').slice(0, 120), date: date, at: now };
     state.finance.push(rec);
     return rec;
   }
@@ -201,6 +244,145 @@
     sum.net = Math.round((sum.totalIn - sum.totalOut) * 100) / 100;
     sum.monthNet = Math.round((sum.monthIn - sum.monthOut) * 100) / 100;
     return sum;
+  }
+
+  // ---------- Grafik verileri ----------
+  const MONTHS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+  const DAYS_TR = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+  const PERIODS = { '7d': '7 Gün', '30d': '30 Gün', '12m': '12 Ay' };
+
+  function periodRange(period, now) {
+    const d = new Date(now);
+    if (period === '12m') return { start: new Date(d.getFullYear(), d.getMonth() - 11, 1).getTime(), end: endOfDay(now) };
+    const n = period === '30d' ? 30 : 7;
+    return { start: new Date(d.getFullYear(), d.getMonth(), d.getDate() - (n - 1)).getTime(), end: endOfDay(now) };
+  }
+
+  // period: '7d' | '30d' | '12m'. Her kova: gelir, gider, net ve birikimli net (dönemden önceki kayıtlar dahil).
+  function financeSeries(state, period, now) {
+    if (!PERIODS[period]) period = '7d';
+    const d = new Date(now);
+    const buckets = [];
+    if (period === '12m') {
+      for (let i = 11; i >= 0; i--) {
+        const s = new Date(d.getFullYear(), d.getMonth() - i, 1);
+        const e = new Date(d.getFullYear(), d.getMonth() - i + 1, 1);
+        buckets.push({ start: s.getTime(), end: e.getTime() - 1, label: MONTHS_TR[s.getMonth()], full: MONTHS_TR[s.getMonth()] + ' ' + s.getFullYear(), in: 0, out: 0 });
+      }
+    } else {
+      const n = period === '30d' ? 30 : 7;
+      for (let i = n - 1; i >= 0; i--) {
+        const s = new Date(d.getFullYear(), d.getMonth(), d.getDate() - i);
+        const e = new Date(d.getFullYear(), d.getMonth(), d.getDate() - i + 1);
+        const dd = pad(s.getDate()) + '.' + pad(s.getMonth() + 1);
+        buckets.push({ start: s.getTime(), end: e.getTime() - 1, label: n === 7 ? DAYS_TR[s.getDay()] : dd, full: dd + '.' + s.getFullYear(), in: 0, out: 0 });
+      }
+    }
+    let baseline = 0;
+    const first = buckets[0].start, last = buckets[buckets.length - 1].end;
+    state.finance.forEach(function (f) {
+      if (f.date < first) { baseline += f.type === 'in' ? f.amount : -f.amount; return; }
+      if (f.date > last) return;
+      for (let i = 0; i < buckets.length; i++) {
+        if (f.date >= buckets[i].start && f.date <= buckets[i].end) { buckets[i][f.type] += f.amount; break; }
+      }
+    });
+    let cum = baseline, max = 0, totIn = 0, totOut = 0;
+    buckets.forEach(function (b) {
+      b.in = Math.round(b.in * 100) / 100; b.out = Math.round(b.out * 100) / 100;
+      b.net = Math.round((b.in - b.out) * 100) / 100;
+      cum = Math.round((cum + b.net) * 100) / 100; b.cum = cum;
+      max = Math.max(max, b.in, b.out);
+      totIn += b.in; totOut += b.out;
+    });
+    return {
+      period: period, buckets: buckets, max: max,
+      totals: { in: Math.round(totIn * 100) / 100, out: Math.round(totOut * 100) / 100, net: Math.round((totIn - totOut) * 100) / 100 },
+      empty: totIn === 0 && totOut === 0
+    };
+  }
+
+  // Dönem içindeki gelir veya giderin kategorilere dağılımı (büyükten küçüğe).
+  function categorySplit(state, type, period, now) {
+    const r = periodRange(period, now);
+    const map = {};
+    let total = 0;
+    state.finance.forEach(function (f) {
+      if (f.type !== type || f.date < r.start || f.date > r.end) return;
+      map[f.cat || 'diger'] = (map[f.cat || 'diger'] || 0) + f.amount;
+      total += f.amount;
+    });
+    const list = Object.keys(map).map(function (k) {
+      return { id: k, name: categoryName(type, k), amount: Math.round(map[k] * 100) / 100, pct: total ? map[k] / total * 100 : 0 };
+    });
+    list.sort(function (a, b) { return b.amount - a.amount; });
+    return { items: list, total: Math.round(total * 100) / 100 };
+  }
+
+  // ---------- Aylık hedef ----------
+  function setGoal(state, amount) {
+    const n = Number(String(amount).replace(',', '.'));
+    if (!isFinite(n) || n < 0 || n > 1e9) return false;
+    state.goal.monthly = Math.round(n * 100) / 100;
+    return true;
+  }
+  function goalProgress(state, now) {
+    const target = state.goal.monthly || 0;
+    const got = financeSummary(state, now).monthIn;
+    const pct = target > 0 ? Math.min(100, Math.round(got / target * 100)) : 0;
+    return { target: target, got: got, pct: pct, reached: target > 0 && got >= target, left: Math.max(0, Math.round((target - got) * 100) / 100) };
+  }
+
+  // ---------- Seri ve rozetler ----------
+  function activityDays(state) {
+    const set = {};
+    function mark(ts) { if (ts) set[dayKey(ts)] = true; }
+    state.projects.forEach(function (p) { Object.keys(p.tasks).forEach(function (k) { if (p.tasks[k].done) mark(p.tasks[k].doneAt); }); });
+    state.finance.forEach(function (f) { mark(f.at || f.date); });
+    state.chat.forEach(function (c) { if (c.role === 'user') mark(c.at); });
+    state.plans.forEach(function (p) { mark(p.createdAt); });
+    return set;
+  }
+  function streak(state, now) {
+    const set = activityDays(state);
+    const d = new Date(now);
+    function keyBack(i) { return dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - i).getTime()); }
+    const today = !!set[keyBack(0)];
+    let i = today ? 0 : 1, cur = 0;
+    while (set[keyBack(i)]) { cur++; i++; if (i > 3650) break; }
+    // en iyi seri
+    const keys = Object.keys(set).sort();
+    let best = 0, run = 0, prev = null;
+    keys.forEach(function (k) {
+      const parts = k.split('-');
+      const t = new Date(+parts[0], +parts[1] - 1, +parts[2]).getTime();
+      run = (prev !== null && Math.round((t - prev) / 86400000) === 1) ? run + 1 : 1;
+      prev = t; if (run > best) best = run;
+    });
+    return { current: cur, best: Math.max(best, cur), activeToday: today };
+  }
+  function badges(state, now) {
+    const st = streak(state, now);
+    const gp = goalProgress(state, now);
+    const doneTasks = state.projects.reduce(function (n, p) { return n + progress(p).done; }, 0);
+    const projDone = state.projects.some(function (p) { return progress(p).complete; });
+    const firstIncome = state.finance.some(function (f) { return f.type === 'in'; });
+    return [
+      { id: 'first-task', emoji: '🌱', title: 'İlk adım', desc: 'İlk görevini tamamla', earned: doneTasks >= 1 },
+      { id: 'first-record', emoji: '🧾', title: 'Kayıt tutan', desc: 'İlk gelir/gider kaydını gir', earned: state.finance.length >= 1 },
+      { id: 'first-income', emoji: '💰', title: 'İlk gelir', desc: 'İlk gerçek gelirini kaydet', earned: firstIncome },
+      { id: 'streak-3', emoji: '🔥', title: '3 gün seri', desc: 'Üst üste 3 gün çalış', earned: st.best >= 3 },
+      { id: 'streak-7', emoji: '⚡', title: '7 gün seri', desc: 'Üst üste 7 gün çalış', earned: st.best >= 7 },
+      { id: 'goal', emoji: '🎯', title: 'Hedef tamam', desc: 'Aylık gelir hedefine ulaş', earned: gp.reached },
+      { id: 'project', emoji: '🏆', title: 'Proje bitti', desc: 'Bir projenin tüm görevlerini bitir', earned: projDone }
+    ];
+  }
+
+  // ---------- Tema ----------
+  function setTheme(state, theme) {
+    if (THEMES.indexOf(theme) === -1) return false;
+    state.settings.theme = theme;
+    return true;
   }
 
   // ---------- Paketler (TEST modu: gerçek ödeme yok) ----------
@@ -310,11 +492,18 @@
       if (ent.automation) return 'Bu tür hazırlıkları "Otomasyon" bölümünden yapabilirsin. Orada günlük planı senin için hazırlıyorum.';
       return 'Bu işlemleri senin adına otomatik yapmak ücretli paketlerin (Yarı Otomasyon / CEO Modu) bir özelliği. Ama bunu kendin yapabilmen için yöntemi anlatabilirim: hedefini, haftalık sıklığını ve formatını seç, sonra her içeriği adım adım hazırla. İstersen ilk adımı birlikte netleştirelim.';
     }
-    if (/geçmiş|eski çalışma|eski işlem|nereden (bul|ulaş)/.test(t)) {
-      return 'Daha önce tamamladığın çalışmalara ekranın üst kısmındaki ↶ simgesinden (Geçmiş İşlemler) ulaşabilirsin.';
-    }
+    // Dürüstlük sorusu her zaman öncelikli (içinde "kazanç" geçse bile)
     if (/garanti|ne kadar kazan|kaç para|zengin|milyon|hemen para/.test(t)) {
       return 'Dürüst olmak istiyorum: hiçbir gelir modeli için garanti verilemez. Çoğu iş ilk haftalarda hiç gelir getirmeyebilir. Önemli olan küçük adımlarla ilerleyip gerçek rakamlarını Kazanç bölümünde takip etmek.';
+    }
+    if (/grafik|kazanç|kazancı|gelir.?gider|bütçe|aylık hedef|gelir hedef|hedefim/.test(t)) {
+      return 'Gelir-gider kayıtlarını ve grafiklerini alttaki Kazanç sekmesinden herkes ücretsiz kullanabilir. Orada aylık hedef de koyabilirsin. Gerçek rakamlarını girdikçe grafikler kendiliğinden çizilir.';
+    }
+    if (/\bseri\b|\bserim\b|rozet/.test(t)) {
+      return 'Ana ekrandaki çalışma serisi, her gün görev tamamladığında, kayıt girdiğinde veya sohbet ettiğinde artar. Rozetler de ana ekranda duruyor.';
+    }
+    if (/geçmiş|eski çalışma|eski işlem|nereden (bul|ulaş)/.test(t)) {
+      return 'Daha önce tamamladığın çalışmalara ekranın üst kısmındaki ↶ simgesinden (Geçmiş İşlemler) ulaşabilirsin.';
     }
     const terms = explainTerm(t);
     if (terms.length) return terms.join('\n\n');
@@ -341,6 +530,26 @@
   // ---------- Dışa aktarma ----------
   function exportData(state) { return JSON.stringify(state, null, 2); }
 
+  function csvCell(v) {
+    let s = String(v == null ? '' : v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;           // Excel formül enjeksiyonunu engelle
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function exportCsv(state) {
+    const rows = ['Tarih;Tür;Kategori;Tutar (TL);Not'];
+    state.finance.slice().sort(function (a, b) { return a.date - b.date; }).forEach(function (f) {
+      rows.push([formatDate(f.date), f.type === 'in' ? 'Gelir' : 'Gider', categoryName(f.type, f.cat), String(f.amount).replace('.', ','), f.note].map(csvCell).join(';'));
+    });
+    return '﻿' + rows.join('\r\n');
+  }
+
+  function chatSuggestions(state) {
+    const s = ['Nereden başlayayım?', 'Hedef kitle ne demek?', 'Garanti kazanç var mı?'];
+    if (state.projects.length || state.finance.length) s.push('Geçmiş işlemlerime nereden ulaşırım?');
+    else s.push('Kazancımı nasıl takip ederim?');
+    return s;
+  }
+
   return {
     DAILY_LIMIT_SEC: DAILY_LIMIT_SEC, NARRATION_ADDON_TL: NARRATION_ADDON_TL, PACKAGES: PACKAGES,
     defaultState: defaultState, migrate: migrate, entitlements: entitlements,
@@ -350,6 +559,10 @@
     startProject: startProject, projectById: projectById, activeProject: activeProject,
     progress: progress, nextTask: nextTask, setTaskDone: setTaskDone, setTaskNote: setTaskNote,
     addFinance: addFinance, removeFinance: removeFinance, financeSummary: financeSummary,
+    CATEGORIES: CATEGORIES, categoryName: categoryName, parseDateInput: parseDateInput, dateInputValue: dateInputValue,
+    PERIODS: PERIODS, periodRange: periodRange, financeSeries: financeSeries, categorySplit: categorySplit,
+    setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
+    THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData
