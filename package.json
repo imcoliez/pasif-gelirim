@@ -1,0 +1,21 @@
+{
+  "name": "pasif-gelirim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pasif Gelirim - kendi dijital işini adım adım kur",
+  "scripts": {
+    "test": "node test/core.test.js",
+    "test:e2e": "node test/e2e.js",
+    "serve": "npx --yes serve www -l 5173",
+    "android:add": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:debug": "npx cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

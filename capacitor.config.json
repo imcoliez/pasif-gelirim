@@ -1,0 +1,9 @@
+{
+  "appId": "com.pasifgelirim.app",
+  "appName": "Pasif Gelirim",
+  "webDir": "www",
+  "backgroundColor": "#0f9d58",
+  "android": {
+    "allowMixedContent": false
+  }
+}
