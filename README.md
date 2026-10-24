@@ -1,14 +1,19 @@
 # Pasif Gelirim — DAHA FAZLASI MÜMKÜN.
 
-Sürüm 0.2 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
+Sürüm 0.3 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
 
 ## Neler çalışıyor
 
 | Özellik | Durum |
 |---|---|
-| Logo: uygulama ikonu (uyarlanabilir + yuvarlak), açılış ekranı, uygulama içi logo | ✅ |
-| Siyah / Açık / Sistem teması (üstteki ☀️/🌙 düğmesi ve Ayarlar) | ✅ |
-| Sayfa geçiş animasyonları, kayan alt menü çizgisi, grafik animasyonları, konfeti | ✅ |
+| Yeni logo: uygulama ikonu (uyarlanabilir + yuvarlak), açılış ekranı, uygulama içi logo | ✅ |
+| Profesyonel görünüm: çizgi simgeli alt menü (hap biçimli seçili durum), sakin renk paleti, emoji yok | ✅ |
+| İlk açılış tanıtımı (3 sayfa) | ✅ |
+| PIN kilidi (4 haneli, özetlenmiş saklama, 5 yanlışta 30 sn bekleme, arka plandan dönünce yeniden sorar) | ✅ |
+| Günlük hatırlatıcı bildirimi (yalnızca APK) | ✅ (cihazda denenmedi) |
+| Yedekten geri yükleme (JSON), tanılama bilgisi, aylık özet kartı, hızlı gelir/gider ekle | ✅ |
+| Siyah / Açık / Sistem teması (üstteki düğme ve Ayarlar) | ✅ |
+| Sayfa geçiş animasyonları, grafik animasyonları, sade konfeti | ✅ |
 | **Kazanç herkese açık (ücretsiz):** gelir-gider kaydı, kategori, tarih, filtre | ✅ |
 | **Gelir-Gider Grafikleri:** 7 gün / 30 gün / 12 ay, sütun grafiği, birikimli net çizgisi, gelir kaynakları ve gider dağılımı halkaları | ✅ |
 | Aylık gelir hedefi ve ilerleme halkası | ✅ |
@@ -28,7 +33,7 @@ Sürüm 0.2 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 1. **Gerçek ödeme:** Google Play Faturalandırma (aylık abonelik). Fiyatlar belirlenmedi.
 2. **Gerçek yapay zekâ:** Anahtar uygulamaya konmaz; küçük bir sunucu gerekir. Süre sınırı da sunucuda tutulmalı (şimdi cihazda).
 3. **Hesap/giriş ve bulut kaydı:** Veriler şimdilik yalnızca cihazda.
-4. **Yüksek çözünürlüklü logo:** Elimizdeki logo 168×170 piksel. Play Store 512×512 ister; daha büyük bir sürümü `branding/logo.png` yerine konmalı.
+4. **Play Store simgesi:** `branding/logo.png` 1024 px; mağaza 512×512 PNG ister (buradan üretilebilir).
 5. Gizlilik politikası ve kullanım şartlarının hukuki olarak tamamlanması, Play mağaza kaydı.
 
 ## APK alma (GitHub, bilgisayara bir şey kurmadan)
@@ -52,7 +57,7 @@ npm run serve     # http://localhost:5173
 
 ## Test
 ```
-npm test          # iş mantığı testleri (27)
+npm test          # iş mantığı testleri (32)
 npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 ```
 

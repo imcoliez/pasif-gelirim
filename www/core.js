@@ -37,8 +37,9 @@
   function defaultState() {
     return {
       v: STATE_VERSION,
-      user: { name: '' },
-      settings: { theme: 'dark' },
+      user: { name: '', onboarded: false },
+      settings: { theme: 'dark', reminder: { enabled: false, time: '20:00' } },
+      lock: { enabled: false, salt: '', hash: '' },
       goal: { monthly: 0 },
       pkg: 'free',
       addonNarration: false,
@@ -58,15 +59,29 @@
     const d = defaultState();
     if (!s || typeof s !== 'object') return d;
     const out = Object.assign(d, s);
-    out.user = Object.assign({ name: '' }, s.user || {});
+    out.user = Object.assign({ name: '', onboarded: false }, s.user || {});
+    out.user.name = String(out.user.name || '').slice(0, 30);
+    out.user.onboarded = !!out.user.onboarded;
     out.usage = Object.assign({ date: '', seconds: 0 }, s.usage || {});
     out.settings = Object.assign({ theme: 'dark' }, s.settings || {});
     if (THEMES.indexOf(out.settings.theme) === -1) out.settings.theme = 'dark';
+    out.settings.reminder = Object.assign({ enabled: false, time: '20:00' }, (s.settings && s.settings.reminder) || {});
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(out.settings.reminder.time)) out.settings.reminder.time = '20:00';
+    out.settings.reminder.enabled = !!out.settings.reminder.enabled;
+    out.lock = Object.assign({ enabled: false, salt: '', hash: '' }, s.lock || {});
+    if (!out.lock.hash || !out.lock.salt) out.lock.enabled = false;
+    out.lock.enabled = !!out.lock.enabled;
+    if (out.user.name) out.user.onboarded = true;       // eski kullanıcılar tanıtımı atlar
     out.goal = Object.assign({ monthly: 0 }, s.goal || {});
     if (!isFinite(out.goal.monthly) || out.goal.monthly < 0) out.goal.monthly = 0;
     ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) { if (!Array.isArray(out[k])) out[k] = []; });
     if (!PACKAGES[out.pkg]) out.pkg = 'free';
+    // bozuk kayıtlardaki geçersiz öğeleri (null, metin...) ayıkla
+    ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) {
+      out[k] = out[k].filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); });
+    });
     out.finance.forEach(function (f) { if (!f.cat) f.cat = 'diger'; if (!f.at) f.at = f.date; });
+    out.projects.forEach(function (p) { if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {}; });
     return out;
   }
 
@@ -378,6 +393,83 @@
     ];
   }
 
+  // ---------- Aylık özet ----------
+  function monthSummary(state, y, m) {
+    const s = new Date(y, m, 1).getTime(), e = new Date(y, m + 1, 1).getTime() - 1;
+    const r = { in: 0, out: 0, net: 0, cats: { in: {}, out: {} }, count: 0 };
+    state.finance.forEach(function (f) {
+      if (f.date < s || f.date > e) return;
+      r.count++;
+      r[f.type] += f.amount;
+      r.cats[f.type][f.cat || 'diger'] = (r.cats[f.type][f.cat || 'diger'] || 0) + f.amount;
+    });
+    r.in = Math.round(r.in * 100) / 100; r.out = Math.round(r.out * 100) / 100;
+    r.net = Math.round((r.in - r.out) * 100) / 100;
+    return r;
+  }
+  function topCat(cats, type) {
+    let best = null;
+    Object.keys(cats).forEach(function (k) { if (!best || cats[k] > best.amount) best = { id: k, name: categoryName(type, k), amount: Math.round(cats[k] * 100) / 100 }; });
+    return best;
+  }
+  // Bu ay / geçen ay karşılaştırması ve kısa içgörüler (yalnızca girilen gerçek kayıtlara dayanır).
+  function insights(state, now) {
+    const d = new Date(now);
+    const cur = monthSummary(state, d.getFullYear(), d.getMonth());
+    const prev = monthSummary(state, d.getFullYear(), d.getMonth() - 1);
+    return {
+      hasData: cur.count > 0 || prev.count > 0,
+      thisMonth: { in: cur.in, out: cur.out, net: cur.net },
+      lastMonth: { in: prev.in, out: prev.out, net: prev.net },
+      hasLast: prev.count > 0,
+      diffNet: Math.round((cur.net - prev.net) * 100) / 100,
+      bestIncome: topCat(cur.cats.in, 'in'),
+      topExpense: topCat(cur.cats.out, 'out'),
+      savingsRate: cur.in > 0 ? Math.round(cur.net / cur.in * 100) : null
+    };
+  }
+
+  // ---------- Hatırlatıcı ----------
+  function setReminder(state, enabled, time) {
+    if (time != null && !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(time))) return false;
+    if (time != null) state.settings.reminder.time = String(time);
+    if (enabled != null) state.settings.reminder.enabled = !!enabled;
+    return true;
+  }
+
+  // ---------- Uygulama kilidi (PIN özeti ana dosyada üretilir; burada yalnızca saklanır) ----------
+  function isValidPin(pin) { return /^\d{4}$/.test(String(pin)); }
+  function setLock(state, salt, hash) {
+    if (!salt || !hash) return false;
+    state.lock = { enabled: true, salt: String(salt), hash: String(hash) };
+    return true;
+  }
+  function clearLock(state) { state.lock = { enabled: false, salt: '', hash: '' }; }
+
+  // ---------- Yedekten geri yükleme ----------
+  const MAX_IMPORT_CHARS = 5 * 1024 * 1024;
+  function importData(text) {
+    if (typeof text !== 'string' || !text.trim()) return { ok: false, error: 'Dosya boş.' };
+    if (text.length > MAX_IMPORT_CHARS) return { ok: false, error: 'Dosya çok büyük.' };
+    let raw;
+    try { raw = JSON.parse(text.replace(/^﻿/, '')); } catch (e) { return { ok: false, error: 'Bu bir yedek dosyası değil (JSON okunamadı).' }; }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: 'Yedek dosyası geçersiz.' };
+    if (!('finance' in raw) && !('projects' in raw) && !('user' in raw)) return { ok: false, error: 'Bu dosya Pasif Gelirim yedeği gibi görünmüyor.' };
+    const st = migrate(raw);
+    // geçersiz kayıtları ayıkla, sayıları sınırla
+    st.finance = st.finance.filter(function (f) {
+      return f && (f.type === 'in' || f.type === 'out') && isFinite(f.amount) && f.amount > 0 && f.amount <= 1e9 && isFinite(f.date);
+    }).slice(-5000).map(function (f) {
+      return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date };
+    });
+    st.projects = st.projects.filter(function (p) { return p && modelById(p.modelId) && p.tasks && typeof p.tasks === 'object'; }).slice(0, 200);
+    st.chat = st.chat.slice(-200);
+    st.plans = st.plans.slice(-200);
+    st.decisions = st.decisions.slice(-200);
+    if (!projectById(st, st.activeProjectId)) st.activeProjectId = st.projects.length ? st.projects[st.projects.length - 1].id : null;
+    return { ok: true, state: st, counts: { finance: st.finance.length, projects: st.projects.length } };
+  }
+
   // ---------- Tema ----------
   function setTheme(state, theme) {
     if (THEMES.indexOf(theme) === -1) return false;
@@ -528,7 +620,12 @@
   }
 
   // ---------- Dışa aktarma ----------
-  function exportData(state) { return JSON.stringify(state, null, 2); }
+  // Yedeğe PIN özeti konmaz (başkasına gönderilen dosyada kilit bilgisi olmasın).
+  function exportData(state) {
+    const copy = Object.assign({}, state);
+    delete copy.lock;
+    return JSON.stringify(copy, null, 2);
+  }
 
   function csvCell(v) {
     let s = String(v == null ? '' : v);
@@ -563,6 +660,8 @@
     PERIODS: PERIODS, periodRange: periodRange, financeSeries: financeSeries, categorySplit: categorySplit,
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
+    insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
+    importData: importData, APP_VERSION: '0.3',
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData

@@ -350,4 +350,104 @@ test('AI: kazanç ve grafik sorusu Kazanç sekmesine yönlendirir, "hedef kitle"
   assert.ok(C.aiReply(s, 'Kazancımı nasıl takip ederim?', T0).includes('Kazanç sekmesinden'));
 });
 
+// ---------- v0.3: tanıtım, kilit, hatırlatıcı, yedek, özet ----------
+
+test('varsayılanlar ve eski kayıt göçü: tanıtım, hatırlatıcı, kilit', () => {
+  const s = C.defaultState();
+  assert.strictEqual(s.user.onboarded, false);
+  assert.deepStrictEqual(s.settings.reminder, { enabled: false, time: '20:00' });
+  assert.strictEqual(s.lock.enabled, false);
+  assert.strictEqual(C.migrate({ user: { name: 'Ali' } }).user.onboarded, true, 'adı olan eski kullanıcı tanıtımı atlar');
+  assert.strictEqual(C.migrate({ user: { name: '' } }).user.onboarded, false);
+  assert.strictEqual(C.migrate({ settings: { reminder: { enabled: true, time: '25:99' } } }).settings.reminder.time, '20:00');
+  assert.strictEqual(C.migrate({ lock: { enabled: true, salt: '', hash: '' } }).lock.enabled, false, 'özetsiz kilit açık sayılmaz');
+  assert.strictEqual(C.migrate({ lock: { enabled: true, salt: 's', hash: 'h' } }).lock.enabled, true);
+});
+
+test('hatırlatıcı: geçerli saat kabul, geçersiz reddedilir', () => {
+  const s = C.defaultState();
+  assert.ok(C.setReminder(s, true, '08:30'));
+  assert.deepStrictEqual(s.settings.reminder, { enabled: true, time: '08:30' });
+  assert.strictEqual(C.setReminder(s, true, '8:30'), false);
+  assert.strictEqual(C.setReminder(s, true, '24:00'), false);
+  assert.strictEqual(s.settings.reminder.time, '08:30');
+  assert.ok(C.setReminder(s, false, null));
+  assert.strictEqual(s.settings.reminder.enabled, false);
+  assert.strictEqual(s.settings.reminder.time, '08:30');
+});
+
+test('kilit: PIN biçimi, kaydetme, kaldırma; yedeğe kilit bilgisi girmez', () => {
+  const s = C.defaultState();
+  assert.ok(C.isValidPin('0420') && !C.isValidPin('123') && !C.isValidPin('12345') && !C.isValidPin('12a4'));
+  assert.strictEqual(C.setLock(s, '', 'x'), false);
+  assert.ok(C.setLock(s, 'salt', 'hash'));
+  assert.ok(s.lock.enabled);
+  assert.ok(!C.exportData(s).includes('"hash"') && !C.exportData(s).includes('"lock"'), 'dışa aktarmada kilit yok');
+  C.clearLock(s);
+  assert.deepStrictEqual(s.lock, { enabled: false, salt: '', hash: '' });
+});
+
+test('yedek içe aktarma: gidiş-dönüş, bozuk dosya, geçersiz kayıt ayıklama', () => {
+  const s = C.defaultState();
+  s.user.name = 'Ali';
+  C.setPackage(s, 'manual', T0);
+  const p = C.startProject(s, 'freelance', T0);
+  C.setTaskDone(s, p.id, 't1', true, T0);
+  C.addFinance(s, { type: 'in', amount: 120, cat: 'satis', note: 'x', date: '2026-10-20' }, T0);
+  const r = C.importData(C.exportData(s));
+  assert.ok(r.ok);
+  assert.strictEqual(r.state.user.name, 'Ali');
+  assert.strictEqual(r.state.finance.length, 1);
+  assert.strictEqual(r.state.finance[0].amount, 120);
+  assert.strictEqual(r.state.projects.length, 1);
+  assert.strictEqual(r.state.activeProjectId, p.id);
+  assert.strictEqual(r.counts.finance, 1);
+  assert.strictEqual(C.importData('').ok, false);
+  assert.strictEqual(C.importData('{bozuk').ok, false);
+  assert.strictEqual(C.importData('[1,2]').ok, false);
+  assert.strictEqual(C.importData('{"foo":1}').ok, false);
+  assert.strictEqual(C.importData('x'.repeat(6 * 1024 * 1024)).ok, false, 'çok büyük dosya');
+  const dirty = JSON.stringify({
+    finance: [
+      { id: 'a', type: 'in', amount: 5, date: T0 }, { id: 'b', type: 'zzz', amount: 5, date: T0 },
+      { id: 'c', type: 'out', amount: -4, date: T0 }, { id: 'd', type: 'out', amount: 'x', date: T0 },
+      { id: 'e', type: 'out', amount: 7, date: 'yok' }, null, 'metin'
+    ],
+    projects: [{ modelId: 'yok', tasks: {} }, { modelId: 'freelance', tasks: {} }, { modelId: 'freelance' }]
+  });
+  const d = C.importData(dirty);
+  assert.ok(d.ok);
+  assert.deepStrictEqual(d.state.finance.map(f => f.id), ['a']);
+  assert.strictEqual(d.state.projects.length, 2, 'bilinmeyen modelli proje atılır, görevi eksik ama modeli geçerli proje onarılır');
+  assert.ok(d.state.projects.every(p => p.modelId === 'freelance' && typeof p.tasks === 'object'));
+  assert.ok(d.state.finance[0].cat === 'diger' && d.state.finance[0].at);
+  assert.ok(C.importData(C.exportCsv(s)).ok === false, 'CSV yedek olarak kabul edilmez');
+});
+
+test('aylık özet: bu ay / geçen ay, en çok kategori, tasarruf oranı', () => {
+  const s = C.defaultState();
+  assert.strictEqual(C.insights(s, T0).hasData, false);
+  C.addFinance(s, { type: 'in', amount: 1000, cat: 'satis', date: '2026-10-05' }, T0);
+  C.addFinance(s, { type: 'in', amount: 250, cat: 'hizmet', date: '2026-10-06' }, T0);
+  C.addFinance(s, { type: 'out', amount: 300, cat: 'arac', date: '2026-10-07' }, T0);
+  C.addFinance(s, { type: 'out', amount: 50, cat: 'reklam', date: '2026-10-08' }, T0);
+  let i = C.insights(s, T0);
+  assert.ok(i.hasData && !i.hasLast);
+  assert.strictEqual(i.thisMonth.net, 900);
+  assert.strictEqual(i.bestIncome.name, 'Satış');
+  assert.strictEqual(i.topExpense.name, 'Araç / abonelik');
+  assert.strictEqual(i.savingsRate, 72);
+  C.addFinance(s, { type: 'in', amount: 400, cat: 'satis', date: '2026-09-10' }, T0);
+  C.addFinance(s, { type: 'out', amount: 100, cat: 'arac', date: '2026-09-11' }, T0);
+  i = C.insights(s, T0);
+  assert.ok(i.hasLast);
+  assert.strictEqual(i.lastMonth.net, 300);
+  assert.strictEqual(i.diffNet, 600);
+  C.addFinance(s, { type: 'out', amount: 10, date: '2026-09-12' }, T0);
+  assert.strictEqual(C.insights(s, T0 + 40 * DAY).thisMonth.net, 0, 'ay değişince bu ay boş');
+  const onlyOut = C.defaultState();
+  C.addFinance(onlyOut, { type: 'out', amount: 10, date: '2026-10-05' }, T0);
+  assert.strictEqual(C.insights(onlyOut, T0).savingsRate, null, 'gelir yoksa tasarruf oranı yok');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

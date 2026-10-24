@@ -6,7 +6,48 @@
 
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'tasks', 'chat', 'money', 'packages'];
+  const NO_CHROME = ['welcome', 'onboarding', 'lock'];
   const TITLES = { task: 'Görev', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+
+  // ---------- Çizgi simgeler ----------
+  const ICONS = {
+    home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    tasks: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    chat: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>',
+    trend: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+    layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+    moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    history: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><polyline points="12 7 12 12 15 14"/>',
+    sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+    back: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    minus: '<line x1="5" y1="12" x2="19" y2="12"/>',
+    chart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+    upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+    help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+    file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+    trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-1.21 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98 1.21 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    backspace: '<path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/>',
+    user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+    chevron: '<polyline points="9 18 15 12 9 6"/>'
+  };
+  function icon(name, size) {
+    const s = size || 20;
+    return '<svg class="i" viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || '') + '</svg>';
+  }
+  const BADGE_ICON = { 'first-task': 'check', 'first-record': 'file', 'first-income': 'trend', 'streak-3': 'flame', 'streak-7': 'flame', 'goal': 'target', 'project': 'trophy' };
 
   // ---------- Yardımcılar ----------
   function esc(s) {
@@ -18,9 +59,10 @@
   function tl(n) {
     return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
   }
+  function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + tl(Math.abs(n)); }
   function bar(pct) { return '<div class="bar"><div class="bar-fill" style="width:' + pct + '%"></div></div>'; }
   function lock(msg, btnText, route) {
-    return '<div class="card lock"><div class="lock-ico">🔒</div><p>' + esc(msg) + '</p>' +
+    return '<div class="card lock"><div class="lock-ico">' + icon('lock', 28) + '</div><p>' + esc(msg) + '</p>' +
       (btnText ? '<button class="btn" data-act="go" data-route="' + route + '">' + esc(btnText) + '</button>' : '') + '</div>';
   }
   function niceCeil(v) {
@@ -41,10 +83,14 @@
       return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>';
     }).join('');
   }
-  function seg(items, cur, act, key) {
+  function seg(items, cur, act) {
     return '<div class="segctl" role="group">' + items.map(function (it) {
-      return '<button class="segbtn ' + (cur === it.v ? 'on' : '') + '" data-act="' + act + '" data-v="' + esc(it.v) + '"' + (key ? ' data-key="' + key + '"' : '') + '>' + esc(it.t) + '</button>';
+      return '<button class="segbtn ' + (cur === it.v ? 'on' : '') + '" data-act="' + act + '" data-v="' + esc(it.v) + '">' + esc(it.t) + '</button>';
     }).join('') + '</div>';
+  }
+  function rowLink(ic, title, sub, act, extra) {
+    return '<button class="rowlink" data-act="' + act + '"' + (extra || '') + '><span class="rl-ic">' + icon(ic, 20) + '</span><span class="rl-tx"><b>' + esc(title) + '</b>' +
+      (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span>' + icon('chevron', 18) + '</button>';
   }
 
   // ---------- SVG grafikler ----------
@@ -95,7 +141,7 @@
     if (lo < 0 && hi > 0) g += '<line class="zero" x1="' + CL + '" x2="' + (CW - CR) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
     const pts = vals.map(function (v, i) { return x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
     const base = Math.min(CT + PH, Math.max(CT, y(0)));
-    g += '<defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--g);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--g);stop-opacity:0"/></linearGradient></defs>';
+    g += '<defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--g);stop-opacity:.3"/><stop offset="1" style="stop-color:var(--g);stop-opacity:0"/></linearGradient></defs>';
     g += '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1).toFixed(1) + ' ' + base + ' L' + x(0).toFixed(1) + ' ' + base + ' Z" fill="url(#gArea)"/>';
     g += '<path class="line" pathLength="1" d="M' + pts.join(' L') + '" fill="none"/>';
     const step = n <= 12 ? 1 : Math.ceil(n / 6);
@@ -136,7 +182,7 @@
     return '<svg viewBox="0 0 120 36" class="spark" aria-hidden="true"><polyline class="line" pathLength="1" points="' + pts.join(' ') + '" fill="none"/></svg>';
   }
 
-  function legend(items, type) {
+  function legend(items) {
     if (!items.length) return '<p class="muted small">Bu dönemde kayıt yok.</p>';
     return '<ul class="legend">' + items.map(function (it, i) {
       return '<li><i style="background:var(--c' + (i % 4) + ')"></i><span>' + esc(it.name) + '</span><b>' + tl(it.amount) + '</b><small>%' + Math.round(it.pct) + '</small></li>';
@@ -145,6 +191,20 @@
 
   // ---------- Görünümler ----------
   const views = {};
+
+  const ONB = [
+    { ic: 'target', t: 'Gerçekçi başla', d: 'Pasif Gelirim garanti kazanç vaat etmez. Sana uygun bir dijital iş modelini seçmene ve adım adım kurmana yardım eder.' },
+    { ic: 'tasks', t: 'Adım adım ilerle', d: 'Kısa görevlerle işini kur. Takıldığın yerde yapay zekâ sohbetinden destek al.' },
+    { ic: 'trend', t: 'Rakamlarını takip et', d: 'Gelir ve giderlerini kaydet, grafiklerle gerçek ilerlemeni gör. Bu bölüm herkese ücretsiz.' }
+  ];
+
+  views.onboarding = function (S, ui) {
+    const i = Math.max(0, Math.min(ONB.length - 1, ui.onb || 0)), s = ONB[i];
+    return '<div class="onb"><div class="onb-top"><img class="onb-logo" src="logo.png" alt=""><button class="link" data-act="onbSkip">Atla</button></div>' +
+      '<div class="onb-body"><div class="onb-ic">' + icon(s.ic, 44) + '</div><h1>' + esc(s.t) + '</h1><p>' + esc(s.d) + '</p></div>' +
+      '<div class="onb-foot"><div class="pager">' + ONB.map(function (_, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+      '<button class="btn big" data-act="onbNext">' + (i === ONB.length - 1 ? 'Başlayalım' : 'Devam') + '</button></div></div>';
+  };
 
   views.welcome = function (S) {
     return '<div class="welcome">' +
@@ -156,6 +216,20 @@
       '<button class="btn big" data-act="start">Başla</button></div>';
   };
 
+  views.lock = function (S, ui) {
+    const mode = ui.pinMode || 'unlock';
+    const titles = { unlock: 'PIN kodunu gir', new: 'Yeni PIN belirle', confirm: 'PIN\'i tekrar gir', disable: 'Kilidi kapatmak için PIN gir' };
+    const len = (ui.pin || '').length;
+    let keys = '';
+    ['1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) { keys += '<button class="key" data-act="pinKey" data-v="' + k + '">' + k + '</button>'; });
+    keys += '<span></span><button class="key" data-act="pinKey" data-v="0">0</button><button class="key del" data-act="pinKey" data-v="del" aria-label="Sil">' + icon('backspace', 24) + '</button>';
+    return '<div class="pinwrap"><img class="pin-logo" src="logo.png" alt=""><h2>' + esc(titles[mode]) + '</h2>' +
+      '<div class="dots" id="pinDots">' + [0, 1, 2, 3].map(function (k) { return '<i class="' + (k < len ? 'f' : '') + '"></i>'; }).join('') + '</div>' +
+      '<p class="pin-msg" role="alert">' + esc(ui.pinMsg || '') + '</p>' +
+      '<div class="keypad">' + keys + '</div>' +
+      (mode === 'unlock' ? '<button class="link" data-act="pinForgot">PIN\'imi unuttum</button>' : '<button class="link" data-act="pinCancel">Vazgeç</button>') + '</div>';
+  };
+
   views.home = function (S, ui, now) {
     const ent = Core.entitlements(S);
     const p = Core.activeProject(S);
@@ -163,15 +237,16 @@
     const st = Core.streak(S, now);
     const week = Core.financeSeries(S, '7d', now);
     const gp = Core.goalProgress(S, now);
-    let html = '<h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + ' 👋</h2>';
-    html += '<div class="chip">' + ent.pkg.emoji + ' ' + esc(ent.pkg.name) + ' paketi</div>';
+    let html = '<h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2>';
+    html += '<div class="chip">' + esc(ent.pkg.name) + ' paketi</div>';
     if (S.cancelledAt && ent.pkg.tier === 0) {
-      html += '<div class="card note">Aboneliğin sona erdi. Kurduğun işe manuel devam edebilir, eski çalışmalarına ↶ Geçmiş İşlemler\'den ulaşabilirsin.</div>';
+      html += '<div class="card note">Aboneliğin sona erdi. Kurduğun işe manuel devam edebilir, eski çalışmalarına Geçmiş İşlemler\'den ulaşabilirsin.</div>';
     }
-    html += '<div class="card streak"><div class="row"><div><span class="flame">' + (st.current > 0 ? '🔥' : '🌱') + '</span> <b>' + st.current + ' günlük seri</b></div><span class="muted small">En iyi: ' + st.best + '</span></div>' +
-      '<p class="muted small">' + (st.activeToday ? 'Bugün de çalıştın, harika!' : (st.current > 0 ? 'Serini korumak için bugün küçük bir adım at.' : 'Bugün bir görev tamamla, kayıt gir veya sohbet et; seri başlasın.')) + '</p>' +
+    html += '<div class="qa-row"><button class="qa in" data-act="quickAdd" data-v="in">' + icon('plus', 18) + 'Gelir ekle</button><button class="qa out" data-act="quickAdd" data-v="out">' + icon('minus', 18) + 'Gider ekle</button></div>';
+    html += '<div class="card streak"><div class="row"><div class="sline"><span class="flame ' + (st.current > 0 ? 'on' : '') + '">' + icon('flame', 22) + '</span><b>' + st.current + ' günlük seri</b></div><span class="muted small">En iyi: ' + st.best + '</span></div>' +
+      '<p class="muted small">' + (st.activeToday ? 'Bugün de çalıştın, harika.' : (st.current > 0 ? 'Serini korumak için bugün küçük bir adım at.' : 'Bir görev tamamla, kayıt gir veya sohbet et; seri başlasın.')) + '</p>' +
       '<div class="badges">' + Core.badges(S, now).map(function (b) {
-        return '<span class="badge ' + (b.earned ? 'on' : '') + '" title="' + esc(b.title + ' — ' + b.desc) + '"><i>' + (b.earned ? b.emoji : '🔒') + '</i><small>' + esc(b.title) + '</small></span>';
+        return '<span class="badge ' + (b.earned ? 'on' : '') + '" title="' + esc(b.title + ' — ' + b.desc) + '"><i>' + icon(b.earned ? (BADGE_ICON[b.id] || 'check') : 'lock', 20) + '</i><small>' + esc(b.title) + '</small></span>';
       }).join('') + '</div></div>';
     if (p) {
       const pr = Core.progress(p);
@@ -179,21 +254,21 @@
       html += '<div class="card"><div class="row"><b>' + esc(p.title) + '</b><span class="muted">%' + pr.pct + '</span></div>' + bar(pr.pct) +
         '<p class="muted">' + pr.done + ' / ' + pr.total + ' görev tamamlandı</p>' +
         (nt ? '<button class="btn" data-act="openTask" data-id="' + esc(nt.id) + '">Sıradaki: ' + esc(nt.title) + '</button>'
-            : '<p>🎉 Tüm görevleri tamamladın. Şimdi sonuçlarını takip etme zamanı.</p>') + '</div>';
+            : '<p>Tüm görevleri tamamladın. Şimdi sonuçlarını takip etme zamanı.</p>') + '</div>';
     } else if (ent.selectModel) {
       html += '<div class="card"><b>Henüz bir gelir modeli seçmedin.</b><p class="muted">Birkaç kısa soruyla sana uygun olanı bulalım.</p>' +
         '<button class="btn" data-act="go" data-route="tasks">Gelir modelimi seç</button></div>';
     } else {
       html += lock('Gelir modeli seçmek ve görev listesini kullanmak için Manuel paket gerekir.', 'Paketlere bak', 'packages');
     }
-    html += '<button class="card weekcard" data-act="go" data-route="charts"><div class="row"><b>📊 Son 7 gün</b><span class="muted small">Grafikleri aç ›</span></div>' +
+    html += '<button class="card weekcard" data-act="go" data-route="charts"><div class="row"><b>Son 7 gün</b><span class="muted small">Grafikleri aç ›</span></div>' +
       '<div class="row"><div><div class="big ' + (week.totals.net < 0 ? 'neg' : '') + '">' + tl(week.totals.net) + '</div><small class="muted">net</small></div>' + (week.empty ? '<small class="muted">Henüz kayıt yok</small>' : spark(week)) + '</div>' +
       (gp.target > 0 ? '<div class="mini-goal">' + bar(gp.pct) + '<small class="muted">Aylık hedef: %' + gp.pct + '</small></div>' : '') + '</button>';
     html += '<div class="grid2">' +
-      '<button class="tile" data-act="go" data-route="chat"><span>💬</span><b>AI Sohbet</b><small>Bugün kalan: ' + Core.formatDuration(left) + '</small></button>' +
-      '<button class="tile" data-act="go" data-route="money"><span>💰</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
-      '<button class="tile" data-act="go" data-route="auto"><span>⚙️</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : '🔒 Ücretli paket') + '</small></button>' +
-      '<button class="tile" data-act="go" data-route="history"><span>↶</span><b>Geçmiş İşlemler</b><small>Eski çalışmaların</small></button>' +
+      '<button class="tile" data-act="go" data-route="chat"><span class="ti">' + icon('chat', 20) + '</span><b>AI Sohbet</b><small>Bugün kalan: ' + Core.formatDuration(left) + '</small></button>' +
+      '<button class="tile" data-act="go" data-route="money"><span class="ti">' + icon('trend', 20) + '</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
+      '<button class="tile" data-act="go" data-route="auto"><span class="ti">' + icon('zap', 20) + '</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : 'Ücretli paket') + '</small></button>' +
+      '<button class="tile" data-act="go" data-route="history"><span class="ti">' + icon('history', 20) + '</span><b>Geçmiş İşlemler</b><small>Eski çalışmaların</small></button>' +
       '</div>';
     html += '<p class="fine">Pasif Gelirim hiçbir gelir garantisi vermez. Gerçek sonuçlar kişiden kişiye değişir.</p>';
     return html;
@@ -210,14 +285,14 @@
     }
     const m = Core.modelById(p.modelId);
     const pr = Core.progress(p);
-    let html = '<h2>' + m.emoji + ' ' + esc(p.title) + '</h2>' + bar(pr.pct) + '<p class="muted">' + pr.done + ' / ' + pr.total + ' tamamlandı</p>';
+    let html = '<h2>' + esc(p.title) + '</h2>' + bar(pr.pct) + '<p class="muted">' + pr.done + ' / ' + pr.total + ' tamamlandı</p>';
     if (!ent.selectModel) html += '<div class="card note">Aboneliğin aktif değil; bu işe manuel devam edebilirsin. Yeni model seçmek için paket gerekir.</div>';
-    html += '<div class="card honest">⚠️ ' + esc(m.honest) + '</div>';
+    html += '<div class="card honest"><b>Dürüst not:</b> ' + esc(m.honest) + '</div>';
     html += '<ul class="list">';
     m.tasks.forEach(function (t, i) {
       const done = p.tasks[t.id] && p.tasks[t.id].done;
       html += '<li><button class="task ' + (done ? 'done' : '') + '" data-act="openTask" data-id="' + esc(t.id) + '">' +
-        '<span class="chk">' + (done ? '✅' : (i + 1)) + '</span><span>' + esc(t.title) + '</span></button></li>';
+        '<span class="chk">' + (done ? icon('check', 16) : (i + 1)) + '</span><span>' + esc(t.title) + '</span></button></li>';
     });
     html += '</ul>';
     if (S.projects.length > 1) {
@@ -248,10 +323,10 @@
     const rec = Core.recommend(q.answers).slice(0, 3);
     let h = '<h2>Sana uygun modeller</h2><p class="muted">Cevaplarına göre sıraladık. Bu bir tahmindir, garanti değildir.</p>';
     rec.forEach(function (r, i) {
-      h += '<div class="card"><div class="row"><b>' + r.model.emoji + ' ' + esc(r.model.title) + '</b>' + (i === 0 ? '<span class="chip">En uygun</span>' : '') + '</div>' +
+      h += '<div class="card"><div class="row"><b>' + esc(r.model.title) + '</b>' + (i === 0 ? '<span class="chip">En uygun</span>' : '') + '</div>' +
         '<p>' + esc(r.model.summary) + '</p>' +
         (r.reasons.length ? '<p class="muted">' + r.reasons.map(esc).join(' • ') + '</p>' : '') +
-        '<p class="honest-line">⚠️ ' + esc(r.model.honest) + '</p>' +
+        '<p class="honest-line">' + esc(r.model.honest) + '</p>' +
         '<button class="btn" data-act="pickModel" data-id="' + esc(r.model.id) + '">Bunu seç</button></div>';
     });
     h += '<button class="link" data-act="quizStart">Soruları baştan cevapla</button>';
@@ -271,7 +346,7 @@
       '<div class="card"><p>' + nl2br(t.body) + '</p></div>' +
       '<label class="lbl" for="noteInput">Notların</label>' +
       '<textarea id="noteInput" class="inp" rows="4" data-change="note" data-id="' + esc(t.id) + '" placeholder="Bu görevle ilgili yazdıkların burada saklanır">' + esc(st.note) + '</textarea>' +
-      '<button class="btn ' + (st.done ? 'ghost' : '') + '" data-act="toggleTask" data-id="' + esc(t.id) + '">' + (st.done ? 'Tamamlandı ✅ (geri al)' : 'Görevi tamamladım') + '</button>' +
+      '<button class="btn ' + (st.done ? 'ghost' : '') + '" data-act="toggleTask" data-id="' + esc(t.id) + '">' + (st.done ? 'Tamamlandı (geri al)' : 'Görevi tamamladım') + '</button>' +
       '<div class="row pn">' + (prev ? '<button class="link" data-act="openTask" data-id="' + esc(prev.id) + '">← Önceki</button>' : '<span></span>') +
       (next ? '<button class="link" data-act="openTask" data-id="' + esc(next.id) + '">Sonraki →</button>' : '<span></span>') + '</div>';
   };
@@ -279,7 +354,7 @@
   function offerModal() {
     return '<div class="modal"><div class="sheet"><h3>💚 Okumaktan yoruldun mu?</h3>' +
       '<p>Anlamakta zorlandığın bir bölüm mü var?</p>' +
-      '<p>🤖 Yapay zekâ sana görevleri sesli olarak anlatsın, karmaşık konuları basitleştirsin ve anlamadığın yerleri açıklasın.</p>' +
+      '<p>Yapay zekâ sana görevleri sesli olarak anlatsın, karmaşık konuları basitleştirsin ve anlamadığın yerleri açıklasın.</p>' +
       '<p><b>Yalnızca ' + Core.NARRATION_ADDON_TL + ' TL farkla!</b></p>' +
       '<p class="fine">TEST MODU: gerçek ödeme alınmaz.</p>' +
       '<button class="btn" data-act="buyNarr">YAPAY ZEKÂLI ANLATIMI AÇ — ' + Core.NARRATION_ADDON_TL + ' TL</button>' +
@@ -288,8 +363,8 @@
 
   function narrationPanel(S, ui, t) {
     return '<div class="modal"><div class="sheet"><h3>💚 Yapay zekâlı anlatım</h3>' +
-      '<button class="btn" data-act="speak" data-id="' + esc(t.id) + '">🔊 Bana sesli anlat</button>' +
-      '<button class="btn ghost" data-act="stopSpeak">⏹ Durdur</button>' +
+      '<button class="btn" data-act="speak" data-id="' + esc(t.id) + '">Bana sesli anlat</button>' +
+      '<button class="btn ghost" data-act="stopSpeak">Durdur</button>' +
       '<label class="lbl" for="askInput">Anlamadığın yeri yaz</label>' +
       '<input id="askInput" class="inp" placeholder="Örn: Hedef kitle ne demek? Örnek ver">' +
       '<button class="btn" data-act="askNarr">Açıkla</button>' +
@@ -299,7 +374,7 @@
 
   views.chat = function (S, ui, now) {
     const left = Core.remainingSeconds(S, now);
-    let html = '<h2>💬 AI Sohbet</h2>' +
+    let html = '<h2>AI Sohbet</h2>' +
       '<div class="row"><span class="chip">Bugün kalan: <b id="timeLeft">' + Core.formatDuration(left) + '</b></span></div>' +
       '<p class="fine">Şu an demo yapay zekâ çalışıyor: terimleri açıklar ve yönlendirir. Gerçek yapay zekâ sunucusu sonra bağlanacak.</p><div class="chat" id="chatBox">';
     if (!S.chat.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
@@ -324,22 +399,21 @@
     const gp = Core.goalProgress(S, now);
     const type = ui.finType === 'out' ? 'out' : 'in';
     const today = Core.dateInputValue(now);
-    let html = '<h2>💰 Kazanç</h2>';
-    // Aylık hedef
+    let html = '<h2>Kazanç</h2>';
     html += '<div class="card goal">';
     if (gp.target > 0) {
       html += '<div class="goal-row">' + ring(gp.pct, '%' + gp.pct) + '<div><b>Aylık hedef: ' + tl(gp.target) + '</b><p class="muted small">Bu ay: ' + tl(gp.got) + '</p>' +
-        '<p class="small">' + (gp.reached ? '🎉 Hedefe ulaştın!' : 'Kalan: ' + tl(gp.left)) + '</p></div></div>' +
+        '<p class="small">' + (gp.reached ? 'Hedefe ulaştın, tebrikler.' : 'Kalan: ' + tl(gp.left)) + '</p></div></div>' +
         '<details><summary class="link">Hedefi değiştir</summary><div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Yeni hedef (TL)"><button class="btn" data-act="saveGoal">Kaydet</button></div></details>';
     } else {
-      html += '<b>🎯 Aylık gelir hedefi</b><p class="muted small">Gerçekçi bir hedef koy; ilerlemeni burada izle. Hedef bir garanti değildir.</p>' +
+      html += '<b>Aylık gelir hedefi</b><p class="muted small">Gerçekçi bir hedef koy; ilerlemeni burada izle. Hedef bir garanti değildir.</p>' +
         '<div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Örn: 2500"><button class="btn" data-act="saveGoal">Kaydet</button></div>';
     }
     html += '</div>';
     html += '<div class="grid2"><div class="stat"><small>Bu ay net</small><b class="' + (f.monthNet < 0 ? 'neg' : '') + '">' + tl(f.monthNet) + '</b></div><div class="stat"><small>Toplam net</small><b class="' + (f.net < 0 ? 'neg' : '') + '">' + tl(f.net) + '</b></div>' +
       '<div class="stat in"><small>Toplam gelir</small><b>' + tl(f.totalIn) + '</b></div><div class="stat out"><small>Toplam gider</small><b>' + tl(f.totalOut) + '</b></div></div>';
-    html += '<button class="btn ghost" data-act="go" data-route="charts">📊 Gelir-Gider Grafiklerini Aç</button>';
-    html += '<div class="card"><b>Yeni kayıt</b>' + seg([{ v: 'in', t: '➕ Gelir' }, { v: 'out', t: '➖ Gider' }], type, 'finType') +
+    html += '<button class="btn ghost" data-act="go" data-route="charts">' + icon('chart', 18) + ' Gelir-Gider Grafiklerini Aç</button>';
+    html += '<div class="card"><b>Yeni kayıt</b>' + seg([{ v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], type, 'finType') +
       '<label class="lbl" for="finAmount">Tutar (TL)</label><input id="finAmount" class="inp" inputmode="decimal" placeholder="0,00">' +
       '<div class="two"><div><label class="lbl" for="finCat">Kategori</label><select id="finCat" class="inp">' + catOptions(type) + '</select></div>' +
       '<div><label class="lbl" for="finDate">Tarih</label><input id="finDate" type="date" class="inp" value="' + today + '" max="' + today + '"></div></div>' +
@@ -353,43 +427,53 @@
     if (!rows.length) html += '<li class="card muted">' + (S.finance.length ? 'Bu filtrede kayıt yok.' : 'Henüz kayıt yok. İlk kaydını yukarıdan ekleyebilirsin.') + '</li>';
     rows.forEach(function (r) {
       html += '<li class="fin ' + r.type + '"><span>' + Core.formatDate(r.date) + ' · ' + esc(Core.categoryName(r.type, r.cat)) + (r.note ? '<br><small class="muted">' + esc(r.note) + '</small>' : '') + '</span>' +
-        '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">✕</button></li>';
+        '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">' + icon('trash', 18) + '</button></li>';
     });
     html += '</ul>';
-    if (S.finance.length) html += '<button class="btn ghost" data-act="exportCsv">Kayıtları CSV olarak dışa aktar</button>';
+    if (S.finance.length) html += '<button class="btn ghost" data-act="exportCsv">' + icon('download', 18) + ' Kayıtları CSV olarak dışa aktar</button>';
     return html;
   };
 
   views.charts = function (S, ui, now) {
     const period = Core.PERIODS[ui.period] ? ui.period : '7d';
     const series = Core.financeSeries(S, period, now);
-    let html = '<h2>📊 Gelir-Gider Grafikleri</h2>' +
+    let html = '<h2>Gelir-Gider Grafikleri</h2>' +
       seg(Object.keys(Core.PERIODS).map(function (k) { return { v: k, t: Core.PERIODS[k] }; }), period, 'period');
     if (series.empty) {
-      return html + '<div class="card empty"><div class="empty-ico">📭</div><p><b>Bu dönemde kayıt yok.</b></p><p class="muted">Grafikler, girdiğin gerçek gelir ve giderlere göre çizilir.</p>' +
+      return html + '<div class="card empty"><div class="empty-ico">' + icon('chart', 32) + '</div><p><b>Bu dönemde kayıt yok.</b></p><p class="muted">Grafikler, girdiğin gerçek gelir ve giderlere göre çizilir.</p>' +
         '<button class="btn" data-act="go" data-route="money">İlk kaydını gir</button></div>';
     }
     const sel = (ui.chartSel != null && ui.chartSel < series.buckets.length) ? ui.chartSel : series.buckets.length - 1;
     const b = series.buckets[sel];
     html += '<div class="grid3"><div class="stat in"><small>Gelir</small><b>' + tl(series.totals.in) + '</b></div><div class="stat out"><small>Gider</small><b>' + tl(series.totals.out) + '</b></div>' +
       '<div class="stat"><small>Net</small><b class="' + (series.totals.net < 0 ? 'neg' : '') + '">' + tl(series.totals.net) + '</b></div></div>';
+    const ins = Core.insights(S, now);
+    if (ins.hasData) {
+      html += '<div class="card insight"><b>Bu ayın özeti</b>' +
+        '<div class="irow"><span>Net</span><b class="' + (ins.thisMonth.net < 0 ? 'neg' : '') + '">' + tl(ins.thisMonth.net) + '</b></div>' +
+        (ins.hasLast ? '<div class="irow"><span>Geçen aya göre</span><b class="' + (ins.diffNet < 0 ? 'neg' : 'pos') + '">' + signed(ins.diffNet) + '</b></div>' : '') +
+        (ins.bestIncome ? '<div class="irow"><span>En çok gelir</span><b>' + esc(ins.bestIncome.name) + ' · ' + tl(ins.bestIncome.amount) + '</b></div>' : '') +
+        (ins.topExpense ? '<div class="irow"><span>En çok gider</span><b>' + esc(ins.topExpense.name) + ' · ' + tl(ins.topExpense.amount) + '</b></div>' : '') +
+        (ins.savingsRate != null ? '<div class="irow"><span>Elde kalan oranı</span><b class="' + (ins.savingsRate < 0 ? 'neg' : '') + '">%' + ins.savingsRate + '</b></div>' : '') +
+        '<p class="fine">Yalnızca girdiğin kayıtlara dayanır; bir tahmin veya tavsiye değildir.</p></div>';
+    }
     html += '<div class="card"><div class="row"><b>Gelir ve gider</b><span class="lg"><i class="in"></i>Gelir <i class="out"></i>Gider</span></div>' + barChart(series, sel) +
       '<div class="pick"><b>' + esc(b.full) + '</b><span>Gelir <b class="pin">' + tl(b.in) + '</b></span><span>Gider <b class="pout">' + tl(b.out) + '</b></span><span>Net <b class="' + (b.net < 0 ? 'neg' : '') + '">' + tl(b.net) + '</b></span></div></div>';
     html += '<div class="card"><div class="row"><b>Birikimli net</b><small class="muted">' + esc(b.full) + ': ' + tl(b.cum) + '</small></div>' + lineChart(series, sel) +
       '<p class="fine">Çizgi, başlangıçtan bu yana toplam net durumunu gösterir.</p></div>';
     const inc = Core.categorySplit(S, 'in', period, now), exp = Core.categorySplit(S, 'out', period, now);
-    html += '<div class="card"><b>Gelir kaynakları</b><div class="donut-row">' + donut(inc.items, inc.total ? compact(inc.total) : '—', 'TL') + legend(inc.items, 'in') + '</div></div>';
-    html += '<div class="card"><b>Gider dağılımı</b><div class="donut-row">' + donut(exp.items, exp.total ? compact(exp.total) : '—', 'TL') + legend(exp.items, 'out') + '</div></div>';
+    html += '<div class="card"><b>Gelir kaynakları</b><div class="donut-row">' + donut(inc.items, inc.total ? compact(inc.total) : '—', 'TL') + legend(inc.items) + '</div></div>';
+    html += '<div class="card"><b>Gider dağılımı</b><div class="donut-row">' + donut(exp.items, exp.total ? compact(exp.total) : '—', 'TL') + legend(exp.items) + '</div></div>';
     html += '<p class="fine">Sütunlara dokunarak o günün veya ayın ayrıntısını görebilirsin.</p>';
     return html;
   };
 
   views.auto = function (S, ui, now) {
     const ent = Core.entitlements(S);
-    let html = '<h2>⚙️ Otomasyon</h2>';
+    let html = '<h2>Otomasyon</h2>';
     if (!ent.automation) {
       return html + lock('Otomatik plan hazırlama Yarı Otomasyon ve CEO Modu paketlerinde açılır.' +
-        (S.cancelledAt ? ' Daha önce hazırlanan çalışmalarına ↶ Geçmiş İşlemler\'den ulaşabilirsin.' : ''), 'Paketlere bak', 'packages');
+        (S.cancelledAt ? ' Daha önce hazırlanan çalışmalarına Geçmiş İşlemler\'den ulaşabilirsin.' : ''), 'Paketlere bak', 'packages');
     }
     const p = Core.activeProject(S);
     if (!p) return html + lock('Önce bir gelir modeli seçmelisin.', 'Görevlere git', 'tasks');
@@ -401,7 +485,7 @@
       html += '<details class="card"><summary>' + esc(pl.title) + ' · ' + Core.formatDate(pl.createdAt) + '</summary><p class="plan">' + nl2br(pl.text) + '</p>' +
         '<button class="btn ghost" data-act="copyPlan" data-id="' + esc(pl.id) + '">Kopyala</button></details>';
     });
-    html += '<h3>👑 CEO Modu · Karar kartları</h3>';
+    html += '<h3>CEO Modu · Karar kartları</h3>';
     if (!ent.ceo) {
       html += lock('Önemli kararları sana bırakıp işi yapay zekânın yürüttüğü bölüm CEO Modu\'nda açılır.', null);
     } else {
@@ -422,13 +506,13 @@
     Object.keys(Core.PACKAGES).forEach(function (id) {
       const p = Core.PACKAGES[id];
       const cur = S.pkg === id;
-      html += '<div class="card pkg ' + (cur ? 'cur' : '') + '"><div class="row"><b>' + p.emoji + ' ' + esc(p.name) + '</b>' + (cur ? '<span class="chip">Aktif</span>' : '') + '</div>' +
+      html += '<div class="card pkg ' + (cur ? 'cur' : '') + '"><div class="row"><b>' + esc(p.name) + '</b>' + (cur ? '<span class="chip">Aktif</span>' : '') + '</div>' +
         '<p class="muted">' + (p.price === 0 ? 'Ücretsiz' : 'Aylık abonelik · fiyat henüz belirlenmedi') + '</p><ul class="feat">' +
         p.features.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>' +
         (cur ? '' : '<button class="btn ' + (id === 'free' ? 'ghost' : '') + '" data-act="setPkg" data-id="' + id + '">' + (id === 'free' ? 'Aboneliği bitir (test)' : 'Bu paketi dene (test)') + '</button>') + '</div>';
     });
     if (S.pkg === 'manual') {
-      html += '<div class="card"><b>💚 Yapay zekâlı sesli anlatım</b><p class="muted">Manuel pakete +' + Core.NARRATION_ADDON_TL + ' TL fark ile eklenir.</p>' +
+      html += '<div class="card"><b>Yapay zekâlı sesli anlatım</b><p class="muted">Manuel pakete +' + Core.NARRATION_ADDON_TL + ' TL fark ile eklenir.</p>' +
         (ent.narration ? '<span class="chip">Açık</span> <button class="link" data-act="cancelNarr">Kapat</button>' : '<button class="btn" data-act="buyNarr">Aç — ' + Core.NARRATION_ADDON_TL + ' TL (test)</button>') + '</div>';
     }
     return html;
@@ -436,23 +520,23 @@
 
   views.history = function (S, ui, now) {
     const h = Core.history(S);
-    let html = '<h2>↶ Geçmiş İşlemler</h2><p class="muted">Burası bir çöp kutusu değil, tamamladığın işlerin arşivi.</p>';
-    html += '<h3>✅ Tamamlanan çalışmalar</h3>';
+    let html = '<h2>Geçmiş İşlemler</h2><p class="muted">Burası bir çöp kutusu değil, tamamladığın işlerin arşivi.</p>';
+    html += '<h3>Tamamlanan çalışmalar</h3>';
     if (!h.completed.length) html += '<div class="card muted">Henüz tamamlanmış çalışma yok.</div>';
     h.completed.forEach(function (g) {
-      html += '<div class="card"><b>📁 ' + esc(g.projectTitle) + '</b>' + (g.projectComplete ? ' <span class="chip">Proje bitti</span>' : '') + '<ul class="feat">';
-      g.items.forEach(function (it) { html += '<li>✅ ' + esc(it.title) + ' <small class="muted">' + Core.formatDate(it.doneAt) + '</small></li>'; });
+      html += '<div class="card"><b>' + esc(g.projectTitle) + '</b>' + (g.projectComplete ? ' <span class="chip">Proje bitti</span>' : '') + '<ul class="feat">';
+      g.items.forEach(function (it) { html += '<li>' + esc(it.title) + ' <small class="muted">' + Core.formatDate(it.doneAt) + '</small></li>'; });
       html += '</ul>';
       g.plans.forEach(function (pl) {
-        html += '<details><summary>📄 ' + esc(pl.title) + '</summary><p class="plan">' + nl2br(pl.text) + '</p></details>';
+        html += '<details><summary>' + esc(pl.title) + '</summary><p class="plan">' + nl2br(pl.text) + '</p></details>';
       });
       html += '</div>';
     });
-    html += '<h3>🕒 En son yarım kalan proje</h3>';
+    html += '<h3>En son yarım kalan proje</h3>';
     if (!h.lastUnfinished) html += '<div class="card muted">Yarım kalan proje yok.</div>';
     else {
       const u = h.lastUnfinished;
-      html += '<div class="card"><b>🟨 ' + esc(u.title) + '</b><p class="muted">Son çalışma: ' + Core.formatDate(u.updatedAt) + ' · %' + u.progress.pct + '</p>' +
+      html += '<div class="card"><b>' + esc(u.title) + '</b><p class="muted">Son çalışma: ' + Core.formatDate(u.updatedAt) + ' · %' + u.progress.pct + '</p>' +
         '<p><b>Son kaydedilen bilgi:</b><br>' + esc(u.lastNote) + '</p>' +
         (u.next ? '<p class="muted">Sıradaki görev: ' + esc(u.next.title) + '</p>' : '') +
         '<button class="btn" data-act="viewProject" data-id="' + esc(u.projectId) + '">PROJEYİ GÖRÜNTÜLE</button></div>';
@@ -461,20 +545,30 @@
   };
 
   views.settings = function (S, ui) {
-    return '<h2>⚙ Ayarlar</h2>' +
-      '<div class="card"><b>🎨 Görünüm</b><p class="muted small">Siyah tema pil tasarrufu sağlar ve geceleri gözü yormaz.</p>' +
-      seg([{ v: 'dark', t: '🌑 Siyah' }, { v: 'light', t: '☀️ Açık' }, { v: 'system', t: '📱 Sistem' }], S.settings.theme, 'setTheme') + '</div>' +
+    const rem = S.settings.reminder;
+    return '<h2>Ayarlar</h2>' +
+      '<div class="card"><b>Görünüm</b><p class="muted small">Siyah tema pil tasarrufu sağlar ve geceleri gözü yormaz.</p>' +
+      seg([{ v: 'dark', t: 'Siyah' }, { v: 'light', t: 'Açık' }, { v: 'system', t: 'Sistem' }], S.settings.theme, 'setTheme') + '</div>' +
+      '<div class="card"><b>Güvenlik</b><p class="muted small">PIN kilidi, uygulamayı açarken ve arka plandan dönerken sorulur. Cihaz içi basit bir kilittir.</p>' +
+      '<div class="row"><span>' + icon('lock', 18) + ' Uygulama kilidi: <b>' + (S.lock.enabled ? 'Açık' : 'Kapalı') + '</b></span>' +
+      (S.lock.enabled ? '<button class="btn ghost slim" data-act="lockOff">Kapat</button>' : '<button class="btn slim" data-act="lockOn">PIN belirle</button>') + '</div></div>' +
+      '<div class="card"><b>Günlük hatırlatıcı</b><p class="muted small">Küçük bir adım atmanı hatırlatan, baskı yapmayan tek bir bildirim. Yalnızca Android uygulamasında çalışır.</p>' +
+      seg([{ v: 'off', t: 'Kapalı' }, { v: 'on', t: 'Açık' }], rem.enabled ? 'on' : 'off', 'remToggle') +
+      '<label class="lbl" for="remTime">Saat</label><div class="send"><input id="remTime" type="time" class="inp" value="' + esc(rem.time) + '"><button class="btn" data-act="saveReminder">Kaydet</button></div></div>' +
       '<div class="card"><label class="lbl" for="setName">Adın</label>' +
       '<input id="setName" class="inp" maxlength="30" value="' + esc(S.user.name) + '"><button class="btn" data-act="saveName">Kaydet</button></div>' +
-      '<div class="card"><b>Verilerin</b><p class="muted">Veriler şu an yalnızca bu cihazda saklanır. İstediğin zaman dışa aktarabilir veya silebilirsin.</p>' +
-      '<button class="btn" data-act="export">Verilerimi dışa aktar (JSON)</button>' +
-      '<button class="btn ghost" data-act="exportCsv">Gelir-gider kayıtlarını dışa aktar (CSV)</button>' +
-      '<button class="btn danger" data-act="wipe">Tüm verilerimi sil</button></div>' +
-      '<button class="card linkcard" data-act="go" data-route="about"><b>❓ Yardım, gizlilik ve bilgi</b><span class="muted small">Sık sorulan sorular, uyarılar ›</span></button>' +
-      '<div class="card"><b>Test araçları</b><p class="muted">Yalnızca geliştirme sürecinde kullanılır.</p>' +
+      '<div class="card"><b>Verilerin</b><p class="muted small">Veriler şu an yalnızca bu cihazda saklanır. Uygulamayı silersen kaybolur; düzenli yedek almanı öneririz.</p>' +
+      '<button class="btn" data-act="export">' + icon('download', 18) + ' Yedek al (JSON)</button>' +
+      '<button class="btn ghost" data-act="importPick">' + icon('upload', 18) + ' Yedekten geri yükle</button>' +
+      '<input id="importFile" type="file" accept="application/json,.json,text/plain" hidden>' +
+      '<button class="btn ghost" data-act="exportCsv">' + icon('file', 18) + ' Gelir-gider kayıtları (CSV)</button>' +
+      '<button class="btn danger" data-act="wipe">' + icon('trash', 18) + ' Tüm verilerimi sil</button></div>' +
+      '<div class="card nopad">' + rowLink('help', 'Yardım ve bilgi', 'Sık sorulan sorular, uyarılar', 'go', ' data-route="about"') +
+      rowLink('info', 'Sorun bildir', 'Tanılama bilgisini kopyala', 'diag') + '</div>' +
+      '<div class="card"><b>Test araçları</b><p class="muted small">Yalnızca geliştirme sürecinde kullanılır.</p>' +
       '<button class="btn ghost" data-act="resetUsage">Bugünkü sohbet süresini sıfırla</button>' +
       '<button class="btn ghost" data-act="fillUsage">Sohbet süresini bitir (sınırı test et)</button></div>' +
-      '<p class="fine">Pasif Gelirim · sürüm 0.2 (test)</p>';
+      '<p class="fine">Pasif Gelirim · sürüm ' + esc(Core.APP_VERSION) + ' (test)</p>';
   };
 
   views.about = function () {
@@ -482,34 +576,34 @@
       ['Pasif Gelirim para kazanmayı garanti eder mi?', 'Hayır. Hiçbir gelir modeli için garanti vermiyoruz. Çoğu iş ilk haftalarda ve hatta aylarda gelir getirmeyebilir. Amacımız, kendi işini adım adım kurmana ve gerçek rakamlarını görmene yardımcı olmak.'],
       ['Kurduğum iş kime ait?', 'Sana. Aboneliğin bitse bile kurduğun işe, hesaplarına ve çalışmalarına el konmaz. Biten tek şey, ücretli yapay zekâ ve otomasyon hizmetleridir.'],
       ['Ücretsiz pakette neler var?', 'Gelir-gider takibi ve grafikler, aylık hedef, çalışma serisi, rozetler, günlük 1 saatlik yapay zekâ sohbeti ve Geçmiş İşlemler arşivi.'],
-      ['Aboneliği bırakırsam ne olur?', 'Otomasyonlar durur. Kendi işine manuel devam edebilir, eski çalışmalarına ↶ Geçmiş İşlemler\'den ulaşabilirsin. Yeniden abone olursan otomasyonlar yeniden açılır.'],
-      ['Verilerim nerede saklanıyor?', 'Şu an yalnızca bu cihazda. Uygulamayı silersen veriler de gider; bu yüzden Ayarlar\'dan düzenli olarak dışa aktarmanı öneririz.'],
+      ['Aboneliği bırakırsam ne olur?', 'Otomasyonlar durur. Kendi işine manuel devam edebilir, eski çalışmalarına Geçmiş İşlemler\'den ulaşabilirsin. Yeniden abone olursan otomasyonlar yeniden açılır.'],
+      ['Verilerim nerede saklanıyor?', 'Şu an yalnızca bu cihazda. Uygulamayı silersen veriler de gider; bu yüzden Ayarlar\'dan düzenli olarak yedek almanı öneririz.'],
       ['Günlük 1 saatlik sohbet nasıl çalışıyor?', 'Sayaç yalnızca Sohbet ekranı açıkken işler ve her gün yenilenir.']
     ];
-    return '<h2>❓ Yardım ve Bilgi</h2><div class="card honest">⚠️ <b>Önemli uyarı:</b> Pasif Gelirim bir finansal, hukuki veya vergi danışmanlığı değildir. Gelir elde etmek garanti edilmez; kazançlar kişiden kişiye değişir.</div>' +
+    return '<h2>Yardım ve Bilgi</h2><div class="card honest"><b>Önemli uyarı:</b> Pasif Gelirim bir finansal, hukuki veya vergi danışmanlığı değildir. Gelir elde etmek garanti edilmez; kazançlar kişiden kişiye değişir.</div>' +
       '<h3>Sık sorulan sorular</h3>' +
       faq.map(function (q) { return '<details class="card faq"><summary>' + esc(q[0]) + '</summary><p>' + esc(q[1]) + '</p></details>'; }).join('') +
       '<h3>Gizlilik (taslak)</h3><div class="card"><p class="small">Bu test sürümünde girdiğin bilgiler yalnızca cihazında saklanır ve herhangi bir sunucuya gönderilmez. Google Play yayını öncesinde bu metin, uygulamanın gerçek veri kullanımına göre hukuki olarak gözden geçirilip tamamlanacaktır.</p></div>' +
-      '<p class="fine">Pasif Gelirim · sürüm 0.2 (test) · DAHA FAZLASI MÜMKÜN.</p>';
+      '<p class="fine">Pasif Gelirim · sürüm ' + esc(Core.APP_VERSION) + ' (test) · DAHA FAZLASI MÜMKÜN.</p>';
   };
 
   // ---------- Üst çubuk, katman (modal, kalp, bildirim) ----------
   function topHtml(S, ui) {
     const sub = TOP.indexOf(ui.route) === -1;
-    const themeIcon = ui.resolvedTheme === 'light' ? '🌙' : '☀️';
+    const themeIcon = ui.resolvedTheme === 'light' ? 'moon' : 'sun';
     return (sub
-      ? '<div class="brandrow"><button class="icon back" data-act="back" aria-label="Geri"><span class="ic">←</span></button><b>' + esc(TITLES[ui.route] || '') + '</b></div>'
+      ? '<div class="brandrow"><button class="icon back" data-act="back" aria-label="Geri">' + icon('back', 22) + '</button><b>' + esc(TITLES[ui.route] || '') + '</b></div>'
       : '<div class="brandrow"><img class="brand-logo" src="logo.png" alt=""><b>Pasif Gelirim</b></div>') +
       '<div class="top-r">' +
-      '<button class="icon" data-act="toggleTheme" title="Tema" aria-label="Temayı değiştir"><span class="ic">' + themeIcon + '</span></button>' +
-      '<button class="icon" data-act="go" data-route="history" title="Geçmiş İşlemler" aria-label="Geçmiş İşlemler"><span class="ic">↶</span></button>' +
-      '<button class="icon" data-act="go" data-route="settings" title="Ayarlar" aria-label="Ayarlar"><span class="ic">⚙</span></button></div>';
+      '<button class="icon" data-act="toggleTheme" title="Tema" aria-label="Temayı değiştir">' + icon(themeIcon, 20) + '</button>' +
+      '<button class="icon" data-act="go" data-route="history" title="Geçmiş İşlemler" aria-label="Geçmiş İşlemler">' + icon('history', 20) + '</button>' +
+      '<button class="icon" data-act="go" data-route="settings" title="Ayarlar" aria-label="Ayarlar">' + icon('sliders', 20) + '</button></div>';
   }
 
   function layerHtml(S, ui) {
     const ent = Core.entitlements(S);
     let html = '';
-    if (ui.route === 'task') {
+    if (ui.route === 'task' && !ui.pinMode) {
       const p = Core.activeProject(S);
       const m = p && Core.modelById(p.modelId);
       const t = m && m.tasks.find(function (x) { return x.id === ui.taskId; });
@@ -519,19 +613,19 @@
     }
     if (ui.exportText != null) {
       html += '<div class="modal"><div class="sheet"><h3>' + esc(ui.exportTitle || 'Dışa aktarma') + '</h3>' +
-        '<p class="muted small">Dosya otomatik kaydedilemedi. Metni kopyalayıp bir not uygulamasına yapıştırabilirsin.</p>' +
+        '<p class="muted small">' + esc(ui.exportNote || 'Dosya otomatik kaydedilemedi. Metni kopyalayıp bir not uygulamasına yapıştırabilirsin.') + '</p>' +
         '<textarea id="exportBox" class="inp" rows="8" readonly>' + esc(ui.exportText) + '</textarea>' +
-        '<button class="btn" data-act="copyExport">Kopyala</button><button class="btn ghost" data-act="closeExport">Kapat</button></div></div>';
+        '<button class="btn" data-act="copyExport">' + icon('copy', 18) + ' Kopyala</button><button class="btn ghost" data-act="closeExport">Kapat</button></div></div>';
     }
     if (ui.toast) html += '<div class="toast" role="status">' + esc(ui.toast) + '</div>';
     return html;
   }
 
   function parts(S, ui, now) {
-    const route = views[ui.route] ? ui.route : 'home';
+    const route = ui.pinMode ? 'lock' : (views[ui.route] ? ui.route : 'home');
     return {
       route: route,
-      chrome: route !== 'welcome',
+      chrome: NO_CHROME.indexOf(route) === -1,
       activeTab: route === 'task' ? 'tasks' : (route === 'charts' ? 'money' : route),
       top: topHtml(S, ui),
       main: views[route](S, ui, now),
@@ -539,5 +633,5 @@
     };
   }
 
-  return { esc: esc, tl: tl, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
+  return { esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
 });

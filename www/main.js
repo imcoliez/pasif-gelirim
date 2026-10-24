@@ -22,7 +22,7 @@
 
   var S = load();
   var ui = {
-    route: S.user.name ? 'home' : 'welcome', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
+    route: S.user.onboarded ? 'home' : 'onboarding', onb: 0, pinMode: null, pin: '', pinMsg: '', pinTmp: '', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
     period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false,
     exportText: null, exportTitle: '', resolvedTheme: 'dark', enter: 'fade', draft: {}
   };
@@ -46,12 +46,12 @@
     ui.resolvedTheme = r;
     document.documentElement.setAttribute('data-theme', r);
     var meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.setAttribute('content', r === 'dark' ? '#0a0e11' : '#0f9d58');
+    if (meta) meta.setAttribute('content', r === 'dark' ? '#080a0b' : '#f4f6f5');
     try {
       var sb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar;
       if (sb) {
-        sb.setBackgroundColor({ color: r === 'dark' ? '#0a0e11' : '#0f9d58' });
-        sb.setStyle({ style: 'DARK' });          // 'DARK' = açık renkli yazı (iki temada da koyu zemin)
+        sb.setBackgroundColor({ color: r === 'dark' ? '#080a0b' : '#f4f6f5' });
+        sb.setStyle({ style: r === 'dark' ? 'DARK' : 'LIGHT' });   // DARK = açık renkli yazı
       }
     } catch (e) { }
   }
@@ -60,6 +60,12 @@
       if (S.settings.theme === 'system') { applyTheme(); render(); }
     });
   } catch (e) { }
+
+  // ---------- Alt menü (çizgi simgeli, hap biçimli seçili durum) ----------
+  var NAV = [['home', 'home', 'Ana sayfa'], ['tasks', 'tasks', 'Görevler'], ['chat', 'chat', 'Sohbet'], ['money', 'trend', 'Kazanç'], ['packages', 'layers', 'Paketler']];
+  elTabs.innerHTML = NAV.map(function (n) {
+    return '<button class="tab" data-act="go" data-route="' + n[0] + '"><span class="pill">' + App.icon(n[1], 22) + '</span><small>' + n[2] + '</small></button>';
+  }).join('');
 
   // ---------- Çizim ----------
   var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'chatInput', 'setName'];
@@ -90,6 +96,7 @@
     prepare();
     var p = App.parts(S, ui, now());
     elApp.classList.toggle('no-chrome', !p.chrome);
+    elApp.classList.toggle('is-lock', p.route === 'lock');
     elTop.innerHTML = p.top;
     elMain.innerHTML = p.main;
     elLayer.innerHTML = p.layer;
@@ -101,15 +108,13 @@
       elMain.className = 'main anim enter-' + ui.enter;
     }
     ui.enter = '';
-    // alt menü: aktif sekme + kayan çizgi
-    var tabs = elTabs.querySelectorAll('.tab'), idx = -1;
+    // alt menü: aktif sekme
+    var tabs = elTabs.querySelectorAll('.tab');
     for (var i = 0; i < tabs.length; i++) {
       var on = tabs[i].getAttribute('data-route') === p.activeTab;
       tabs[i].classList.toggle('on', on);
-      if (on) idx = i;
+      if (on) tabs[i].setAttribute('aria-current', 'page'); else tabs[i].removeAttribute('aria-current');
     }
-    var ind = elTabs.querySelector('.ind');
-    if (ind) { ind.style.opacity = idx < 0 ? '0' : '1'; ind.style.transform = 'translateX(' + Math.max(idx, 0) * 100 + '%)'; }
     var box = document.getElementById('chatBox');
     if (box) box.scrollTop = box.scrollHeight;
     lastRoute = ui.route;
@@ -168,8 +173,9 @@
     go('home');
   }
   window.addEventListener('popstate', function (e) {
-    var st = e.state, r = (st && st.route) || (S.user.name ? 'home' : 'welcome');
-    if (r === 'welcome' && S.user.name) r = 'home';
+    var st = e.state, r = (st && st.route) || (S.user.onboarded ? 'home' : 'onboarding');
+    if ((r === 'welcome' || r === 'onboarding') && S.user.onboarded) r = 'home';
+    if (ui.pinMode) { try { window.history.pushState({ route: ui.route, depth: ui.depth }, ''); } catch (x) { } return; }
     stopSpeak();
     ui.enter = direction(ui.route, r) === 'fwd' ? 'back' : direction(ui.route, r);
     ui.route = r; ui.depth = (st && st.depth) || 0;
@@ -197,11 +203,11 @@
     if (reduce) return;
     var box = document.createElement('div');
     box.className = 'confetti';
-    var emojis = ['💚', '✨', '🎉', '⭐', '🟢'], n = big ? 46 : 22, html = '';
+    var cols = ['#2fd16b', '#7be0a4', '#e9f2ec', '#38bdf8', '#fbbf24'], n = big ? 40 : 18, html = '';
     for (var i = 0; i < n; i++) {
-      html += '<span style="--x:' + Math.round(Math.random() * 100) + '%;--s:' + (14 + Math.round(Math.random() * 14)) + 'px;--d:' +
-        (1.3 + Math.random() * 1.2).toFixed(2) + 's;--r:' + Math.round(Math.random() * 720 - 360) + 'deg;animation-delay:' + (Math.random() * 0.4).toFixed(2) + 's">' +
-        emojis[i % emojis.length] + '</span>';
+      html += '<span style="--x:' + Math.round(Math.random() * 100) + '%;--s:' + (5 + Math.round(Math.random() * 6)) + 'px;--d:' +
+        (1.3 + Math.random() * 1.2).toFixed(2) + 's;--r:' + Math.round(Math.random() * 720 - 360) + 'deg;background:' + cols[i % cols.length] +
+        ';border-radius:' + (i % 3 ? '2px' : '50%') + ';animation-delay:' + (Math.random() * 0.4).toFixed(2) + 's"></span>';
     }
     box.innerHTML = html;
     document.body.appendChild(box);
@@ -219,7 +225,7 @@
     var after = earnedIds(), fresh = [];
     for (var k in after) if (!before[k]) fresh.push(after[k]);
     if (fresh.length) {
-      var rmsg = 'Yeni rozet: ' + fresh.map(function (b) { return b.emoji + ' ' + b.title; }).join(', ');
+      var rmsg = 'Yeni rozet: ' + fresh.map(function (b) { return b.title; }).join(', ');
       toast(rmsg);
       lastReward = { msg: rmsg, at: Date.now() };
       celebrate(fresh.some(function (b) { return b.id === 'goal' || b.id === 'project'; }));
@@ -270,7 +276,7 @@
 
   // Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar
   setInterval(function () {
-    if (ui.route !== 'chat' || document.hidden) return;
+    if (ui.route !== 'chat' || document.hidden || ui.pinMode) return;
     if (Core.remainingSeconds(S, now()) <= 0) return;
     var left = Core.addUsage(S, 1, now());
     var el = document.getElementById('timeLeft');
@@ -278,9 +284,159 @@
     if (left <= 0) { save(); render(); } else if (left % 10 === 0) save();
   }, 1000);
 
+  // ---------- PIN kilidi ----------
+  var pinFails = 0, pinBlockedUntil = 0;
+  function randomSalt() {
+    try {
+      var a = new Uint8Array(12); window.crypto.getRandomValues(a);
+      return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    } catch (e) { return String(Math.random()).slice(2) + String(now()); }
+  }
+  function weakHash(s) {                  // crypto.subtle yoksa yedek özet (güvenli bağlamda kullanılmaz)
+    var h = 2166136261;
+    for (var r = 0; r < 2000; r++) for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return 'w' + (h >>> 0).toString(16);
+  }
+  function hashPin(pin, salt) {
+    var text = salt + ':' + pin + ':pasif';
+    try {
+      if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
+          return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+        }, function () { return weakHash(text); });
+      }
+    } catch (e) { }
+    return Promise.resolve(weakHash(text));
+  }
+  function pinUpdate(shake) {
+    var dots = document.getElementById('pinDots');
+    if (dots) {
+      var is = dots.children;
+      for (var i = 0; i < is.length; i++) is[i].className = i < ui.pin.length ? 'f' : '';
+      if (shake) { dots.classList.remove('shake'); void dots.offsetWidth; dots.classList.add('shake'); }
+    }
+    var m = document.querySelector('.pin-msg'); if (m) m.textContent = ui.pinMsg || '';
+  }
+  function pinFail(msg) {
+    ui.pin = ''; ui.pinMsg = msg; pinUpdate(true);
+    try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) { }
+  }
+  function pinKey(k) {
+    if (!ui.pinMode || ui.pinBusy) return;
+    if (now() < pinBlockedUntil) { ui.pinMsg = 'Çok fazla deneme. ' + Math.ceil((pinBlockedUntil - now()) / 1000) + ' sn bekle.'; pinUpdate(false); return; }
+    if (k === 'del') { ui.pin = ui.pin.slice(0, -1); ui.pinMsg = ''; pinUpdate(false); return; }
+    if (!/^\d$/.test(k) || ui.pin.length >= 4) return;
+    ui.pin += k; ui.pinMsg = ''; pinUpdate(false);
+    if (ui.pin.length < 4) return;
+    var pin = ui.pin, mode = ui.pinMode;
+    ui.pinBusy = true;
+    var done = function () { ui.pinBusy = false; };
+    if (mode === 'new') {
+      ui.pinTmp = pin; ui.pin = ''; ui.pinMode = 'confirm'; ui.pinBusy = false; render(); return;
+    }
+    if (mode === 'confirm') {
+      if (pin !== ui.pinTmp) { ui.pinTmp = ''; ui.pinMode = 'new'; ui.pinBusy = false; ui.pin = ''; ui.pinMsg = 'PIN\'ler uyuşmadı. Yeniden belirle.'; render(); return; }
+      var salt = randomSalt();
+      hashPin(pin, salt).then(function (h) {
+        Core.setLock(S, salt, h); save();
+        ui.pinMode = null; ui.pin = ''; ui.pinTmp = ''; ui.pinBusy = false; ui.pinMsg = '';
+        toast('Uygulama kilidi açıldı.'); render();
+      });
+      return;
+    }
+    // unlock | disable: doğrula
+    hashPin(pin, S.lock.salt).then(function (h) {
+      done();
+      if (h === S.lock.hash) {
+        pinFails = 0;
+        if (mode === 'disable') { Core.clearLock(S); save(); toast('Uygulama kilidi kapatıldı.'); }
+        ui.pinMode = null; ui.pin = ''; ui.pinMsg = ''; render();
+      } else {
+        pinFails += 1;
+        if (pinFails >= 5) { pinBlockedUntil = now() + 30000; pinFails = 0; pinFail('Çok fazla yanlış deneme. 30 sn bekle.'); }
+        else pinFail('Yanlış PIN.');
+      }
+    });
+  }
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { hiddenAt = now(); save(); return; }
+    if (S.lock.enabled && !ui.pinMode && hiddenAt && now() - hiddenAt > 60000) {
+      ui.pinMode = 'unlock'; ui.pin = ''; ui.pinMsg = ''; stopSpeak(); render();
+    }
+  });
+
+  // ---------- Günlük hatırlatıcı (yalnızca Android uygulamasında) ----------
+  function localNotif() {
+    var cap = window.Capacitor, native = false;
+    try { native = !!(cap && cap.isNativePlatform && cap.isNativePlatform()); } catch (e) { }
+    return native && cap.Plugins && cap.Plugins.LocalNotifications ? cap.Plugins.LocalNotifications : null;
+  }
+  function cancelReminder() {
+    var ln = localNotif(); if (!ln) return;
+    try { ln.cancel({ notifications: [{ id: 1 }] }); } catch (e) { }
+  }
+  function scheduleReminder(announce) {
+    var ln = localNotif();
+    if (!ln) { if (announce) toast('Hatırlatıcı yalnızca Android uygulamasında çalışır; ayarın kaydedildi.'); return; }
+    var parts = S.settings.reminder.time.split(':');
+    ln.requestPermissions().then(function (r) {
+      if (!r || r.display !== 'granted') {
+        Core.setReminder(S, false, null); save(); render();
+        toast('Bildirim izni verilmedi, hatırlatıcı kapalı kaldı.'); return null;
+      }
+      return ln.cancel({ notifications: [{ id: 1 }] }).catch(function () { }).then(function () {
+        return ln.schedule({ notifications: [{ id: 1, title: 'Pasif Gelirim', body: 'Bugün küçük bir adım atmak ister misin?',
+          schedule: { on: { hour: +parts[0], minute: +parts[1] } } }] });
+      }).then(function () { if (announce) toast('Hatırlatıcı ' + S.settings.reminder.time + ' için ayarlandı.'); });
+    }).catch(function () { if (announce) toast('Hatırlatıcı kurulamadı.'); });
+  }
+
+  // ---------- Yedekten geri yükleme ----------
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'importFile' || !t.files || !t.files[0]) return;
+    var f = t.files[0];
+    if (f.size > 6 * 1024 * 1024) { toast('Dosya çok büyük.'); t.value = ''; return; }
+    var rd = new FileReader();
+    rd.onload = function () {
+      var res = Core.importData(String(rd.result || ''));
+      if (!res.ok) { toast(res.error); return; }
+      if (!window.confirm('Yedekteki ' + res.counts.finance + ' kayıt ve ' + res.counts.projects + ' proje yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?')) return;
+      res.state.lock = S.lock;                        // kilit yedeğe girmez, mevcut kilit korunur
+      res.state.user.onboarded = true;
+      S = res.state; save(); applyTheme(); ui.noDraft = true; toast('Yedek geri yüklendi.'); render();
+    };
+    rd.onerror = function () { toast('Dosya okunamadı.'); };
+    rd.readAsText(f);
+    t.value = '';
+  });
+
+  // Klavye açıkken alt menüyü gizle (küçük ekranlarda yer açar)
+  document.addEventListener('focusin', function (e) {
+    var n = e.target && e.target.tagName;
+    if (n === 'INPUT' || n === 'TEXTAREA' || n === 'SELECT') elApp.classList.add('kb');
+  });
+  document.addEventListener('focusout', function () {
+    setTimeout(function () {
+      var a = document.activeElement, n = a && a.tagName;
+      if (n !== 'INPUT' && n !== 'TEXTAREA' && n !== 'SELECT') elApp.classList.remove('kb');
+    }, 60);
+  });
+
   // ---------- Olaylar ----------
   var actions = {
-    start: function () { S.user.name = val('nameInput').trim(); save(); go('home'); },
+    start: function () { S.user.name = val('nameInput').trim(); S.user.onboarded = true; save(); go('home'); },
+    onbNext: function () {
+      if (ui.onb >= 2) { ui.enter = 'fwd'; ui.route = 'welcome'; render(); return; }
+      ui.onb += 1; ui.enter = 'fwd'; render();
+    },
+    onbSkip: function () { ui.enter = 'fwd'; ui.route = 'welcome'; render(); },
+    quickAdd: function (el) {
+      go('money', { finType: el.getAttribute('data-v') === 'out' ? 'out' : 'in' });
+      var a = document.getElementById('finAmount');
+      if (a) { try { a.scrollIntoView({ block: 'center' }); } catch (e) { } }
+    },
     go: function (el) { go(el.getAttribute('data-route')); },
     back: function () { back(); },
     toggleTheme: function () {
@@ -310,8 +466,8 @@
       save();
       if (cur) { toast('Görev tekrar açıldı.'); render(); return; }
       var nt = Core.nextTask(p);
-      if (nt) { toast('Görev tamamlandı! 👏'); celebrate(false); go('task', { taskId: nt.id }); }
-      else { toast('Tebrikler, tüm görevleri tamamladın! 🏆'); celebrate(true); go('tasks'); }
+      if (nt) { toast('Görev tamamlandı.'); celebrate(false); go('task', { taskId: nt.id }); }
+      else { toast('Tebrikler, tüm görevleri tamamladın.'); celebrate(true); go('tasks'); }
     },
     narrOpen: function () { ui.narr = Core.entitlements(S).narration ? 'panel' : 'offer'; render(); },
     narrClose: function () { stopSpeak(); ui.narr = null; ui.narrAnswer = ''; render(); },
@@ -386,13 +542,48 @@
         if (b) { b.removeAttribute('readonly'); b.select(); try { document.execCommand('copy'); toast('Kopyalandı.'); } catch (e) { toast('Metni elle seçip kopyala.'); } }
       }
     },
-    closeExport: function () { ui.exportText = null; render(); },
-    wipe: function () {
-      if (!window.confirm('Tüm verilerin kalıcı olarak silinecek. Emin misin?')) return;
+    closeExport: function () { ui.exportText = null; ui.exportNote = ''; render(); },
+    wipe: function (skipConfirm) {
+      if (skipConfirm !== true && !window.confirm('Tüm verilerin kalıcı olarak silinecek. Emin misin?')) return;
       S = Core.defaultState(); mem = null;
       try { window.localStorage.removeItem(App.STORAGE_KEY); } catch (e) { }
-      applyTheme(); ui.noDraft = true; ui.depth = 0;
-      go('welcome');
+      applyTheme(); ui.noDraft = true; ui.depth = 0; ui.onb = 0; ui.pinMode = null;
+      cancelReminder();
+      go('onboarding');
+    },
+    // ---- PIN kilidi ----
+    lockOn: function () { ui.pinMode = 'new'; ui.pin = ''; ui.pinMsg = ''; ui.pinTmp = ''; render(); },
+    lockOff: function () { ui.pinMode = 'disable'; ui.pin = ''; ui.pinMsg = ''; render(); },
+    pinCancel: function () { ui.pinMode = null; ui.pin = ''; ui.pinMsg = ''; ui.pinTmp = ''; render(); },
+    pinForgot: function () {
+      if (!window.confirm('PIN\'i kurtarmanın yolu yok: kilidi açmak için uygulama verileri silinir. Devam edilsin mi?')) return;
+      actions.wipe(true);
+    },
+    pinKey: function (el) { pinKey(el.getAttribute('data-v')); },
+    // ---- Yedek, hatırlatıcı, tanılama ----
+    importPick: function () { var f = document.getElementById('importFile'); if (f) f.click(); },
+    remToggle: function (el) {
+      var on = el.getAttribute('data-v') === 'on';
+      Core.setReminder(S, on, null); save();
+      if (on) scheduleReminder(true); else cancelReminder();
+      render();
+    },
+    saveReminder: function () {
+      if (!Core.setReminder(S, null, val('remTime'))) { toast('Saati kontrol et.'); return; }
+      save();
+      if (S.settings.reminder.enabled) scheduleReminder(true); else toast('Saat kaydedildi.');
+      render();
+    },
+    diag: function () {
+      var cap = window.Capacitor, native = false;
+      try { native = !!(cap && cap.isNativePlatform && cap.isNativePlatform()); } catch (e) { }
+      var t = ['Pasif Gelirim ' + Core.APP_VERSION, 'Platform: ' + (native ? 'Android uygulaması' : 'tarayıcı'),
+        'Tema: ' + S.settings.theme + ' (' + ui.resolvedTheme + ')', 'Paket: ' + S.pkg,
+        'Kayıt: ' + S.finance.length + ' · Proje: ' + S.projects.length, 'Kilit: ' + (S.lock.enabled ? 'açık' : 'kapalı'),
+        'Hatırlatıcı: ' + (S.settings.reminder.enabled ? S.settings.reminder.time : 'kapalı'),
+        'Ekran: ' + window.innerWidth + 'x' + window.innerHeight, 'Cihaz: ' + (navigator.userAgent || '')].join('\n');
+      ui.exportNote = 'Bir sorun yaşarsan bu bilgiyi kopyalayıp bana gönderebilirsin. Kişisel veri (adın, tutarlar) içermez.';
+      showExportText('Tanılama bilgisi', t);
     },
     resetUsage: function () { S.usage.seconds = 0; S.usage.date = Core.dayKey(now()); save(); toast('Sohbet süresi sıfırlandı.'); render(); },
     fillUsage: function () { Core.addUsage(S, 999999, now()); save(); toast('Süre bitirildi.'); render(); }
@@ -421,10 +612,11 @@
     }
   });
   window.addEventListener('error', function (e) { try { toast('Hata: ' + e.message); } catch (x) { } });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) save(); });
 
   // ---------- Başlat ----------
   applyTheme();
+  if (S.lock.enabled) { ui.pinMode = 'unlock'; }
   render();
+  if (S.settings.reminder.enabled) scheduleReminder(false);
   setTimeout(function () { var s = document.getElementById('splash'); if (s) s.remove(); }, reduce ? 100 : 1750);
 })();

@@ -15,8 +15,8 @@ except ImportError:                      # derleme sunucusunda Pillow yoksa kur
             continue
     from PIL import Image, ImageDraw
 
-BG = (12, 16, 20, 255)          # logonun kendi zemin rengi (#0C1014)
-BG_HEX = '#0C1014'
+BG = (8, 10, 11, 255)            # logonun kendi zemin rengi (#080A0B)
+BG_HEX = '#080A0B'
 DENS = {'mdpi': 1.0, 'hdpi': 1.5, 'xhdpi': 2.0, 'xxhdpi': 3.0, 'xxxhdpi': 4.0}
 
 
@@ -29,19 +29,23 @@ def legacy_square(logo, px):
 
 
 def legacy_round(logo, px):
-    big = fit(logo, px).convert('RGBA')
+    # Köşeli kare logo daireye kesilince çerçeve bozulur: logoyu küçültüp koyu daire üzerine ortala.
+    inner = int(px * 0.80)
+    small = fit(logo, inner).convert('RGBA')
+    disc = Image.new('RGBA', (px, px), BG)
+    disc.paste(small, ((px - inner) // 2, (px - inner) // 2), small)
     mask = Image.new('L', (px * 4, px * 4), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, px * 4 - 1, px * 4 - 1), fill=255)
     mask = mask.resize((px, px), Image.LANCZOS)
     out = Image.new('RGBA', (px, px), (0, 0, 0, 0))
-    out.paste(big, (0, 0), mask)
+    out.paste(disc, (0, 0), mask)
     return out
 
 
 def adaptive_fg(logo, px):
     # 108dp tuval; güvenli alan ortadaki 66dp. Logo bu alanın içine sığacak şekilde küçültülür.
     canvas = Image.new('RGBA', (px, px), (0, 0, 0, 0))
-    inner = int(px * 0.62)
+    inner = int(px * 0.66)
     l = fit(logo, inner)
     canvas.paste(l, ((px - inner) // 2, (px - inner) // 2), l)
     return canvas
@@ -49,7 +53,7 @@ def adaptive_fg(logo, px):
 
 def splash(logo, w, h):
     canvas = Image.new('RGBA', (w, h), BG)
-    s = int(min(w, h) * 0.42)
+    s = int(min(w, h) * 0.40)
     l = fit(logo, s)
     canvas.paste(l, ((w - s) // 2, (h - s) // 2), l)
     return canvas.convert('RGB')

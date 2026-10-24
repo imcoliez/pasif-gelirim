@@ -22,7 +22,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   const click = sel => page.click(sel);
   const text = () => page.innerText('body');
   const has = async s => (await text()).includes(s);
-  const tab = n => click('.tab:has-text("' + n + '")');
+  const tab = async n => { await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur()); await page.waitForTimeout(100); await click('.tab:has-text("' + n + '")'); };
   const theme = () => page.getAttribute('html', 'data-theme');
   const bodyBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   const shot = async (n, wait = 1100) => { await page.waitForTimeout(wait); await page.screenshot({ path: path.resolve(__dirname, '../shots/' + n + '.png') }); };
@@ -37,22 +37,35 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await shot('00-splash');
   await page.waitForSelector('#splash', { state: 'detached', timeout: 5000 });
   ok(true, 'açılış ekranı kendiliğinden kapanıyor');
+  ok(await has('Gerçekçi başla') && (await page.locator('.pager i').count()) === 3, 'ilk açılışta tanıtım ekranı (3 sayfa)');
+  ok(!(await page.isVisible('#tabs')), 'tanıtımda alt menü görünmüyor');
+  await shot('00b-tanitim');
+  await click('[data-act=onbNext]');
+  ok(await has('Adım adım ilerle'), 'tanıtım: 2. sayfa');
+  await click('[data-act=onbNext]');
+  ok(await has('Rakamlarını takip et') && await has('Başlayalım'), 'tanıtım: 3. sayfa');
+  await click('[data-act=onbNext]');
   ok(await has('DAHA FAZLASI MÜMKÜN'), 'karşılama ekranı ve slogan');
   ok(await page.evaluate(() => { const i = document.querySelector('.logo-big'); return i.complete && i.naturalWidth > 0; }), 'karşılamada logo yüklendi');
   ok((await theme()) === 'dark', 'varsayılan tema siyah');
-  ok((await bodyBg()) === 'rgb(7, 9, 11)', 'siyah tema zemin rengi');
+  ok((await bodyBg()) === 'rgb(8, 10, 11)', 'siyah tema zemin rengi');
   await shot('01-karsilama');
   await page.fill('#nameInput', 'Ali');
   await click('[data-act=start]');
   ok(await has('Merhaba Ali'), 'isimle ana ekran');
   ok(await page.isVisible('.brand-logo'), 'üst çubukta logo');
   ok(await page.getAttribute('#main', 'class').then(c => c.includes('anim')), 'sayfa geçiş animasyonu sınıfı uygulanıyor');
+  ok((await page.locator('.tab').count()) === 5 && (await page.locator('.tab svg.i').count()) === 5, 'alt menü: 5 çizgi simge, emoji yok');
+  ok(await page.evaluate(() => !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(document.getElementById('tabs').innerText)), 'alt menüde emoji yok');
+  ok((await page.locator('.tab.on').count()) === 1 && (await page.locator('.tab.on').innerText()).includes('Ana sayfa'), 'seçili sekme vurgulu');
+  ok(await page.evaluate(() => getComputedStyle(document.querySelector('.tab.on .pill')).backgroundColor !== 'rgba(0, 0, 0, 0)'), 'seçili simgenin arkasında hap');
+  ok(await has('Gelir ekle') && await has('Gider ekle'), 'ana ekranda hızlı ekle düğmeleri');
   await shot('02-ana-siyah');
   await noOverflow('ana');
 
   await click('[data-act=toggleTheme]');
   await page.waitForTimeout(450);                     // tema geçiş animasyonu (0,3 sn) bitsin
-  ok((await theme()) === 'light' && (await bodyBg()) === 'rgb(243, 247, 245)', 'üstteki düğme açık temaya geçirir');
+  ok((await theme()) === 'light' && (await bodyBg()) === 'rgb(244, 246, 245)', 'üstteki düğme açık temaya geçirir');
   await shot('02b-ana-acik');
   await page.reload();
   await page.waitForSelector('#splash', { state: 'detached', timeout: 5000 });
@@ -82,6 +95,12 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(true, 'öneri düğmesi doğrudan soruyu gönderiyor');
   await shot('03-sohbet');
   await noOverflow('sohbet');
+
+  // ---------- Hızlı ekle ----------
+  await tab('Ana');
+  await click('[data-act=quickAdd][data-v=out]');
+  ok(await has('Yeni kayıt') && (await page.locator('[data-act=finType][data-v=out]').getAttribute('class')).includes('on'), 'hızlı ekle: Kazanç ekranında gider seçili açılır');
+  await click('[data-act=finType][data-v=in]');
 
   // ---------- Kazanç: herkese açık ----------
   await tab('Kazanç');
@@ -135,6 +154,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok((await page.locator('svg.chart rect.cbar.in').count()) === 2, 'sütun grafiğinde 2 gelir sütunu');
   ok((await page.locator('svg.chart rect.cbar.out').count()) === 1, 'sütun grafiğinde 1 gider sütunu');
   ok((await page.locator('svg.chart path.line').count()) === 1, 'birikimli net çizgisi var');
+  ok(await has('Bu ayın özeti') && await has('Elde kalan oranı'), 'grafik ekranında aylık özet kartı');
   ok((await page.locator('svg.donut').count()) === 2, 'iki halka grafiği (gelir kaynakları, gider dağılımı)');
   ok(await has('Satış') && await has('Hizmet bedeli') && await has('Araç'), 'kategori açıklamaları');
   ok(await has('420,00 TL'), 'dönem net toplamı');
@@ -253,8 +273,22 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok((await theme()) === 'dark', 'ayarlardan siyah tema');
   await shot('13-ayarlar');
   await noOverflow('ayarlar');
+  // hatırlatıcı (tarayıcıda yalnızca ayar kaydedilir)
+  await click('[data-act=remToggle][data-v=on]');
+  ok(await has('yalnızca Android uygulamasında'), 'hatırlatıcı: tarayıcıda dürüst uyarı');
+  await page.fill('#remTime', '21:30');
+  await click('[data-act=saveReminder]');
+  ok(await page.evaluate(() => JSON.parse(localStorage.getItem('pasif_gelirim_state_v1')).settings.reminder.time) === '21:30', 'hatırlatıcı saati kaydedildi');
+  await click('[data-act=remToggle][data-v=off]');
+  // tanılama
+  await click('[data-act=diag]');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.3'), 'tanılama bilgisi açılıyor');
+  await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');
+  const jsonBackup = await dl.path();
+  const backupText = fs.readFileSync(jsonBackup, 'utf8');
+  ok(!backupText.includes('"lock"') && !backupText.includes('"hash"'), 'yedek dosyasında PIN bilgisi yok');
   const [dl2] = await Promise.all([page.waitForEvent('download'), click('[data-act=exportCsv]')]);
   ok(dl2.suggestedFilename().endsWith('.csv'), 'CSV dışa aktarma indi');
   const csv = fs.readFileSync(await dl2.path(), 'utf8');
@@ -268,10 +302,55 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await tab('Paketler');
   await noOverflow('paketler');
 
-  // ---------- Verileri sil, boş durumlar, güvenlik ----------
+  // ---------- PIN kilidi ----------
+  const pin = async d => { for (const c of d) await page.click('.key[data-v="' + c + '"]'); };
   await click('button[title="Ayarlar"]');
+  await click('[data-act=lockOn]');
+  ok(await has('Yeni PIN belirle') && !(await page.isVisible('#tabs')), 'PIN belirleme ekranı');
+  await shot('16-pin');
+  await pin('1234');
+  await waitText('tekrar gir');
+  await pin('1111');
+  await waitText('uyuşmadı');
+  ok(true, 'farklı PIN reddedildi');
+  await pin('1234'); await waitText('tekrar gir'); await pin('1234');
+  await waitText('Uygulama kilidi açıldı');
+  ok(await has('Uygulama kilidi: Açık'), 'kilit açıldı');
+  const stored = await page.evaluate(() => localStorage.getItem('pasif_gelirim_state_v1'));
+  ok(!stored.includes('1234') && /"hash":"[0-9a-f]{64}"/.test(stored), 'PIN düz metin saklanmıyor (SHA-256 özeti)');
+  await page.reload();
+  await page.waitForSelector('#splash', { state: 'detached', timeout: 5000 });
+  ok(await page.isVisible('.pinwrap') && !(await page.isVisible('#tabs')), 'yeniden açınca kilit ekranı geliyor');
+  await pin('0000');
+  await waitText('Yanlış PIN');
+  ok(true, 'yanlış PIN reddedildi');
+  await pin('1234');
+  await waitText('Merhaba');
+  ok(!(await page.isVisible('.pinwrap')) && await page.isVisible('#tabs'), 'doğru PIN ile kilit açıldı');
+  await click('button[title="Ayarlar"]');
+  await click('[data-act=lockOff]');
+  await pin('1234');
+  await waitText('Uygulama kilidi kapatıldı');
+  ok(await has('Uygulama kilidi: Kapalı'), 'kilit kapatıldı');
+
+  // ---------- Verileri sil, geri yükle, boş durumlar, güvenlik ----------
   await click('[data-act=wipe]');
-  ok(await has('DAHA FAZLASI MÜMKÜN'), 'tüm veriyi silince başa dönüyor');
+  ok(await has('Gerçekçi başla'), 'tüm veriyi silince tanıtıma dönüyor');
+  await click('[data-act=onbSkip]');
+  await page.fill('#nameInput', 'Veli');
+  await click('[data-act=start]');
+  await click('button[title="Ayarlar"]');
+  await page.setInputFiles('#importFile', jsonBackup);
+  await waitText('Yedek geri yüklendi');
+  await tab('Kazanç');
+  ok(await has('420,00 TL'), 'yedekten geri yükleme: kayıtlar geri geldi');
+  await page.setInputFiles('#importFile', { name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('bu json degil') }).catch(() => { });
+  await click('button[title="Ayarlar"]');
+  await page.setInputFiles('#importFile', { name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('bu json degil') });
+  await waitText('yedek dosyası değil');
+  ok(true, 'bozuk yedek dosyası reddedildi');
+  await click('[data-act=wipe]');
+  await click('[data-act=onbSkip]');
   await page.fill('#nameInput', '<img src=x onerror=window.__xss=1>');
   await click('[data-act=start]');
   await tab('Kazanç');

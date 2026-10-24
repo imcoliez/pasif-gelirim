@@ -2,15 +2,15 @@
   "appId": "com.pasifgelirim.app",
   "appName": "Pasif Gelirim",
   "webDir": "www",
-  "backgroundColor": "#07090b",
+  "backgroundColor": "#080a0b",
   "android": {
     "allowMixedContent": false,
-    "backgroundColor": "#07090b"
+    "backgroundColor": "#080a0b"
   },
   "plugins": {
     "StatusBar": {
       "style": "DARK",
-      "backgroundColor": "#0a0e11"
+      "backgroundColor": "#080a0b"
     }
   }
 }
