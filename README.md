@@ -1,6 +1,6 @@
 # Pasif Gelirim — DAHA FAZLASI MÜMKÜN.
 
-Sürüm 0.3 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
+Sürüm 0.5 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
 
 ## Neler çalışıyor
 
@@ -9,6 +9,11 @@ Sürüm 0.3 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | Yeni logo: uygulama ikonu (uyarlanabilir + yuvarlak), açılış ekranı, uygulama içi logo | ✅ |
 | Profesyonel görünüm: çizgi simgeli alt menü (hap biçimli seçili durum), sakin renk paleti, emoji yok | ✅ |
 | İlk açılış tanıtımı (3 sayfa) | ✅ |
+| Ana ekran yenilendi: büyük net kartı + grafik, aylık gelir/gider ve geçen aya göre değişim, son işlemler | ✅ |
+| Başlangıç adımları kontrol listesi (ana ekran) | ✅ |
+| Kayıt düzenleme, kayıtlarda arama, aylık gider bütçesi (aşım uyarısı) | ✅ |
+| Hesaplayıcı: hedef net gelire kaç satış gerekir (komisyon ve maliyet dahil) | ✅ |
+| Sözlük: aranabilir terim listesi | ✅ |
 | PIN kilidi (4 haneli, özetlenmiş saklama, 5 yanlışta 30 sn bekleme, arka plandan dönünce yeniden sorar) | ✅ |
 | Günlük hatırlatıcı bildirimi (yalnızca APK) | ✅ (cihazda denenmedi) |
 | Yedekten geri yükleme (JSON), tanılama bilgisi, aylık özet kartı, hızlı gelir/gider ekle | ✅ |
@@ -57,7 +62,7 @@ npm run serve     # http://localhost:5173
 
 ## Test
 ```
-npm test          # iş mantığı testleri (32)
+npm test          # iş mantığı testleri (37)
 npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 ```
 

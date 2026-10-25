@@ -450,4 +450,60 @@ test('aylık özet: bu ay / geçen ay, en çok kategori, tasarruf oranı', () =>
   assert.strictEqual(C.insights(onlyOut, T0).savingsRate, null, 'gelir yoksa tasarruf oranı yok');
 });
 
+// ---------- v0.4: düzenleme, bütçe, hesaplayıcı, kontrol listesi, sözlük ----------
+test('kayıt düzenleme: geçerliyse günceller, geçersizse eskisini korur', () => {
+  const s = C.defaultState();
+  const r = C.addFinance(s, { type: 'in', amount: 100, cat: 'satis', date: '2026-10-05', note: 'a' }, T0);
+  assert.ok(C.updateFinance(s, r.id, { type: 'out', amount: '45,5', cat: 'arac', date: '2026-10-06', note: 'b' }, T0));
+  assert.strictEqual(s.finance[0].type, 'out'); assert.strictEqual(s.finance[0].amount, 45.5);
+  assert.strictEqual(s.finance[0].id, r.id); assert.strictEqual(s.finance.length, 1);
+  assert.strictEqual(C.updateFinance(s, r.id, { type: 'in', amount: -3 }, T0), null);
+  assert.strictEqual(C.updateFinance(s, r.id, { type: 'in', amount: 5, date: '2099-01-01' }, T0), null, 'gelecek tarih olmaz');
+  assert.strictEqual(C.updateFinance(s, 'yok', { type: 'in', amount: 5 }, T0), null);
+  assert.strictEqual(s.finance[0].amount, 45.5, 'başarısız güncelleme kaydı bozmaz');
+});
+
+test('aylık gider bütçesi', () => {
+  const s = C.defaultState();
+  assert.strictEqual(C.budgetProgress(s, T0).target, 0);
+  assert.ok(C.setBudget(s, '500')); assert.ok(!C.setBudget(s, 'abc')); assert.ok(!C.setBudget(s, -1));
+  C.addFinance(s, { type: 'out', amount: 200, date: '2026-10-05' }, T0);
+  let b = C.budgetProgress(s, T0);
+  assert.strictEqual(b.pct, 40); assert.strictEqual(b.left, 300); assert.ok(!b.over);
+  C.addFinance(s, { type: 'out', amount: 400, date: '2026-10-06' }, T0);
+  b = C.budgetProgress(s, T0);
+  assert.ok(b.over); assert.strictEqual(b.overBy, 100); assert.strictEqual(b.pct, 100);
+  assert.strictEqual(C.migrate({ goal: { monthly: 5 } }).goal.expenseMonthly, 0, 'eski kayıtta bütçe 0');
+});
+
+test('satış hesaplayıcı', () => {
+  const r = C.calcSales({ price: 100, cost: 20, fee: 10, target: 1000 });
+  assert.ok(r.ok); assert.strictEqual(r.netPerSale, 70); assert.strictEqual(r.sales, 15); assert.strictEqual(r.revenue, 1500);
+  assert.ok(!C.calcSales({ price: 10, cost: 9, fee: 20, target: 100 }).ok, 'zarar eden fiyat uyarılır');
+  assert.ok(!C.calcSales({ price: '', target: 5 }).ok);
+  assert.ok(!C.calcSales({ price: 50, fee: 100, target: 5 }).ok);
+  assert.ok(!C.calcSales({ price: 50, target: 0 }).ok);
+  assert.strictEqual(C.calcSales({ price: '49,90', cost: 0, fee: 0, target: '99,8' }).sales, 2);
+});
+
+test('başlangıç kontrol listesi ilerlemeyi izler', () => {
+  const s = C.defaultState();
+  assert.strictEqual(C.checklist(s, T0).done, 0);
+  s.user.name = 'Ali'; C.addFinance(s, { type: 'in', amount: 5 }, T0); C.setGoal(s, 100);
+  const c = C.checklist(s, T0);
+  assert.strictEqual(c.done, 3); assert.ok(!c.complete);
+  C.setPackage(s, 'manual', T0); C.startProject(s, 'sosyal-medya', T0);
+  const p = C.activeProject(s); C.setTaskDone(s, p.id, 't1', true, T0);
+  assert.ok(C.checklist(s, T0).complete);
+});
+
+test('sözlük: tekrarsız liste, arama', () => {
+  const all = C.glossaryList('');
+  assert.ok(all.length >= 5);
+  assert.strictEqual(new Set(all.map(e => e.text)).size, all.length, 'aynı açıklama iki kez listelenmez');
+  assert.ok(C.glossaryList('komisyon').some(e => /affiliate|ortaklığı/i.test(e.key)));
+  assert.strictEqual(C.glossaryList('zzzzqq').length, 0);
+  assert.ok(C.glossaryList('NİŞ').length >= 1, 'Türkçe büyük/küçük harf duyarsız');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

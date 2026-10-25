@@ -40,7 +40,7 @@
       user: { name: '', onboarded: false },
       settings: { theme: 'dark', reminder: { enabled: false, time: '20:00' } },
       lock: { enabled: false, salt: '', hash: '' },
-      goal: { monthly: 0 },
+      goal: { monthly: 0, expenseMonthly: 0 },
       pkg: 'free',
       addonNarration: false,
       cancelledAt: null,
@@ -72,8 +72,9 @@
     if (!out.lock.hash || !out.lock.salt) out.lock.enabled = false;
     out.lock.enabled = !!out.lock.enabled;
     if (out.user.name) out.user.onboarded = true;       // eski kullanıcılar tanıtımı atlar
-    out.goal = Object.assign({ monthly: 0 }, s.goal || {});
+    out.goal = Object.assign({ monthly: 0, expenseMonthly: 0 }, s.goal || {});
     if (!isFinite(out.goal.monthly) || out.goal.monthly < 0) out.goal.monthly = 0;
+    if (!isFinite(out.goal.expenseMonthly) || out.goal.expenseMonthly < 0) out.goal.expenseMonthly = 0;
     ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) { if (!Array.isArray(out[k])) out[k] = []; });
     if (!PACKAGES[out.pkg]) out.pkg = 'free';
     // bozuk kayıtlardaki geçersiz öğeleri (null, metin...) ayıkla
@@ -346,6 +347,76 @@
     const got = financeSummary(state, now).monthIn;
     const pct = target > 0 ? Math.min(100, Math.round(got / target * 100)) : 0;
     return { target: target, got: got, pct: pct, reached: target > 0 && got >= target, left: Math.max(0, Math.round((target - got) * 100) / 100) };
+  }
+
+
+  // ---------- Kayıt düzenleme ----------
+  function updateFinance(state, id, entry, now) {
+    const rec = state.finance.find(function (f) { return f.id === id; });
+    if (!rec) return null;
+    const tmp = { finance: [] };
+    const fresh = addFinance(tmp, entry, now);
+    if (!fresh) return null;
+    rec.type = fresh.type; rec.amount = fresh.amount; rec.cat = fresh.cat; rec.note = fresh.note; rec.date = fresh.date;
+    return rec;
+  }
+
+  // ---------- Aylık gider bütçesi ----------
+  function setBudget(state, amount) {
+    const n = Number(String(amount).replace(',', '.'));
+    if (!isFinite(n) || n < 0 || n > 1e9) return false;
+    state.goal.expenseMonthly = Math.round(n * 100) / 100;
+    return true;
+  }
+  function budgetProgress(state, now) {
+    const target = state.goal.expenseMonthly || 0;
+    const spent = financeSummary(state, now).monthOut;
+    const raw = target > 0 ? spent / target * 100 : 0;
+    return { target: target, spent: spent, pct: Math.min(100, Math.round(raw)), over: target > 0 && spent > target,
+      left: Math.max(0, Math.round((target - spent) * 100) / 100), overBy: Math.max(0, Math.round((spent - target) * 100) / 100) };
+  }
+
+  // ---------- Fiyat / satış hesaplayıcı (tahmindir, satış garantisi değildir) ----------
+  function calcSales(o) {
+    const num = function (v) { return Number(String(v == null ? '' : v).replace(',', '.')); };
+    const price = num(o.price), cost = num(o.cost || 0), fee = num(o.fee || 0), target = num(o.target);
+    if (!(price > 0) || price > 1e9) return { ok: false, error: 'Satış fiyatını yaz.' };
+    if (!isFinite(cost) || cost < 0) return { ok: false, error: 'Birim maliyet geçersiz.' };
+    if (!isFinite(fee) || fee < 0 || fee >= 100) return { ok: false, error: 'Komisyon oranı 0 ile 99 arasında olmalı.' };
+    if (!(target > 0) || target > 1e9) return { ok: false, error: 'Hedef net geliri yaz.' };
+    const net = Math.round((price * (1 - fee / 100) - cost) * 100) / 100;
+    if (net <= 0) return { ok: false, error: 'Bu fiyatta her satıştan zarar ediyorsun (satış başına net ' + net.toFixed(2).replace('.', ',') + ' TL). Fiyatı artır veya maliyeti düşür.' };
+    const sales = Math.ceil(target / net - 1e-9);
+    return { ok: true, netPerSale: net, sales: sales, revenue: Math.round(sales * price * 100) / 100, perDay: Math.round(sales / 30 * 10) / 10 };
+  }
+
+  // ---------- Başlangıç kontrol listesi ----------
+  function checklist(state, now) {
+    const doneTasks = state.projects.some(function (p) { return Object.keys(p.tasks).some(function (k) { return p.tasks[k].done; }); });
+    const items = [
+      { id: 'name', title: 'Adını yaz', route: 'settings', done: !!state.user.name },
+      { id: 'model', title: 'Gelir modelini seç', route: 'tasks', done: state.projects.length > 0 },
+      { id: 'task', title: 'İlk görevi tamamla', route: 'tasks', done: doneTasks },
+      { id: 'record', title: 'İlk gelir/gider kaydını gir', route: 'money', done: state.finance.length > 0 },
+      { id: 'goal', title: 'Aylık gelir hedefi koy', route: 'money', done: (state.goal.monthly || 0) > 0 }
+    ];
+    const done = items.filter(function (i) { return i.done; }).length;
+    return { items: items, done: done, total: items.length, complete: done === items.length };
+  }
+
+  // ---------- Sözlük ----------
+  function glossaryList(query) {
+    const q = norm(query || '');
+    const byText = {}, out = [];
+    Object.keys(Data.GLOSSARY).forEach(function (k) {
+      const t = Data.GLOSSARY[k];
+      if (byText[t]) { byText[t].aliases.push(k); return; }
+      byText[t] = { term: k.charAt(0).toLocaleUpperCase('tr-TR') + k.slice(1), key: k, text: t, aliases: [] };
+      out.push(byText[t]);
+    });
+    out.sort(function (a, b) { return a.term.localeCompare(b.term, 'tr'); });
+    if (!q) return out;
+    return out.filter(function (e) { return norm(e.key + ' ' + e.aliases.join(' ') + ' ' + e.text).indexOf(q) !== -1; });
   }
 
   // ---------- Seri ve rozetler ----------
@@ -661,7 +732,8 @@
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '0.3',
+    importData: importData, APP_VERSION: '0.5',
+    updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData

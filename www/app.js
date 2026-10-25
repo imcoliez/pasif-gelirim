@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'tasks', 'chat', 'money', 'packages'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', glossary: 'Sözlük', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -41,7 +41,18 @@
     backspace: '<path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/>',
     user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
-    chevron: '<polyline points="9 18 15 12 9 6"/>'
+    chevron: '<polyline points="9 18 15 12 9 6"/>',
+    calc: '<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="8.01" y2="11"/><line x1="12" y1="11" x2="12.01" y2="11"/><line x1="16" y1="11" x2="16.01" y2="11"/><line x1="8" y1="15" x2="8.01" y2="15"/><line x1="12" y1="15" x2="12.01" y2="15"/><line x1="16" y1="15" x2="16.01" y2="15"/><line x1="8" y1="19" x2="12" y2="19"/>',
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    circle: '<circle cx="12" cy="12" r="9"/>',
+    wallet: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
+    tag: '<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+    cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+    megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>',
+    box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+    dots: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'
   };
   function icon(name, size) {
     const s = size || 20;
@@ -60,7 +71,7 @@
     return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
   }
   function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + tl(Math.abs(n)); }
-  function bar(pct) { return '<div class="bar"><div class="bar-fill" style="width:' + pct + '%"></div></div>'; }
+  function bar(pct, over) { return '<div class="bar' + (over ? ' over' : '') + '"><div class="bar-fill" style="width:' + pct + '%"></div></div>'; }
   function lock(msg, btnText, route) {
     return '<div class="card lock"><div class="lock-ico">' + icon('lock', 28) + '</div><p>' + esc(msg) + '</p>' +
       (btnText ? '<button class="btn" data-act="go" data-route="' + route + '">' + esc(btnText) + '</button>' : '') + '</div>';
@@ -78,9 +89,9 @@
     if (a >= 1e3) return f(n / 1e3) + ' B';
     return String(Math.round(n));
   }
-  function catOptions(type) {
+  function catOptions(type, sel) {
     return Core.CATEGORIES[type === 'out' ? 'out' : 'in'].map(function (c) {
-      return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>';
+      return '<option value="' + esc(c.id) + '"' + (c.id === sel ? ' selected' : '') + '>' + esc(c.name) + '</option>';
     }).join('');
   }
   function seg(items, cur, act) {
@@ -189,6 +200,28 @@
     }).join('') + '</ul>';
   }
 
+  // ---------- Ana ekran kahraman grafiği ----------
+  function heroChart(series) {
+    const n = series.buckets.length, W = 320, H = 84, pad = 6;
+    const vals = series.buckets.map(function (b) { return b.cum; });
+    let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    if (hi === lo) { hi += 1; lo -= 1; }
+    const x = function (i) { return pad + i * ((W - pad * 2) / Math.max(1, n - 1)); };
+    const y = function (v) { return pad + (H - pad * 2) * (1 - (v - lo) / (hi - lo)); };
+    const pts = vals.map(function (v, i) { return x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="herochart" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gHero" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--g);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--g);stop-opacity:0"/></linearGradient></defs>' +
+      '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1).toFixed(1) + ' ' + H + ' L' + x(0).toFixed(1) + ' ' + H + ' Z" fill="url(#gHero)"/>' +
+      '<path class="line" pathLength="1" d="M' + pts.join(' L') + '" fill="none" vector-effect="non-scaling-stroke"/></svg>';
+  }
+  function chg(cur, prev, goodWhenUp) {
+    if (!(prev > 0)) return '<span class="trend flat">Geçen ay verisi yok</span>';
+    const p = Math.round((cur - prev) / prev * 1000) / 10;
+    if (p === 0) return '<span class="trend flat">Geçen ayla aynı</span>';
+    const up = p > 0, good = up === goodWhenUp;
+    return '<span class="trend ' + (good ? 'up' : 'down') + '">' + (up ? '▲' : '▼') + ' %' + String(Math.abs(p)).replace('.', ',') + '</span>';
+  }
+  const CAT_ICON = { satis: 'cart', hizmet: 'wallet', ortaklik: 'megaphone', arac: 'tag', reklam: 'megaphone', malzeme: 'box', diger: 'dots' };
+
   // ---------- Görünümler ----------
   const views = {};
 
@@ -237,12 +270,30 @@
     const st = Core.streak(S, now);
     const week = Core.financeSeries(S, '7d', now);
     const gp = Core.goalProgress(S, now);
-    let html = '<h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2>';
-    html += '<div class="chip">' + esc(ent.pkg.name) + ' paketi</div>';
+    const fs = Core.financeSummary(S, now), ins = Core.insights(S, now), m30 = Core.financeSeries(S, '30d', now);
+    let html = '<div class="hello"><h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2><span class="chip">' + esc(ent.pkg.name) + ' paketi</span></div>';
+    html += '<button class="card hero" data-act="go" data-route="charts"><small>Toplam net</small><div class="hero-num ' + (fs.net < 0 ? 'neg' : '') + '">' + tl(fs.net) + '</div>' +
+      '<span class="trend ' + (ins.thisMonth.net > 0 ? 'up' : ins.thisMonth.net < 0 ? 'down' : 'flat') + '">' + (ins.thisMonth.net > 0 ? '▲ ' : ins.thisMonth.net < 0 ? '▼ ' : '') + 'Bu ay ' + signed(ins.thisMonth.net) + '</span>' +
+      (m30.empty ? '<p class="muted small hero-empty">İlk kaydını girince grafik burada çizilir.</p>' : heroChart(m30)) + '</button>';
+    html += '<div class="grid2 pair"><div class="card stat2"><small>Aylık gelir</small><b>' + tl(ins.thisMonth.in) + '</b>' + chg(ins.thisMonth.in, ins.lastMonth.in, true) + '</div>' +
+      '<div class="card stat2"><small>Aylık gider</small><b>' + tl(ins.thisMonth.out) + '</b>' + chg(ins.thisMonth.out, ins.lastMonth.out, false) + '</div></div>';
+    const recent = S.finance.slice().sort(function (a, b) { return b.date - a.date || (b.at || 0) - (a.at || 0); }).slice(0, 4);
+    html += '<div class="row sect"><h3>Son işlemler</h3><button class="link" data-act="go" data-route="money">Tümü ›</button></div>';
+    if (!recent.length) html += '<div class="card muted small">Henüz işlem yok. Aşağıdaki düğmelerle ilk geliri veya gideri ekleyebilirsin.</div>';
+    else html += '<div class="card nopad txlist">' + recent.map(function (r) {
+      return '<div class="tx ' + r.type + '"><span class="tx-ic">' + icon(CAT_ICON[r.cat] || 'dots', 20) + '</span><span class="tx-tx"><b>' + esc(Core.categoryName(r.type, r.cat)) + '</b><small>' + Core.formatDate(r.date) + (r.note ? ' · ' + esc(r.note) : '') + '</small></span><b class="tx-amt">' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></div>';
+    }).join('') + '</div>';
     if (S.cancelledAt && ent.pkg.tier === 0) {
       html += '<div class="card note">Aboneliğin sona erdi. Kurduğun işe manuel devam edebilir, eski çalışmalarına Geçmiş İşlemler\'den ulaşabilirsin.</div>';
     }
     html += '<div class="qa-row"><button class="qa in" data-act="quickAdd" data-v="in">' + icon('plus', 18) + 'Gelir ekle</button><button class="qa out" data-act="quickAdd" data-v="out">' + icon('minus', 18) + 'Gider ekle</button></div>';
+    const cl = Core.checklist(S, now);
+    if (!cl.complete) {
+      html += '<div class="card checklist"><div class="row"><b>Başlangıç adımları</b><span class="muted small">' + cl.done + ' / ' + cl.total + '</span></div>' + bar(Math.round(cl.done / cl.total * 100)) +
+        cl.items.map(function (it) {
+          return '<button class="cl ' + (it.done ? 'done' : '') + '" data-act="go" data-route="' + it.route + '"' + (it.done ? ' tabindex="-1"' : '') + '><span class="cl-ic">' + icon(it.done ? 'check' : 'circle', 18) + '</span><span>' + esc(it.title) + '</span>' + (it.done ? '' : icon('chevron', 16)) + '</button>';
+        }).join('') + '</div>';
+    }
     html += '<div class="card streak"><div class="row"><div class="sline"><span class="flame ' + (st.current > 0 ? 'on' : '') + '">' + icon('flame', 22) + '</span><b>' + st.current + ' günlük seri</b></div><span class="muted small">En iyi: ' + st.best + '</span></div>' +
       '<p class="muted small">' + (st.activeToday ? 'Bugün de çalıştın, harika.' : (st.current > 0 ? 'Serini korumak için bugün küçük bir adım at.' : 'Bir görev tamamla, kayıt gir veya sohbet et; seri başlasın.')) + '</p>' +
       '<div class="badges">' + Core.badges(S, now).map(function (b) {
@@ -261,14 +312,13 @@
     } else {
       html += lock('Gelir modeli seçmek ve görev listesini kullanmak için Manuel paket gerekir.', 'Paketlere bak', 'packages');
     }
-    html += '<button class="card weekcard" data-act="go" data-route="charts"><div class="row"><b>Son 7 gün</b><span class="muted small">Grafikleri aç ›</span></div>' +
-      '<div class="row"><div><div class="big ' + (week.totals.net < 0 ? 'neg' : '') + '">' + tl(week.totals.net) + '</div><small class="muted">net</small></div>' + (week.empty ? '<small class="muted">Henüz kayıt yok</small>' : spark(week)) + '</div>' +
-      (gp.target > 0 ? '<div class="mini-goal">' + bar(gp.pct) + '<small class="muted">Aylık hedef: %' + gp.pct + '</small></div>' : '') + '</button>';
     html += '<div class="grid2">' +
       '<button class="tile" data-act="go" data-route="chat"><span class="ti">' + icon('chat', 20) + '</span><b>AI Sohbet</b><small>Bugün kalan: ' + Core.formatDuration(left) + '</small></button>' +
       '<button class="tile" data-act="go" data-route="money"><span class="ti">' + icon('trend', 20) + '</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
       '<button class="tile" data-act="go" data-route="auto"><span class="ti">' + icon('zap', 20) + '</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : 'Ücretli paket') + '</small></button>' +
       '<button class="tile" data-act="go" data-route="history"><span class="ti">' + icon('history', 20) + '</span><b>Geçmiş İşlemler</b><small>Eski çalışmaların</small></button>' +
+      '<button class="tile" data-act="go" data-route="calc"><span class="ti">' + icon('calc', 20) + '</span><b>Hesaplayıcı</b><small>Hedefe kaç satış?</small></button>' +
+      '<button class="tile" data-act="go" data-route="glossary"><span class="ti">' + icon('book', 20) + '</span><b>Sözlük</b><small>Terimleri öğren</small></button>' +
       '</div>';
     html += '<p class="fine">Pasif Gelirim hiçbir gelir garantisi vermez. Gerçek sonuçlar kişiden kişiye değişir.</p>';
     return html;
@@ -399,6 +449,7 @@
     const gp = Core.goalProgress(S, now);
     const type = ui.finType === 'out' ? 'out' : 'in';
     const today = Core.dateInputValue(now);
+    const ed = ui.editId ? S.finance.find(function (r) { return r.id === ui.editId; }) : null;
     let html = '<h2>Kazanç</h2>';
     html += '<div class="card goal">';
     if (gp.target > 0) {
@@ -410,28 +461,68 @@
         '<div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Örn: 2500"><button class="btn" data-act="saveGoal">Kaydet</button></div>';
     }
     html += '</div>';
+    const bp = Core.budgetProgress(S, now);
+    html += '<div class="card goal">';
+    if (bp.target > 0) {
+      html += '<div class="row"><b>Aylık gider bütçesi</b><span class="muted small">' + tl(bp.spent) + ' / ' + tl(bp.target) + '</span></div>' + bar(bp.pct, bp.over) +
+        '<p class="small ' + (bp.over ? 'neg' : 'muted') + '">' + (bp.over ? 'Bütçeyi ' + tl(bp.overBy) + ' aştın.' : 'Kalan: ' + tl(bp.left)) + '</p>' +
+        '<details><summary class="link">Bütçeyi değiştir</summary><div class="send"><input id="budgetInput" class="inp" inputmode="decimal" placeholder="Yeni bütçe (TL)"><button class="btn" data-act="saveBudget">Kaydet</button></div></details>';
+    } else {
+      html += '<b>Aylık gider bütçesi</b><p class="muted small">İstersen aylık harcama sınırı koy; aşmaya yaklaşınca görürsün. Boş bırakabilirsin.</p>' +
+        '<div class="send"><input id="budgetInput" class="inp" inputmode="decimal" placeholder="Örn: 800"><button class="btn" data-act="saveBudget">Kaydet</button></div>';
+    }
+    html += '</div>';
     html += '<div class="grid2"><div class="stat"><small>Bu ay net</small><b class="' + (f.monthNet < 0 ? 'neg' : '') + '">' + tl(f.monthNet) + '</b></div><div class="stat"><small>Toplam net</small><b class="' + (f.net < 0 ? 'neg' : '') + '">' + tl(f.net) + '</b></div>' +
       '<div class="stat in"><small>Toplam gelir</small><b>' + tl(f.totalIn) + '</b></div><div class="stat out"><small>Toplam gider</small><b>' + tl(f.totalOut) + '</b></div></div>';
     html += '<button class="btn ghost" data-act="go" data-route="charts">' + icon('chart', 18) + ' Gelir-Gider Grafiklerini Aç</button>';
-    html += '<div class="card"><b>Yeni kayıt</b>' + seg([{ v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], type, 'finType') +
-      '<label class="lbl" for="finAmount">Tutar (TL)</label><input id="finAmount" class="inp" inputmode="decimal" placeholder="0,00">' +
-      '<div class="two"><div><label class="lbl" for="finCat">Kategori</label><select id="finCat" class="inp">' + catOptions(type) + '</select></div>' +
-      '<div><label class="lbl" for="finDate">Tarih</label><input id="finDate" type="date" class="inp" value="' + today + '" max="' + today + '"></div></div>' +
-      '<label class="lbl" for="finNote">Not</label><input id="finNote" class="inp" maxlength="120" placeholder="Örn: ilk satış">' +
-      '<button class="btn" data-act="addFin">Kaydet</button></div>' +
+    html += '<div class="card' + (ed ? ' editing' : '') + '" id="finForm"><div class="row"><b>' + (ed ? 'Kaydı düzenle' : 'Yeni kayıt') + '</b>' + (ed ? '<button class="link" data-act="cancelEdit">Vazgeç</button>' : '') + '</div>' + seg([{ v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], type, 'finType') +
+      '<label class="lbl" for="finAmount">Tutar (TL)</label><input id="finAmount" class="inp" inputmode="decimal" placeholder="0,00"' + (ed ? ' value="' + esc(String(ed.amount).replace('.', ',')) + '"' : '') + '>' +
+      '<div class="two"><div><label class="lbl" for="finCat">Kategori</label><select id="finCat" class="inp">' + catOptions(type, ed && ed.cat) + '</select></div>' +
+      '<div><label class="lbl" for="finDate">Tarih</label><input id="finDate" type="date" class="inp" value="' + (ed ? Core.dateInputValue(ed.date) : today) + '" max="' + today + '"></div></div>' +
+      '<label class="lbl" for="finNote">Not</label><input id="finNote" class="inp" maxlength="120" placeholder="Örn: ilk satış"' + (ed ? ' value="' + esc(ed.note) + '"' : '') + '>' +
+      '<button class="btn" data-act="addFin">' + (ed ? 'Güncelle' : 'Kaydet') + '</button></div>' +
       '<p class="fine">Gerçek rakamlarını yaz. Amaç kendini kandırmadan ilerlemeyi görmek.</p>';
     const flt = ui.finFilter || 'all';
+    if (S.finance.length > 4) html += '<div class="searchbox">' + icon('search', 18) + '<input id="finSearch" class="inp" type="search" placeholder="Kayıtlarda ara (not, kategori)" autocomplete="off"></div>';
     html += '<div class="row"><h3>Kayıtlar</h3>' + seg([{ v: 'all', t: 'Tümü' }, { v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], flt, 'finFilter') + '</div><ul class="list">';
     const rows = S.finance.slice().sort(function (a, b) { return b.date - a.date || (b.at || 0) - (a.at || 0); })
       .filter(function (r) { return flt === 'all' || r.type === flt; });
     if (!rows.length) html += '<li class="card muted">' + (S.finance.length ? 'Bu filtrede kayıt yok.' : 'Henüz kayıt yok. İlk kaydını yukarıdan ekleyebilirsin.') + '</li>';
     rows.forEach(function (r) {
-      html += '<li class="fin ' + r.type + '"><span>' + Core.formatDate(r.date) + ' · ' + esc(Core.categoryName(r.type, r.cat)) + (r.note ? '<br><small class="muted">' + esc(r.note) + '</small>' : '') + '</span>' +
-        '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">' + icon('trash', 18) + '</button></li>';
+      html += '<li class="fin ' + r.type + '" data-q="' + esc((Core.categoryName(r.type, r.cat) + ' ' + r.note).toLocaleLowerCase('tr')) + '"><span>' + Core.formatDate(r.date) + ' · ' + esc(Core.categoryName(r.type, r.cat)) + (r.note ? '<br><small class="muted">' + esc(r.note) + '</small>' : '') + '</span>' +
+        '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="editFin" data-id="' + esc(r.id) + '" aria-label="Kaydı düzenle">' + icon('edit', 18) + '</button><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">' + icon('trash', 18) + '</button></li>';
     });
     html += '</ul>';
     if (S.finance.length) html += '<button class="btn ghost" data-act="exportCsv">' + icon('download', 18) + ' Kayıtları CSV olarak dışa aktar</button>';
     return html;
+  };
+
+  views.calc = function (S, ui) {
+    const g = S.goal.monthly || '';
+    const r = ui.calcRes;
+    let html = '<h2>Hedefe kaç satış?</h2><p class="muted">Satış fiyatını, maliyetini ve platform komisyonunu yaz; aylık net hedefine kaç satış gerektiğini gör.</p>' +
+      '<div class="card"><label class="lbl" for="calcPrice">Satış fiyatı (TL)</label><input id="calcPrice" class="inp" inputmode="decimal" placeholder="Örn: 250">' +
+      '<div class="two"><div><label class="lbl" for="calcCost">Satış başı maliyet (TL)</label><input id="calcCost" class="inp" inputmode="decimal" placeholder="0"></div>' +
+      '<div><label class="lbl" for="calcFee">Komisyon (%)</label><input id="calcFee" class="inp" inputmode="decimal" placeholder="0"></div></div>' +
+      '<label class="lbl" for="calcTarget">Aylık net hedef (TL)</label><input id="calcTarget" class="inp" inputmode="decimal" placeholder="Örn: 2500"' + (g ? ' value="' + esc(g) + '"' : '') + '>' +
+      '<button class="btn" data-act="calcRun">Hesapla</button></div>';
+    if (r) {
+      html += r.ok
+        ? '<div class="card result"><div class="irow"><span>Satış başına net</span><b>' + tl(r.netPerSale) + '</b></div><div class="irow"><span>Gereken satış</span><b>' + r.sales + ' adet</b></div>' +
+          '<div class="irow"><span>Toplam ciro</span><b>' + tl(r.revenue) + '</b></div><div class="irow"><span>Günde yaklaşık</span><b>' + String(r.perDay).replace('.', ',') + ' satış</b></div></div>'
+        : '<div class="card note">' + esc(r.error) + '</div>';
+    }
+    return html + '<p class="fine">Bu bir hesap makinesidir; o kadar satış yapacağını garanti etmez. Vergi ve diğer giderleri ayrıca düşünmelisin.</p>';
+  };
+
+  views.glossary = function () {
+    const list = Core.glossaryList('');
+    return '<h2>Sözlük</h2><p class="muted">Görevlerde karşına çıkabilecek terimler, sade anlatımla.</p>' +
+      '<div class="searchbox">' + icon('search', 18) + '<input id="glossQ" class="inp" type="search" placeholder="Terim ara" autocomplete="off"></div>' +
+      '<div id="glossList">' + list.map(function (e) {
+        const q = (e.key + ' ' + e.aliases.join(' ') + ' ' + e.text).toLocaleLowerCase('tr');
+        return '<details class="card faq" data-q="' + esc(q) + '"><summary>' + esc(e.term) + '</summary><p>' + esc(e.text) + '</p></details>';
+      }).join('') + '</div><p class="muted small" id="glossEmpty" hidden>Eşleşen terim yok. Sohbette sormayı dene.</p>';
   };
 
   views.charts = function (S, ui, now) {

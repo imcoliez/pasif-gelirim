@@ -282,7 +282,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.3'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.5'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');
@@ -301,6 +301,54 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(await has('Hayır. Hiçbir gelir modeli için garanti vermiyoruz'), 'SSS açılıyor');
   await tab('Paketler');
   await noOverflow('paketler');
+
+
+  // ---------- v0.4: kontrol listesi, düzenleme, bütçe, arama, hesaplayıcı, sözlük ----------
+  await tab('Ana');
+  ok(!(await has('Başlangıç adımları')), 'tüm adımlar bitince kontrol listesi kayboluyor');
+  await tab('Kazanç');
+  await page.fill('#budgetInput', '100');
+  await click('[data-act=saveBudget]');
+  ok(await has('Aylık gider bütçesi') && await has('Kalan: 20,00 TL'), 'gider bütçesi kaydedildi ve kalan gösteriliyor');
+  await page.fill('#finAmount', '70'); await click('[data-act=finType][data-v=out]');
+  await click('[data-act=addFin]');
+  ok(await has('Bütçeyi 50,00 TL aştın'), 'bütçe aşımı uyarısı');
+  await page.click('[data-act=editFin] >> nth=0');
+  ok(await has('Kaydı düzenle') && await has('Güncelle'), 'düzenleme formu açılıyor');
+  const amt = await page.inputValue('#finAmount');
+  ok(amt !== '', 'düzenleme formu mevcut tutarla doluyor (' + amt + ')');
+  await page.fill('#finAmount', '15');
+  await click('[data-act=addFin]');
+  ok(await has('Kayıt güncellendi') && await has('Kalan: 5,00 TL'), 'kayıt güncellendi, bütçe yeniden hesaplandı');
+  ok(!(await has('Kaydı düzenle')), 'güncelleyince form yeni kayda döndü');
+  await click('[data-act=finType][data-v=in]');
+  for (const n of ['1', '2', '3']) { await page.fill('#finAmount', n); await page.fill('#finNote', 'arama' + n); await click('[data-act=addFin]'); }
+  ok((await page.locator('#finSearch').count()) === 1, 'çok kayıt olunca arama kutusu');
+  await page.fill('#finSearch', 'arama2');
+  ok((await page.locator('li.fin:visible').count()) === 1, 'arama kayıtları süzüyor');
+  await page.fill('#finSearch', '');
+  await shot('17-kazanc-butce');
+  await noOverflow('kazanç v0.4');
+  await tab('Ana');
+  await click('.tile:has-text("Hesaplayıcı")');
+  await page.fill('#calcPrice', '100'); await page.fill('#calcCost', '20'); await page.fill('#calcFee', '10'); await page.fill('#calcTarget', '1000');
+  await click('[data-act=calcRun]');
+  ok(await has('15 adet') && await has('70,00 TL'), 'hesaplayıcı: 15 satış, satış başı 70 TL');
+  ok((await page.inputValue('#calcPrice')) === '100', 'hesapladıktan sonra girişler korunuyor');
+  await page.fill('#calcPrice', '10'); await page.fill('#calcCost', '30');
+  await click('[data-act=calcRun]');
+  ok(await has('zarar ediyorsun'), 'zarar ettiren fiyat uyarısı');
+  await shot('18-hesaplayici');
+  await click('[data-act=back]');
+  await click('.tile:has-text("Sözlük")');
+  const all = await page.locator('#glossList details').count();
+  ok(all >= 5, 'sözlükte ' + all + ' terim');
+  await page.fill('#glossQ', 'zzzqq');
+  ok((await page.locator('#glossList details:visible').count()) === 0 && await page.isVisible('#glossEmpty'), 'sözlük araması: sonuç yoksa mesaj');
+  await page.fill('#glossQ', 'niş');
+  ok((await page.locator('#glossList details:visible').count()) >= 1, 'sözlük araması terim buluyor');
+  await shot('19-sozluk');
+  await noOverflow('sözlük');
 
   // ---------- PIN kilidi ----------
   const pin = async d => { for (const c of d) await page.click('.key[data-v="' + c + '"]'); };
@@ -339,6 +387,8 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=onbSkip]');
   await page.fill('#nameInput', 'Veli');
   await click('[data-act=start]');
+  ok(await has('Başlangıç adımları') && (await page.locator('.cl').count()) === 5 && (await page.locator('.cl.done').count()) === 1, 'yeni kullanıcıda kontrol listesi (1/5)');
+  await shot('20-kontrol-listesi');
   await click('button[title="Ayarlar"]');
   await page.setInputFiles('#importFile', jsonBackup);
   await waitText('Yedek geri yüklendi');

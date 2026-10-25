@@ -68,7 +68,7 @@
   }).join('');
 
   // ---------- Çizim ----------
-  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'chatInput', 'setName'];
+  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
   function captureDraft() {
     if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
     if (lastRoute !== ui.route) { ui.draft = {}; return; }
@@ -160,6 +160,7 @@
     ui.route = route; ui.narr = null; ui.narrAnswer = ''; ui.exportText = null;
     if (route !== 'tasks') ui.quiz = null;
     if (route === 'charts') ui.chartSel = null;
+    if (route !== 'money') ui.editId = null;
     if (extra) for (var k in extra) ui[k] = extra[k];
     ui.enter = dir;
     pushNav(route, prev);
@@ -412,6 +413,20 @@
     t.value = '';
   });
 
+  // Canlı arama (yeniden çizmeden, odak kaybolmasın)
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === 'finSearch' || t.id === 'glossQ') {
+      var q = t.value.trim().toLocaleLowerCase('tr'), n = 0;
+      var items = document.querySelectorAll(t.id === 'finSearch' ? 'li.fin' : '#glossList details');
+      for (var i = 0; i < items.length; i++) {
+        var hit = !q || (items[i].getAttribute('data-q') || '').indexOf(q) !== -1;
+        items[i].hidden = !hit; if (hit) n++;
+      }
+      var em = document.getElementById('glossEmpty'); if (em) em.hidden = n > 0;
+    }
+  });
+
   // Klavye açıkken alt menüyü gizle (küçük ekranlarda yer açar)
   document.addEventListener('focusin', function (e) {
     var n = e.target && e.target.tagName;
@@ -498,11 +513,27 @@
     },
     finFilter: function (el) { ui.finFilter = el.getAttribute('data-v'); render(); },
     addFin: function () {
+      var entry = { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote') };
+      var editing = !!ui.editId;
       var rec = withRewards(function () {
-        return Core.addFinance(S, { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote') }, now());
+        return editing ? Core.updateFinance(S, ui.editId, entry, now()) : Core.addFinance(S, entry, now());
       });
       if (!rec) { toast('Tutarı ve tarihi kontrol et (gelecek tarih olamaz).'); return; }
-      ui.noDraft = true; save(); toast('Kaydedildi.'); render();
+      ui.editId = null; ui.noDraft = true; save(); toast(editing ? 'Kayıt güncellendi.' : 'Kaydedildi.'); render();
+    },
+    editFin: function (el) {
+      var r = S.finance.find(function (x) { return x.id === el.getAttribute('data-id'); }); if (!r) return;
+      ui.editId = r.id; ui.finType = r.type; ui.noDraft = true; ui.enter = 'fade'; render();
+      var f = document.getElementById('finForm'); if (f) { try { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { } }
+    },
+    cancelEdit: function () { ui.editId = null; ui.noDraft = true; render(); },
+    saveBudget: function () {
+      if (!Core.setBudget(S, val('budgetInput'))) { toast('Geçerli bir tutar yaz.'); return; }
+      ui.noDraft = true; save(); toast('Bütçe kaydedildi.'); render();
+    },
+    calcRun: function () {
+      ui.calcRes = Core.calcSales({ price: val('calcPrice'), cost: val('calcCost'), fee: val('calcFee'), target: val('calcTarget') });
+      render();
     },
     delFin: function (el) {
       if (!window.confirm('Bu kayıt silinsin mi?')) return;
