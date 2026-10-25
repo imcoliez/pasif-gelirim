@@ -732,7 +732,7 @@
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '0.5',
+    importData: importData, APP_VERSION: '0.6',
     updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,

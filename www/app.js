@@ -277,6 +277,12 @@
       (m30.empty ? '<p class="muted small hero-empty">İlk kaydını girince grafik burada çizilir.</p>' : heroChart(m30)) + '</button>';
     html += '<div class="grid2 pair"><div class="card stat2"><small>Aylık gelir</small><b>' + tl(ins.thisMonth.in) + '</b>' + chg(ins.thisMonth.in, ins.lastMonth.in, true) + '</div>' +
       '<div class="card stat2"><small>Aylık gider</small><b>' + tl(ins.thisMonth.out) + '</b>' + chg(ins.thisMonth.out, ins.lastMonth.out, false) + '</div></div>';
+    const sp = Core.categorySplit(S, 'out', '30d', now);
+    html += '<div class="card spend"><div class="row"><b>Harcamalarım</b><span class="muted small">Son 30 gün</span></div>' +
+      (sp.total > 0
+        ? '<div class="donut-row">' + donut(sp.items, Math.round(sp.total).toLocaleString('tr-TR'), 'TL harcama') +
+          '<ul class="legend spendlg">' + sp.items.map(function (it, i) { return '<li><i style="background:var(--c' + (i % 4) + ')"></i><span class="nm">' + esc(it.name) + '<small>' + tl(it.amount) + '</small></span><b>%' + Math.round(it.pct) + '</b></li>'; }).join('') + '</ul></div>'
+        : '<p class="muted small">Gider kaydı ekledikçe harcamalarının dağılımı burada yüzdelerle görünür.</p>') + '</div>';
     const recent = S.finance.slice().sort(function (a, b) { return b.date - a.date || (b.at || 0) - (a.at || 0); }).slice(0, 4);
     html += '<div class="row sect"><h3>Son işlemler</h3><button class="link" data-act="go" data-route="money">Tümü ›</button></div>';
     if (!recent.length) html += '<div class="card muted small">Henüz işlem yok. Aşağıdaki düğmelerle ilk geliri veya gideri ekleyebilirsin.</div>';

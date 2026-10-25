@@ -282,7 +282,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.5'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.6'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');

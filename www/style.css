@@ -361,3 +361,13 @@ html[data-theme="dark"] .tabs{background:linear-gradient(180deg,#0d1316,#0a0f12)
 html[data-theme="light"] .tab.on .pill{box-shadow:none;border-color:rgba(23,163,90,.35)}
 .tab.on small{color:var(--g2)}
 html[data-theme="dark"] .top{background:rgba(8,11,12,.82)}
+
+.spend .donut{width:132px;height:132px}
+.spend .legend li{font-size:14px;margin:7px 0}
+.spend .legend b{font-size:13px;color:var(--tx)}
+
+.spendlg li{align-items:flex-start}
+.spendlg i{margin-top:5px}
+.spendlg .nm{white-space:normal;display:flex;flex-direction:column;line-height:1.25}
+.spendlg .nm small{color:var(--mu);font-size:12px;width:auto;text-align:left}
+.spendlg b{font-size:15px;color:var(--tx)}
