@@ -506,4 +506,66 @@ test('sözlük: tekrarsız liste, arama', () => {
   assert.ok(C.glossaryList('NİŞ').length >= 1, 'Türkçe büyük/küçük harf duyarsız');
 });
 
+// ---------- v0.7: tekrarlayan kayıt, birikim, vergi payı, kaynak ----------
+test('tekrarlayan kayıt: aylık, eksik aylar tamamlanır, ay sonu taşmaz', () => {
+  const s = C.defaultState();
+  const r = C.addRecurring(s, { type: 'out', amount: 100, cat: 'arac', note: 'abonelik', freq: 'monthly', date: '2026-07-31' }, T0);
+  assert.ok(r); assert.strictEqual(C.addRecurring(s, { type: 'out', amount: 0 }, T0), null);
+  const n = C.applyRecurring(s, T0);                       // T0 = 2026-10 ortası
+  assert.strictEqual(n, 3, 'Tem, Ağu, Eyl (31 Ekim henüz gelmedi)');
+  assert.ok(s.finance.every(f => f.auto && f.recId === r.id));
+  assert.strictEqual(new Date(s.finance.find(f => new Date(f.date).getMonth() === 8).date).getDate(), 30, 'Eylül 31 yerine 30');
+  assert.strictEqual(C.applyRecurring(s, T0), 0, 'ikinci çağrıda tekrar eklenmez');
+  assert.strictEqual(C.applyRecurring(s, T0 + 40 * DAY) >= 1, true, 'sonraki ay yeni kayıt');
+});
+
+test('tekrarlayan kayıt: haftalık, duraklatma geriye dönük eklemez, otomatik kayıt seriyi/rozeti etkilemez', () => {
+  const s = C.defaultState();
+  const r = C.addRecurring(s, { type: 'in', amount: 50, freq: 'weekly', date: '2026-10-01' }, T0);
+  assert.ok(C.applyRecurring(s, T0) >= 2);
+  assert.strictEqual(C.streak(s, T0).current, 0, 'otomatik kayıt seri sayılmaz');
+  assert.ok(!C.badges(s, T0).find(b => b.id === 'first-record').earned, 'otomatik kayıt rozet vermez');
+  assert.ok(!C.checklist(s, T0).items.find(i => i.id === 'record').done);
+  C.toggleRecurring(s, r.id, T0);
+  const before = s.finance.length;
+  C.applyRecurring(s, T0 + 30 * DAY);
+  assert.strictEqual(s.finance.length, before, 'duraklatılmışken eklenmez');
+  C.toggleRecurring(s, r.id, T0 + 30 * DAY);
+  assert.strictEqual(C.applyRecurring(s, T0 + 30 * DAY) <= 1, true, 'devam edince geçmiş dönem eklenmez');
+  assert.ok(C.removeRecurring(s, r.id) && s.recurring.length === 0);
+});
+
+test('birikim hedefleri', () => {
+  const s = C.defaultState();
+  assert.strictEqual(C.addSaving(s, '', 100, T0), null);
+  assert.strictEqual(C.addSaving(s, 'Laptop', -5, T0), null);
+  const v = C.addSaving(s, 'Laptop', '1000', T0);
+  assert.ok(C.contributeSaving(s, v.id, '250,5'));
+  assert.strictEqual(C.savingProgress(v).pct, 25);
+  assert.ok(C.contributeSaving(s, v.id, -9999)); assert.strictEqual(v.saved, 0, 'eksiye düşmez');
+  assert.ok(!C.contributeSaving(s, v.id, 0)); assert.ok(!C.contributeSaving(s, 'yok', 5));
+  C.contributeSaving(s, v.id, 1000); assert.ok(C.savingProgress(v).reached);
+  assert.ok(C.removeSaving(s, v.id));
+});
+
+test('vergi payı ve kaynağa göre net', () => {
+  const s = C.defaultState();
+  assert.ok(!C.setTaxPct(s, 80) && !C.setTaxPct(s, 'x') && C.setTaxPct(s, '20'));
+  C.addFinance(s, { type: 'in', amount: 1000, date: '2026-10-05' }, T0);
+  C.addFinance(s, { type: 'out', amount: 200, date: '2026-10-06' }, T0);
+  assert.strictEqual(C.taxReserve(s, T0).amount, 160);
+  C.setPackage(s, 'manual', T0);
+  const p = C.startProject(s, 'sosyal-medya', T0);
+  C.addFinance(s, { type: 'in', amount: 300, date: '2026-10-07', src: p.id }, T0);
+  C.addFinance(s, { type: 'in', amount: 5, date: '2026-10-07', src: 'sahte' }, T0);
+  const sp = C.sourceSplit(s);
+  assert.ok(sp.hasSources);
+  assert.strictEqual(sp.items.find(i => i.id === p.id).net, 300);
+  assert.strictEqual(sp.items.find(i => i.id === '').net, 805, 'geçersiz kaynak Genel sayılır');
+  const back = C.importData(C.exportData(s)).state;
+  assert.strictEqual(back.finance.filter(f => f.src === p.id).length, 1, 'yedekte kaynak korunur');
+  assert.strictEqual(back.settings.taxPct, 20);
+  assert.strictEqual(C.migrate({ recurring: [null, { type: 'in', amount: -1 }], savings: 'x' }).recurring.length, 0);
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

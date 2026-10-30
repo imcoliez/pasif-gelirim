@@ -1,6 +1,6 @@
 # Pasif Gelirim — DAHA FAZLASI MÜMKÜN.
 
-Sürüm 0.5 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
+Sürüm 0.8 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
 
 ## Neler çalışıyor
 
@@ -14,6 +14,8 @@ Sürüm 0.5 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | Kayıt düzenleme, kayıtlarda arama, aylık gider bütçesi (aşım uyarısı) | ✅ |
 | Hesaplayıcı: hedef net gelire kaç satış gerekir (komisyon ve maliyet dahil) | ✅ |
 | Sözlük: aranabilir terim listesi | ✅ |
+| Planlar: tekrarlayan kayıtlar (aylık/haftalık), birikim hedefleri, vergi payı hatırlatıcısı, işe göre net | ✅ |
+| Ana sayfada harcama dağılımı pastası | ✅ |
 | PIN kilidi (4 haneli, özetlenmiş saklama, 5 yanlışta 30 sn bekleme, arka plandan dönünce yeniden sorar) | ✅ |
 | Günlük hatırlatıcı bildirimi (yalnızca APK) | ✅ (cihazda denenmedi) |
 | Yedekten geri yükleme (JSON), tanılama bilgisi, aylık özet kartı, hızlı gelir/gider ekle | ✅ |
@@ -36,7 +38,7 @@ Sürüm 0.5 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 ## Henüz yok (Google Play'den önce)
 
 1. **Gerçek ödeme:** Google Play Faturalandırma (aylık abonelik). Fiyatlar belirlenmedi.
-2. **Gerçek yapay zekâ:** Anahtar uygulamaya konmaz; küçük bir sunucu gerekir. Süre sınırı da sunucuda tutulmalı (şimdi cihazda).
+2. **Gerçek yapay zekâ:** Kod hazır (`server/worker.mjs`, Cloudflare Worker; kurulum `server/README.md`). Sunucu yayınlanıp adresi `www/config.js` içine yazılana kadar sohbet demo modunda kalır. Süre sınırı şimdilik cihazda; sunucu mesaj sayısını sınırlar.
 3. **Hesap/giriş ve bulut kaydı:** Veriler şimdilik yalnızca cihazda.
 4. **Play Store simgesi:** `branding/logo.png` 1024 px; mağaza 512×512 PNG ister (buradan üretilebilir).
 5. Gizlilik politikası ve kullanım şartlarının hukuki olarak tamamlanması, Play mağaza kaydı.
@@ -62,7 +64,7 @@ npm run serve     # http://localhost:5173
 
 ## Test
 ```
-npm test          # iş mantığı testleri (37)
+npm test          # iş mantığı testleri (41)
 npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 ```
 

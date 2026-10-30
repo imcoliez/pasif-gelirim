@@ -24,7 +24,7 @@
   var ui = {
     route: S.user.onboarded ? 'home' : 'onboarding', onb: 0, pinMode: null, pin: '', pinMsg: '', pinTmp: '', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
     period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false,
-    exportText: null, exportTitle: '', resolvedTheme: 'dark', enter: 'fade', draft: {}
+    exportText: null, exportTitle: '', live: !!(window.APP_CONFIG && window.APP_CONFIG.API_URL), resolvedTheme: 'dark', enter: 'fade', draft: {}
   };
   var elApp = document.getElementById('app'), elTop = document.getElementById('top'), elMain = document.getElementById('main'),
       elTabs = document.getElementById('tabs'), elLayer = document.getElementById('layer');
@@ -68,7 +68,7 @@
   }).join('');
 
   // ---------- Çizim ----------
-  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
+  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
   function captureDraft() {
     if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
     if (lastRoute !== ui.route) { ui.draft = {}; return; }
@@ -259,20 +259,63 @@
   }
 
   // ---------- Sohbet ----------
-  function sendChat(text) {
-    text = String(text || '').trim(); if (!text) return;
-    if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
-    var reply = Core.aiReply(S, text, now());
-    withRewards(function () { S.chat.push({ role: 'user', text: text, at: now() }); });
-    ui.typing = true; ui.noDraft = true; save(); render();
-    var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
-    setTimeout(function () {
-      ui.typing = false;
-      S.chat.push({ role: 'ai', text: reply, at: now() });
+  function liveUrl() {
+    var c = window.APP_CONFIG;
+    return c && c.API_URL ? String(c.API_URL).replace(/\/+$/, '') + '/chat' : '';
+  }
+  var memDevice = '';
+  function deviceId() {
+    var k = 'pasif_device_v1', id = '';
+    try { id = window.localStorage.getItem(k) || ''; } catch (e) { }
+    if (!/^[A-Za-z0-9_-]{16,64}$/.test(id)) {
+      id = memDevice;
+      if (!id) {
+        try { var a = new Uint8Array(18); window.crypto.getRandomValues(a); id = Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
+        catch (e) { id = (String(Math.random()).slice(2) + String(Math.random()).slice(2) + '0000000000000000').slice(0, 32); }
+        memDevice = id;
+      }
+      try { window.localStorage.setItem(k, id); } catch (e) { }
+    }
+    return id;
+  }
+  function finishChat(replyText) {
+    ui.typing = false; ui.busy = false;
+    if (replyText) {
+      S.chat.push({ role: 'ai', text: replyText, at: now() });
       if (S.chat.length > 200) S.chat = S.chat.slice(-200);
       save();
-      if (ui.route === 'chat') { render(); var i3 = document.getElementById('chatInput'); if (i3) i3.focus(); }
-    }, reduce ? 0 : 650);
+    }
+    if (ui.route === 'chat') { render(); var i3 = document.getElementById('chatInput'); if (i3) i3.focus(); }
+  }
+  function askLive(url) {
+    var msgs = S.chat.slice(-10).map(function (c) { return { role: c.role === 'user' ? 'user' : 'assistant', text: String(c.text || '').slice(0, 500) }; });
+    var p = Core.activeProject(S);
+    var ctl = null, timer = null;
+    try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 25000); } catch (e) { }
+    fetch(url, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl ? ctl.signal : undefined,
+      body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: { project: p ? p.title : '' } })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
+    }).then(function (x) {
+      clearTimeout(timer);
+      if (x.ok && x.d && typeof x.d.reply === 'string' && x.d.reply) finishChat(x.d.reply);
+      else { finishChat(''); toast((x.d && x.d.error) || 'Yanıt alınamadı, tekrar dene.'); }
+    }, function () {
+      clearTimeout(timer); finishChat('');
+      toast('Bağlanamadım. İnternetini kontrol edip tekrar dene.');
+    });
+  }
+  function sendChat(text) {
+    text = String(text || '').trim(); if (!text || ui.busy) return;
+    if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
+    var url = liveUrl();
+    var reply = url ? '' : Core.aiReply(S, text, now());
+    withRewards(function () { S.chat.push({ role: 'user', text: text, at: now() }); });
+    ui.typing = true; ui.busy = true; ui.noDraft = true; save(); render();
+    var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
+    if (url) { askLive(url); return; }
+    setTimeout(function () { finishChat(reply); }, reduce ? 0 : 650);
   }
 
   // Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar
@@ -513,7 +556,7 @@
     },
     finFilter: function (el) { ui.finFilter = el.getAttribute('data-v'); render(); },
     addFin: function () {
-      var entry = { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote') };
+      var entry = { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote'), src: val('finSrc') };
       var editing = !!ui.editId;
       var rec = withRewards(function () {
         return editing ? Core.updateFinance(S, ui.editId, entry, now()) : Core.addFinance(S, entry, now());
@@ -530,6 +573,44 @@
     saveBudget: function () {
       if (!Core.setBudget(S, val('budgetInput'))) { toast('Geçerli bir tutar yaz.'); return; }
       ui.noDraft = true; save(); toast('Bütçe kaydedildi.'); render();
+    },
+    recType: function (el) {
+      ui.recType = el.getAttribute('data-v') === 'in' ? 'in' : 'out';
+      var btns = elMain.querySelectorAll('[data-act=recType]');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-v') === ui.recType);
+      var cat = document.getElementById('recCat'); if (cat) cat.innerHTML = App.catOptions(ui.recType);
+    },
+    recAdd: function () {
+      var r = Core.addRecurring(S, { type: ui.recType === 'in' ? 'in' : 'out', amount: val('recAmount'), cat: val('recCat'), freq: val('recFreq'), date: val('recDate'), note: val('recNote') }, now());
+      if (!r) { toast('Tutarı ve tarihi kontrol et.'); return; }
+      var made = Core.applyRecurring(S, now());
+      ui.noDraft = true; save(); toast(made ? 'Kaydedildi, ' + made + ' kayıt eklendi.' : 'Tekrarlayan kayıt eklendi.'); render();
+    },
+    recToggle: function (el) { Core.toggleRecurring(S, el.getAttribute('data-id'), now()); save(); render(); },
+    recDel: function (el) {
+      if (!window.confirm('Bu tekrarlayan kayıt silinsin mi? Daha önce eklenen kayıtlar kalır.')) return;
+      Core.removeRecurring(S, el.getAttribute('data-id')); save(); render();
+    },
+    savAdd: function () {
+      if (!Core.addSaving(S, val('savName'), val('savTarget'), now())) { toast('Ad ve geçerli bir hedef tutar yaz.'); return; }
+      ui.noDraft = true; save(); toast('Birikim hedefi oluşturuldu.'); render();
+    },
+    savMoney: function (el) {
+      var id = el.getAttribute('data-id'), sign = el.getAttribute('data-s') === '-1' ? -1 : 1;
+      var amt = Number(String(val('savAmt_' + id)).replace(',', '.'));
+      if (!isFinite(amt) || amt <= 0 || !Core.contributeSaving(S, id, sign * amt)) { toast('Geçerli bir tutar yaz.'); return; }
+      var v = S.savings.find(function (x) { return x.id === id; });
+      save(); render();
+      if (v && Core.savingProgress(v).reached && sign > 0) { toast('Birikim hedefine ulaştın.'); celebrate(true); }
+    },
+    savDel: function (el) {
+      if (!window.confirm('Bu birikim hedefi silinsin mi?')) return;
+      Core.removeSaving(S, el.getAttribute('data-id')); save(); render();
+    },
+    taxSave: function () {
+      var v = val('taxInput').trim();
+      if (!Core.setTaxPct(S, v === '' ? 0 : v)) { toast('0 ile 60 arasında bir yüzde yaz.'); return; }
+      ui.noDraft = true; save(); toast('Kaydedildi.'); render();
     },
     calcRun: function () {
       ui.calcRes = Core.calcSales({ price: val('calcPrice'), cost: val('calcCost'), fee: val('calcFee'), target: val('calcTarget') });
@@ -646,6 +727,13 @@
 
   // ---------- Başlat ----------
   applyTheme();
+  function runRecurring() {
+    var n = Core.applyRecurring(S, now());
+    if (n) { save(); toast(n + ' tekrarlayan kayıt eklendi.'); }
+    return n;
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && runRecurring()) render(); });
+  runRecurring();
   if (S.lock.enabled) { ui.pinMode = 'unlock'; }
   render();
   if (S.settings.reminder.enabled) scheduleReminder(false);

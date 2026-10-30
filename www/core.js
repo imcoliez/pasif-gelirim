@@ -47,6 +47,8 @@
       projects: [],
       activeProjectId: null,
       finance: [],
+      recurring: [],
+      savings: [],
       usage: { date: '', seconds: 0 },
       chat: [],
       plans: [],
@@ -75,13 +77,23 @@
     out.goal = Object.assign({ monthly: 0, expenseMonthly: 0 }, s.goal || {});
     if (!isFinite(out.goal.monthly) || out.goal.monthly < 0) out.goal.monthly = 0;
     if (!isFinite(out.goal.expenseMonthly) || out.goal.expenseMonthly < 0) out.goal.expenseMonthly = 0;
-    ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) { if (!Array.isArray(out[k])) out[k] = []; });
+    ['projects', 'finance', 'chat', 'plans', 'decisions', 'recurring', 'savings'].forEach(function (k) { if (!Array.isArray(out[k])) out[k] = []; });
     if (!PACKAGES[out.pkg]) out.pkg = 'free';
     // bozuk kayıtlardaki geçersiz öğeleri (null, metin...) ayıkla
-    ['projects', 'finance', 'chat', 'plans', 'decisions'].forEach(function (k) {
+    ['projects', 'finance', 'chat', 'plans', 'decisions', 'recurring', 'savings'].forEach(function (k) {
       out[k] = out[k].filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); });
     });
     out.finance.forEach(function (f) { if (!f.cat) f.cat = 'diger'; if (!f.at) f.at = f.date; });
+    out.recurring = out.recurring.filter(function (r) {
+      return (r.type === 'in' || r.type === 'out') && isFinite(r.amount) && r.amount > 0 && (r.freq === 'weekly' || r.freq === 'monthly') && isFinite(r.next);
+    }).slice(0, 50).map(function (r) {
+      return { id: String(r.id || uid('rec')), type: r.type, amount: +r.amount, cat: r.cat || 'diger', note: String(r.note || '').slice(0, 120), freq: r.freq,
+        dom: Math.min(31, Math.max(1, +r.dom || new Date(+r.next).getDate())), next: +r.next, active: r.active !== false };
+    });
+    out.savings = out.savings.filter(function (v) { return v.name && isFinite(v.target) && v.target > 0 && isFinite(v.saved); }).slice(0, 50).map(function (v) {
+      return { id: String(v.id || uid('sav')), name: String(v.name).slice(0, 40), target: +v.target, saved: Math.max(0, +v.saved), at: +v.at || 0 };
+    });
+    out.settings.taxPct = isFinite(out.settings.taxPct) ? Math.min(60, Math.max(0, +out.settings.taxPct)) : 0;
     out.projects.forEach(function (p) { if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {}; });
     return out;
   }
@@ -240,7 +252,9 @@
       if (date > endOfDay(now)) return null;       // gelecek tarihe kayıt girilmez
     }
     const cat = CATEGORIES[type].some(function (c) { return c.id === entry.cat; }) ? entry.cat : 'diger';
+    const src = state.projects && state.projects.some(function (p) { return p.id === entry.src; }) ? entry.src : '';
     const rec = { id: uid('fin'), type: type, amount: Math.round(amount * 100) / 100, cat: cat, note: String(entry.note || '').slice(0, 120), date: date, at: now };
+    if (src) rec.src = src;
     state.finance.push(rec);
     return rec;
   }
@@ -354,10 +368,11 @@
   function updateFinance(state, id, entry, now) {
     const rec = state.finance.find(function (f) { return f.id === id; });
     if (!rec) return null;
-    const tmp = { finance: [] };
+    const tmp = { finance: [], projects: state.projects };
     const fresh = addFinance(tmp, entry, now);
     if (!fresh) return null;
     rec.type = fresh.type; rec.amount = fresh.amount; rec.cat = fresh.cat; rec.note = fresh.note; rec.date = fresh.date;
+    if (fresh.src) rec.src = fresh.src; else delete rec.src;
     return rec;
   }
 
@@ -397,7 +412,7 @@
       { id: 'name', title: 'Adını yaz', route: 'settings', done: !!state.user.name },
       { id: 'model', title: 'Gelir modelini seç', route: 'tasks', done: state.projects.length > 0 },
       { id: 'task', title: 'İlk görevi tamamla', route: 'tasks', done: doneTasks },
-      { id: 'record', title: 'İlk gelir/gider kaydını gir', route: 'money', done: state.finance.length > 0 },
+      { id: 'record', title: 'İlk gelir/gider kaydını gir', route: 'money', done: state.finance.some(function (f) { return !f.auto; }) },
       { id: 'goal', title: 'Aylık gelir hedefi koy', route: 'money', done: (state.goal.monthly || 0) > 0 }
     ];
     const done = items.filter(function (i) { return i.done; }).length;
@@ -419,12 +434,117 @@
     return out.filter(function (e) { return norm(e.key + ' ' + e.aliases.join(' ') + ' ' + e.text).indexOf(q) !== -1; });
   }
 
+  // ---------- Tekrarlayan kayıtlar (kira, abonelik, düzenli gelir) ----------
+  function monthlyNext(ts, dom, steps) {
+    const d = new Date(ts);
+    const y = d.getFullYear(), m = d.getMonth() + (steps || 1);
+    const last = new Date(y, m + 1, 0).getDate();
+    return new Date(y, m, Math.min(dom, last), 12, 0, 0).getTime();
+  }
+  function addRecurring(state, e, now) {
+    if (state.recurring.length >= 50) return null;
+    const probe = addFinance({ finance: [], projects: [] }, { type: e.type, amount: e.amount, cat: e.cat, note: e.note }, now);
+    if (!probe) return null;
+    const start = parseDateInput(e.date || dateInputValue(now));
+    if (start == null) return null;
+    if (start > now + 400 * 86400000) return null;
+    if (start < now - 400 * 86400000) return null;           // en fazla ~13 ay geriye
+    const freq = e.freq === 'weekly' ? 'weekly' : 'monthly';
+    const rec = { id: uid('rec'), type: probe.type, amount: probe.amount, cat: probe.cat, note: probe.note, freq: freq, dom: new Date(start).getDate(), next: start, active: true };
+    state.recurring.push(rec);
+    return rec;
+  }
+  function removeRecurring(state, id) {
+    const n = state.recurring.length;
+    state.recurring = state.recurring.filter(function (r) { return r.id !== id; });
+    return state.recurring.length < n;
+  }
+  function toggleRecurring(state, id, now) {
+    const r = state.recurring.find(function (x) { return x.id === id; });
+    if (!r) return false;
+    r.active = !r.active;
+    if (r.active) {                                          // duraklatılan dönem geriye dönük eklenmesin
+      while (r.next < startOfDay(now == null ? Date.now() : now)) r.next = r.freq === 'weekly' ? r.next + 7 * 86400000 : monthlyNext(r.next, r.dom, 1);
+    }
+    return true;
+  }
+  // Vadesi gelen tekrarlayan kayıtları ekler. Dönen: eklenen kayıt sayısı.
+  function applyRecurring(state, now) {
+    let made = 0;
+    const limit = endOfDay(now);
+    state.recurring.forEach(function (r) {
+      if (!r.active) return;
+      let guard = 0;
+      while (r.next <= limit && guard < 60) {
+        state.finance.push({ id: uid('fin'), type: r.type, amount: r.amount, cat: r.cat, note: r.note, date: r.next, at: now, auto: true, recId: r.id });
+        made++; guard++;
+        r.next = r.freq === 'weekly' ? r.next + 7 * 86400000 : monthlyNext(r.next, r.dom, 1);
+      }
+      if (guard >= 60) while (r.next <= limit) r.next = r.freq === 'weekly' ? r.next + 7 * 86400000 : monthlyNext(r.next, r.dom, 1);
+    });
+    return made;
+  }
+
+  // ---------- Birikim hedefleri ----------
+  function addSaving(state, name, target, now) {
+    const n = String(name || '').trim().slice(0, 40), t = Number(String(target).replace(',', '.'));
+    if (!n || !isFinite(t) || t <= 0 || t > 1e9 || state.savings.length >= 50) return null;
+    const v = { id: uid('sav'), name: n, target: Math.round(t * 100) / 100, saved: 0, at: now };
+    state.savings.push(v);
+    return v;
+  }
+  function contributeSaving(state, id, amount) {
+    const v = state.savings.find(function (x) { return x.id === id; });
+    const a = Number(String(amount).replace(',', '.'));
+    if (!v || !isFinite(a) || a === 0 || Math.abs(a) > 1e9) return false;
+    v.saved = Math.max(0, Math.round((v.saved + a) * 100) / 100);
+    return true;
+  }
+  function removeSaving(state, id) {
+    const n = state.savings.length;
+    state.savings = state.savings.filter(function (x) { return x.id !== id; });
+    return state.savings.length < n;
+  }
+  function savingProgress(v) {
+    const pct = Math.min(100, Math.round(v.saved / v.target * 100));
+    return { pct: pct, reached: v.saved >= v.target, left: Math.max(0, Math.round((v.target - v.saved) * 100) / 100) };
+  }
+
+  // ---------- Vergi payı ayırma (bilgi amaçlı, vergi tavsiyesi değildir) ----------
+  function setTaxPct(state, pct) {
+    const n = Number(String(pct).replace(',', '.'));
+    if (!isFinite(n) || n < 0 || n > 60) return false;
+    state.settings.taxPct = Math.round(n * 10) / 10;
+    return true;
+  }
+  function taxReserve(state, now) {
+    const pct = state.settings.taxPct || 0, net = financeSummary(state, now).monthNet;
+    return { pct: pct, monthNet: net, amount: pct > 0 && net > 0 ? Math.round(net * pct) / 100 : 0 };
+  }
+
+  // ---------- Kaynağa (proje) göre net ----------
+  function sourceSplit(state) {
+    const map = {};
+    state.finance.forEach(function (f) {
+      const k = f.src || '';
+      const m = map[k] || (map[k] = { id: k, name: '', in: 0, out: 0, net: 0 });
+      m[f.type] += f.amount;
+    });
+    const out = Object.keys(map).map(function (k) {
+      const m = map[k], p = k ? state.projects.find(function (x) { return x.id === k; }) : null;
+      m.name = k ? (p ? p.title : 'Silinmiş proje') : 'Genel';
+      m.in = Math.round(m.in * 100) / 100; m.out = Math.round(m.out * 100) / 100; m.net = Math.round((m.in - m.out) * 100) / 100;
+      return m;
+    }).sort(function (a, b) { return b.net - a.net; });
+    return { items: out, hasSources: state.finance.some(function (f) { return f.src; }) };
+  }
+
   // ---------- Seri ve rozetler ----------
   function activityDays(state) {
     const set = {};
     function mark(ts) { if (ts) set[dayKey(ts)] = true; }
     state.projects.forEach(function (p) { Object.keys(p.tasks).forEach(function (k) { if (p.tasks[k].done) mark(p.tasks[k].doneAt); }); });
-    state.finance.forEach(function (f) { mark(f.at || f.date); });
+    state.finance.forEach(function (f) { if (!f.auto) mark(f.at || f.date); });
     state.chat.forEach(function (c) { if (c.role === 'user') mark(c.at); });
     state.plans.forEach(function (p) { mark(p.createdAt); });
     return set;
@@ -452,10 +572,11 @@
     const gp = goalProgress(state, now);
     const doneTasks = state.projects.reduce(function (n, p) { return n + progress(p).done; }, 0);
     const projDone = state.projects.some(function (p) { return progress(p).complete; });
-    const firstIncome = state.finance.some(function (f) { return f.type === 'in'; });
+    const manual = state.finance.filter(function (f) { return !f.auto; });
+    const firstIncome = manual.some(function (f) { return f.type === 'in'; });
     return [
       { id: 'first-task', emoji: '🌱', title: 'İlk adım', desc: 'İlk görevini tamamla', earned: doneTasks >= 1 },
-      { id: 'first-record', emoji: '🧾', title: 'Kayıt tutan', desc: 'İlk gelir/gider kaydını gir', earned: state.finance.length >= 1 },
+      { id: 'first-record', emoji: '🧾', title: 'Kayıt tutan', desc: 'İlk gelir/gider kaydını gir', earned: manual.length >= 1 },
       { id: 'first-income', emoji: '💰', title: 'İlk gelir', desc: 'İlk gerçek gelirini kaydet', earned: firstIncome },
       { id: 'streak-3', emoji: '🔥', title: '3 gün seri', desc: 'Üst üste 3 gün çalış', earned: st.best >= 3 },
       { id: 'streak-7', emoji: '⚡', title: '7 gün seri', desc: 'Üst üste 7 gün çalış', earned: st.best >= 7 },
@@ -531,7 +652,7 @@
     st.finance = st.finance.filter(function (f) {
       return f && (f.type === 'in' || f.type === 'out') && isFinite(f.amount) && f.amount > 0 && f.amount <= 1e9 && isFinite(f.date);
     }).slice(-5000).map(function (f) {
-      return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date };
+      return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date, src: f.src && st.projects.some(function (p) { return p.id === f.src; }) ? f.src : undefined, auto: f.auto ? true : undefined };
     });
     st.projects = st.projects.filter(function (p) { return p && modelById(p.modelId) && p.tasks && typeof p.tasks === 'object'; }).slice(0, 200);
     st.chat = st.chat.slice(-200);
@@ -732,7 +853,10 @@
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '0.6',
+    importData: importData, APP_VERSION: '0.8',
+    addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
+    addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
+    setTaxPct: setTaxPct, taxReserve: taxReserve, sourceSplit: sourceSplit,
     updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,

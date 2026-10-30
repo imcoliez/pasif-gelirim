@@ -282,7 +282,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.6'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.8'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');
@@ -349,6 +349,45 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok((await page.locator('#glossList details:visible').count()) >= 1, 'sözlük araması terim buluyor');
   await shot('19-sozluk');
   await noOverflow('sözlük');
+
+
+  // ---------- v0.7: planlar, birikim, tekrarlayan, vergi payı, kaynak ----------
+  await tab('Kazanç');
+  ok((await page.locator('#finSrc').count()) === 1, 'proje varken "Hangi iş için?" seçimi');
+  await page.fill('#finAmount', '40'); await page.fill('#finNote', 'kaynakli');
+  await page.selectOption('#finSrc', { index: 1 });
+  await click('[data-act=addFin]');
+  await click('button:has-text("Gelir-Gider Grafiklerini Aç")');
+  ok(await has('İşlere göre net'), 'grafiklerde işe göre net kartı');
+  await tab('Ana');
+  await click('.tile:has-text("Planlar")');
+  ok(await has('Birikim hedefleri') && await has('Tekrarlayan kayıtlar') && await has('Vergi payı'), 'planlar ekranı');
+  await page.click('summary:has-text("Yeni birikim hedefi")');
+  await page.fill('#savName', 'Laptop'); await page.fill('#savTarget', '1000');
+  await click('[data-act=savAdd]');
+  ok(await has('Laptop') && await has('Kalan 1.000,00 TL'), 'birikim hedefi oluşturuldu');
+  await page.fill('input[id^=savAmt_]', '250');
+  await click('[data-act=savMoney][data-s="1"]');
+  ok(await has('%25') && await has('250,00 TL / 1.000,00 TL'), 'birikime para eklendi (%25)');
+  await page.fill('input[id^=savAmt_]', '50');
+  await click('[data-act=savMoney][data-s="-1"]');
+  ok(await has('200,00 TL / 1.000,00 TL'), 'birikimden çıkarma');
+  await page.click('summary:has-text("Yeni tekrarlayan kayıt")');
+  await page.fill('#recAmount', '30'); await page.fill('#recNote', 'alan adı'); await page.fill('#recDate', ymd(70));
+  await click('[data-act=recAdd]');
+  ok(await has('Her ay') && await has('alan adı') && await has('kayıt eklendi'), 'tekrarlayan kayıt eklendi, geçmiş aylar işlendi');
+  await click('[data-act=recToggle]');
+  ok(await has('Duraklatıldı'), 'tekrarlayan kayıt duraklatıldı');
+  await click('[data-act=recToggle]');
+  await page.fill('#taxInput', '20');
+  await click('[data-act=taxSave]');
+  ok(await has('Kenara ayırman önerilen'), 'vergi payı hesabı');
+  await shot('21-planlar');
+  await noOverflow('planlar');
+  await tab('Kazanç');
+  ok(await has('otomatik · tekrarlayan'), 'otomatik kayıtlar listede işaretli');
+  await tab('Ana');
+  ok(!(await has('0 / 5')), 'otomatik kayıt kontrol listesini etkilemez');
 
   // ---------- PIN kilidi ----------
   const pin = async d => { for (const c of d) await page.click('.key[data-v="' + c + '"]'); };

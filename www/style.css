@@ -371,3 +371,10 @@ html[data-theme="dark"] .top{background:rgba(8,11,12,.82)}
 .spendlg .nm{white-space:normal;display:flex;flex-direction:column;line-height:1.25}
 .spendlg .nm small{color:var(--mu);font-size:12px;width:auto;text-align:left}
 .spendlg b{font-size:15px;color:var(--tx)}
+
+.danger-link{color:var(--red)}
+.card.rec.off{opacity:.6}
+.pos{color:var(--g2)}
+.send .btn.slim{flex:none}
+summary .i{display:inline-block;vertical-align:-3px;margin-right:4px}
+.link .i{display:inline-block;vertical-align:-2px;margin-right:4px}.link.all .i,.sect .link .i{margin:0 0 0 2px}
