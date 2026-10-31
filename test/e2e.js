@@ -16,8 +16,25 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/ERR_FAILED/.test(m.text())) errors.push(m.text()); });
   page.on('dialog', d => d.accept());
+
+  // Piyasa kaynakları sahte (gerçek ağ yok)
+  let mkFail = false;
+  await page.route(/frankfurter\.dev|binance\.(com|vision)/, async route => {
+    const url = route.request().url(), h = { 'access-control-allow-origin': '*', 'content-type': 'application/json' };
+    if (mkFail) return route.abort();
+    const DAY = 86400000, now = Date.now();
+    if (url.includes('frankfurter')) {
+      const code = /base=(\w+)/.exec(url)[1], rates = {};
+      for (let i = 40; i >= 0; i--) rates[new Date(now - i * DAY).toISOString().slice(0, 10)] = { TRY: (code === 'USD' ? 40 : 45) + (40 - i) * 0.05 };
+      return route.fulfill({ status: 200, headers: h, body: JSON.stringify({ base: code, rates }) });
+    }
+    const sym = /symbol=(\w+)/.exec(url)[1], lim = +/limit=(\d+)/.exec(url)[1];
+    const b = { USDTTRY: [40, 0.05], BTCUSDT: [60000, 100], ETHUSDT: [3000, 10], BNBUSDT: [600, 1], XRPUSDT: [0.5, 0.001], SOLUSDT: [150, 1], PAXGUSDT: [2700, 5] }[sym];
+    const rows = []; for (let i = lim - 1; i >= 0; i--) rows.push([now - i * DAY, '0', '0', '0', String(b[0] + (lim - 1 - i) * b[1]), '0']);
+    return route.fulfill({ status: 200, headers: h, body: JSON.stringify(rows) });
+  });
 
   const click = sel => page.click(sel);
   const text = () => page.innerText('body');
@@ -282,7 +299,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.8'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.9'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');
@@ -388,6 +405,76 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(await has('otomatik · tekrarlayan'), 'otomatik kayıtlar listede işaretli');
   await tab('Ana');
   ok(!(await has('0 / 5')), 'otomatik kayıt kontrol listesini etkilemez');
+
+
+
+  // ---------- v0.9: piyasa ----------
+  await tab('Ana');
+  await click('.tile:has-text("Piyasa")');
+  await page.waitForSelector('.mkrow', { timeout: 6000 });
+  ok((await page.locator('.mkrow').count()) === 11, 'piyasa: 11 varlık listeleniyor');
+  ok(await has('Dolar') && await has('Gram altın') && await has('Bitcoin') && await has('Son güncelleme'), 'döviz, altın, kripto ve güncelleme saati');
+  ok((await page.locator('svg.mkchart').count()) === 1 && (await page.locator('.mkspark').count()) === 11, 'seçili varlığın büyük grafiği ve her satırda mini grafik');
+  await click('.mkrow:has-text("Bitcoin")');
+  ok((await page.locator('.mkhero').innerText()).includes('Bitcoin'), 'listeden varlık seçilince grafik değişiyor');
+  await click('[data-act=mkPeriod][data-v="7"]');
+  await page.waitForSelector('.mkrow', { timeout: 6000 });
+  ok((await page.locator('svg.mkchart path.mkline').count()) === 1, '7 günlük dönem yüklendi');
+  await page.fill('#mkAmount', '1000');
+  ok((await page.locator('#mkConv .irow').count()) === 4, 'çevirici: dolar, euro, altın, bitcoin karşılığı');
+  await shot('23-piyasa');
+  await noOverflow('piyasa');
+  mkFail = true;
+  await click('[data-act=mkRefresh]');
+  await waitText('son veriler gösteriliyor');
+  ok(true, 'ağ yokken eski veriler korunuyor ve uyarı çıkıyor');
+  mkFail = false;
+
+  // ---------- v0.9: profil fotoğrafı ve özelleştirme ----------
+  await click('button[title="Ayarlar"]');
+  const cssVar = n => page.evaluate(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), n);
+  ok(await page.isVisible('.profile') && (await page.locator('.profile .av.lg').count()) === 1, 'ayarlarda profil kartı (baş harfli yer tutucu)');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEklEQVR4nGP4z8Dwn4GBgQEAFAAD/oKX3gAAAABJRU5ErkJggg==', 'base64');
+  await page.setInputFiles('#avatarFile', { name: 'foto.png', mimeType: 'image/png', buffer: png });
+  await page.waitForSelector('.profile img.av.lg', { timeout: 4000 });
+  ok(true, 'profil fotoğrafı yüklendi');
+  ok(await page.evaluate(() => JSON.parse(localStorage.getItem('pasif_gelirim_state_v1')).user.avatar.startsWith('data:image/jpeg;base64,')), 'fotoğraf kare JPEG olarak saklandı');
+  await tab('Ana');
+  ok(await page.isVisible('.hello img.av'), 'ana ekranda profil fotoğrafı');
+  await click('button[title="Ayarlar"]');
+  await click('[data-act=setAccent][data-v=blue]');
+  ok((await cssVar('--g')) === '#4aa8ff', 'vurgu rengi maviye döndü');
+  ok((await page.evaluate(() => getComputedStyle(document.querySelector('.segbtn.on')).backgroundColor)) === 'rgb(74, 168, 255)', 'düğmeler yeni rengi kullanıyor');
+  await page.fill('#accentCustom', '#ff8800').catch(() => {});
+  await page.evaluate(() => { const i = document.getElementById('accentCustom'); i.value = '#ff8800'; i.dispatchEvent(new Event('change', { bubbles: true })); });
+  ok((await cssVar('--g')) === '#ff8800', 'özel renk seçilebiliyor');
+  await shot('22-ozel-renk');
+  await click('[data-act=toggleTheme]');
+  await page.waitForTimeout(400);
+  ok((await cssVar('--g')) === '#ff8800', 'açık temada da özel renk geçerli');
+  await click('[data-act=toggleTheme]');
+  await click('[data-act=setAccent][data-v=green]');
+  ok((await cssVar('--g')) === '#2fdc77', 'yeşile dönüş');
+  await click('[data-act=setFont][data-v=l]');
+  ok((await page.getAttribute('html', 'data-font')) === 'l', 'yazı boyutu büyük');
+  await noOverflow('büyük yazı');
+  await click('[data-act=setFont][data-v=m]');
+  await click('[data-act=setRadius][data-v=sharp]');
+  ok((await page.evaluate(() => getComputedStyle(document.querySelector('.card')).borderRadius)) === '8px', 'keskin köşeler');
+  await click('[data-act=setRadius][data-v=soft]');
+  await click('[data-act=setMotion][data-v=off]');
+  ok((await page.getAttribute('html', 'data-motion')) === 'off', 'animasyonlar kapatıldı');
+  await click('[data-act=setMotion][data-v=on]');
+  await click('[data-act=homeSpend][data-v=off]');
+  await tab('Ana');
+  ok(!(await has('Harcamalarım')), 'ana ekranda harcama pastası gizlenebiliyor');
+  await click('button[title="Ayarlar"]');
+  await click('[data-act=homeSpend][data-v=on]');
+  await tab('Ana');
+  ok(await has('Harcamalarım'), 'harcama pastası geri açıldı');
+  await click('button[title="Ayarlar"]');
+  await click('[data-act=avatarDel]');
+  ok((await page.locator('.profile img.av').count()) === 0, 'fotoğraf kaldırıldı');
 
   // ---------- PIN kilidi ----------
   const pin = async d => { for (const c of d) await page.click('.key[data-v="' + c + '"]'); };

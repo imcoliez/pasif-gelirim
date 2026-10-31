@@ -34,11 +34,31 @@
 
   const THEMES = ['system', 'light', 'dark'];
 
+  const ACCENTS = ['green', 'blue', 'purple', 'orange', 'pink', 'teal'];
+  const FONT_SCALES = ['s', 'm', 'l'], RADII = ['soft', 'sharp'], MOTIONS = ['on', 'off'];
+  function defaultLook() {
+    return { accent: 'green', custom: '', font: 'm', radius: 'soft', motion: 'on', home: { spend: true, streak: true, checklist: true } };
+  }
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const AVATAR_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/;
+  function cleanLook(l) {
+    const d = defaultLook(), o = l && typeof l === 'object' ? l : {};
+    const h = o.home && typeof o.home === 'object' ? o.home : {};
+    return {
+      accent: ACCENTS.indexOf(o.accent) !== -1 || o.accent === 'custom' ? o.accent : d.accent,
+      custom: HEX.test(o.custom || '') ? String(o.custom).toLowerCase() : '',
+      font: FONT_SCALES.indexOf(o.font) !== -1 ? o.font : d.font,
+      radius: RADII.indexOf(o.radius) !== -1 ? o.radius : d.radius,
+      motion: MOTIONS.indexOf(o.motion) !== -1 ? o.motion : d.motion,
+      home: { spend: h.spend !== false, streak: h.streak !== false, checklist: h.checklist !== false }
+    };
+  }
+
   function defaultState() {
     return {
       v: STATE_VERSION,
       user: { name: '', onboarded: false },
-      settings: { theme: 'dark', reminder: { enabled: false, time: '20:00' } },
+      settings: { theme: 'dark', reminder: { enabled: false, time: '20:00' }, look: defaultLook() },
       lock: { enabled: false, salt: '', hash: '' },
       goal: { monthly: 0, expenseMonthly: 0 },
       pkg: 'free',
@@ -64,9 +84,12 @@
     out.user = Object.assign({ name: '', onboarded: false }, s.user || {});
     out.user.name = String(out.user.name || '').slice(0, 30);
     out.user.onboarded = !!out.user.onboarded;
+    out.user.avatar = typeof out.user.avatar === 'string' && out.user.avatar.length <= 250000 && AVATAR_RE.test(out.user.avatar) ? out.user.avatar : '';
     out.usage = Object.assign({ date: '', seconds: 0 }, s.usage || {});
     out.settings = Object.assign({ theme: 'dark' }, s.settings || {});
     if (THEMES.indexOf(out.settings.theme) === -1) out.settings.theme = 'dark';
+    out.settings.look = cleanLook(out.settings.look);
+    if (out.settings.look.accent === 'custom' && !out.settings.look.custom) out.settings.look.accent = 'green';
     out.settings.reminder = Object.assign({ enabled: false, time: '20:00' }, (s.settings && s.settings.reminder) || {});
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(out.settings.reminder.time)) out.settings.reminder.time = '20:00';
     out.settings.reminder.enabled = !!out.settings.reminder.enabled;
@@ -663,6 +686,31 @@
   }
 
   // ---------- Tema ----------
+  function setLook(state, key, value) {
+    const l = state.settings.look;
+    if (key === 'accent') {
+      if (ACCENTS.indexOf(value) === -1) return false;
+      l.accent = value; return true;
+    }
+    if (key === 'custom') {
+      if (!HEX.test(String(value))) return false;
+      l.custom = String(value).toLowerCase(); l.accent = 'custom'; return true;
+    }
+    if (key === 'font') { if (FONT_SCALES.indexOf(value) === -1) return false; l.font = value; return true; }
+    if (key === 'radius') { if (RADII.indexOf(value) === -1) return false; l.radius = value; return true; }
+    if (key === 'motion') { if (MOTIONS.indexOf(value) === -1) return false; l.motion = value; return true; }
+    if (key.indexOf('home.') === 0) {
+      const k = key.slice(5);
+      if (!(k in l.home)) return false;
+      l.home[k] = !!value; return true;
+    }
+    return false;
+  }
+  function setAvatar(state, dataUrl) {
+    if (dataUrl === '' || dataUrl == null) { state.user.avatar = ''; return true; }
+    if (typeof dataUrl !== 'string' || dataUrl.length > 250000 || !AVATAR_RE.test(dataUrl)) return false;
+    state.user.avatar = dataUrl; return true;
+  }
   function setTheme(state, theme) {
     if (THEMES.indexOf(theme) === -1) return false;
     state.settings.theme = theme;
@@ -853,10 +901,11 @@
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '0.8',
+    importData: importData, APP_VERSION: '0.9',
     addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
     addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
     setTaxPct: setTaxPct, taxReserve: taxReserve, sourceSplit: sourceSplit,
+    ACCENTS: ACCENTS, setLook: setLook, setAvatar: setAvatar,
     updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,

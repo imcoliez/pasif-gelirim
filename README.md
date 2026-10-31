@@ -1,6 +1,6 @@
 # Pasif Gelirim — DAHA FAZLASI MÜMKÜN.
 
-Sürüm 0.8 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
+Sürüm 0.9 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
 
 ## Neler çalışıyor
 
@@ -16,6 +16,9 @@ Sürüm 0.8 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | Sözlük: aranabilir terim listesi | ✅ |
 | Planlar: tekrarlayan kayıtlar (aylık/haftalık), birikim hedefleri, vergi payı hatırlatıcısı, işe göre net | ✅ |
 | Ana sayfada harcama dağılımı pastası | ✅ |
+| Profil fotoğrafı (kare kırpılır, cihazda saklanır) | ✅ |
+| Özelleştirme: vurgu rengi (6 hazır + özel), yazı boyutu, köşe stili, animasyon açık/kapalı, ana ekran bölümleri | ✅ |
+| Piyasa sayfası: dolar, euro, sterlin, frank, gram/ons altın (yaklaşık), 5 kripto; 7/30/90 gün grafik, TL çevirici | ✅ (canlı kaynaklar sandbox dışında denenmedi) |
 | PIN kilidi (4 haneli, özetlenmiş saklama, 5 yanlışta 30 sn bekleme, arka plandan dönünce yeniden sorar) | ✅ |
 | Günlük hatırlatıcı bildirimi (yalnızca APK) | ✅ (cihazda denenmedi) |
 | Yedekten geri yükleme (JSON), tanılama bilgisi, aylık özet kartı, hızlı gelir/gider ekle | ✅ |

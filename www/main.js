@@ -24,7 +24,7 @@
   var ui = {
     route: S.user.onboarded ? 'home' : 'onboarding', onb: 0, pinMode: null, pin: '', pinMsg: '', pinTmp: '', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
     period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false,
-    exportText: null, exportTitle: '', live: !!(window.APP_CONFIG && window.APP_CONFIG.API_URL), resolvedTheme: 'dark', enter: 'fade', draft: {}
+    market: null, mkDays: 30, mkSel: null, exportText: null, exportTitle: '', live: !!(window.APP_CONFIG && window.APP_CONFIG.API_URL), resolvedTheme: 'dark', enter: 'fade', draft: {}
   };
   var elApp = document.getElementById('app'), elTop = document.getElementById('top'), elMain = document.getElementById('main'),
       elTabs = document.getElementById('tabs'), elLayer = document.getElementById('layer');
@@ -41,10 +41,35 @@
     }
     return t === 'light' ? 'light' : 'dark';
   }
+  // ---------- Renk ve görünüm özelleştirmesi ----------
+  var PRESETS = {
+    green: { d: ['#2fdc77', '#4fe88f'], l: ['#17a35a', '#0f7d43'] }, blue: { d: ['#4aa8ff', '#7bbfff'], l: ['#1f7ae0', '#155bb0'] },
+    purple: { d: ['#a78bfa', '#c0a8ff'], l: ['#7c4ddb', '#5a33b0'] }, orange: { d: ['#ff9f43', '#ffb870'], l: ['#e8780c', '#b85c05'] },
+    pink: { d: ['#ff6fae', '#ff94c4'], l: ['#d9347f', '#ab2563'] }, teal: { d: ['#2dd4d4', '#5ee6e6'], l: ['#0e9aa7', '#0a7580'] }
+  };
+  function hex2rgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function mix(a, b, t) {
+    var x = hex2rgb(a), y = hex2rgb(b);
+    return '#' + [0, 1, 2].map(function (i) { return ('0' + Math.round(x[i] * t + y[i] * (1 - t)).toString(16)).slice(-2); }).join('');
+  }
+  function applyAppearance() {
+    var look = S.settings.look, dark = ui.resolvedTheme === 'dark', root = document.documentElement;
+    var g, g2;
+    if (look.accent === 'custom' && look.custom) { g = look.custom; g2 = dark ? mix('#ffffff', g, 0.2) : mix('#000000', g, 0.25); }
+    else { var pr = PRESETS[look.accent] || PRESETS.green; g = (dark ? pr.d : pr.l)[0]; g2 = (dark ? pr.d : pr.l)[1]; }
+    var bg = dark ? '#080a0b' : '#f4f6f5', rgb = hex2rgb(g);
+    var lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+    var st = root.style;
+    st.setProperty('--g', g); st.setProperty('--g2', g2); st.setProperty('--c0', g);
+    st.setProperty('--gl', mix(g, bg, dark ? 0.14 : 0.12)); st.setProperty('--pill', mix(g, bg, dark ? 0.24 : 0.18));
+    st.setProperty('--gr', rgb.join(',')); st.setProperty('--on-g', lum > 0.55 ? '#06110a' : '#ffffff');
+    root.setAttribute('data-radius', look.radius); root.setAttribute('data-font', look.font); root.setAttribute('data-motion', look.motion);
+  }
   function applyTheme() {
     var r = resolveTheme();
     ui.resolvedTheme = r;
     document.documentElement.setAttribute('data-theme', r);
+    applyAppearance();
     var meta = document.querySelector('meta[name=theme-color]');
     if (meta) meta.setAttribute('content', r === 'dark' ? '#080a0b' : '#f4f6f5');
     try {
@@ -161,6 +186,7 @@
     if (route !== 'tasks') ui.quiz = null;
     if (route === 'charts') ui.chartSel = null;
     if (route !== 'money') ui.editId = null;
+    if (route === 'market') setTimeout(function () { loadMarket(false); }, 0);
     if (extra) for (var k in extra) ui[k] = extra[k];
     ui.enter = dir;
     pushNav(route, prev);
@@ -257,6 +283,36 @@
       toast('Dosya indirildi.');
     } catch (e) { showExportText(title, text); }
   }
+
+  // ---------- Piyasa ----------
+  var MK_KEY = 'pasif_market_v1', mkTimer = null;
+  function mkCacheLoad() {
+    try {
+      var c = JSON.parse(window.localStorage.getItem(MK_KEY) || 'null');
+      if (c && c.days === ui.mkDays && Array.isArray(c.items) && c.at) return c;
+    } catch (e) { }
+    return null;
+  }
+  function loadMarket(force) {
+    if (!window.Market) return;
+    var mk = ui.market || (ui.market = { status: 'idle', items: [], errors: [] });
+    if (mk.status === 'loading') return;
+    if (!mk.items.length) { var c = mkCacheLoad(); if (c) { mk.items = c.items; mk.at = c.at; mk.errors = []; } }
+    if (!force && mk.at && mk.days === ui.mkDays && now() - mk.at < 60000) return;
+    var days = ui.mkDays;
+    mk.status = 'loading'; if (ui.route === 'market') render();
+    window.Market.load(window.fetch.bind(window), days, now()).then(function (r) {
+      if (days !== ui.mkDays) return;
+      if (r.items.length) {
+        mk.items = r.items; mk.at = r.at; mk.days = r.days; mk.errors = r.errors;
+        try { window.localStorage.setItem(MK_KEY, JSON.stringify({ days: days, at: r.at, items: r.items })); } catch (e) { }
+      } else { mk.errors = r.errors; if (!mk.items.length) mk.at = 0; else toast('Güncellenemedi, son veriler gösteriliyor.'); }
+      mk.status = 'idle'; if (ui.route === 'market') render();
+    }, function () { mk.status = 'idle'; if (ui.route === 'market') render(); });
+  }
+  setInterval(function () {
+    if (ui.route === 'market' && !document.hidden && !ui.pinMode) loadMarket(true);
+  }, 90000);
 
   // ---------- Sohbet ----------
   function liveUrl() {
@@ -456,9 +512,46 @@
     t.value = '';
   });
 
+  // Profil fotoğrafı: seç, kare kırp, küçült, JPEG olarak sakla
+  function makeAvatar(file, done) {
+    var url = null, img = new Image();
+    try { url = URL.createObjectURL(file); } catch (e) { done(null); return; }
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas'), n = 256; c.width = n; c.height = n;
+        var side = Math.min(img.width, img.height), sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+        var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, n, n);
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, n, n);
+        var d = c.toDataURL('image/jpeg', 0.82);
+        if (d.length > 240000) d = c.toDataURL('image/jpeg', 0.6);
+        done(d);
+      } catch (e) { done(null); }
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); done(null); };
+    img.src = url;
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === 'avatarFile' && t.files && t.files[0]) {
+      var f = t.files[0];
+      if (!/^image\//.test(f.type) || f.size > 25 * 1024 * 1024) { toast('Bir resim dosyası seç.'); t.value = ''; return; }
+      makeAvatar(f, function (d) {
+        if (d && Core.setAvatar(S, d)) { save(); toast('Fotoğraf güncellendi.'); render(); } else toast('Fotoğraf işlenemedi.');
+      });
+      t.value = '';
+    } else if (t.id === 'accentCustom') {
+      if (Core.setLook(S, 'custom', t.value)) { applyAppearance(); save(); render(); }
+    }
+  });
+
   // Canlı arama (yeniden çizmeden, odak kaybolmasın)
   document.addEventListener('input', function (e) {
     var t = e.target; if (!t) return;
+    if (t.id === 'mkAmount') {
+      var box = document.getElementById('mkConv'); if (box && ui.market) box.innerHTML = App.convHtml(ui.market.items, t.value);
+      return;
+    }
     if (t.id === 'finSearch' || t.id === 'glossQ') {
       var q = t.value.trim().toLocaleLowerCase('tr'), n = 0;
       var items = document.querySelectorAll(t.id === 'finSearch' ? 'li.fin' : '#glossList details');
@@ -612,6 +705,13 @@
       if (!Core.setTaxPct(S, v === '' ? 0 : v)) { toast('0 ile 60 arasında bir yüzde yaz.'); return; }
       ui.noDraft = true; save(); toast('Kaydedildi.'); render();
     },
+    mkRefresh: function () { loadMarket(true); },
+    mkPeriod: function (el) {
+      var d = parseInt(el.getAttribute('data-v'), 10); if (d !== 7 && d !== 30 && d !== 90) return;
+      ui.mkDays = d; if (ui.market) { ui.market.items = []; ui.market.at = 0; }
+      ui.enter = 'fade'; loadMarket(true);
+    },
+    mkSel: function (el) { ui.mkSel = el.getAttribute('data-id'); render(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { } },
     calcRun: function () {
       ui.calcRes = Core.calcSales({ price: val('calcPrice'), cost: val('calcCost'), fee: val('calcFee'), target: val('calcTarget') });
       render();
@@ -697,6 +797,15 @@
       ui.exportNote = 'Bir sorun yaşarsan bu bilgiyi kopyalayıp bana gönderebilirsin. Kişisel veri (adın, tutarlar) içermez.';
       showExportText('Tanılama bilgisi', t);
     },
+    setAccent: function (el) { if (Core.setLook(S, 'accent', el.getAttribute('data-v'))) { applyAppearance(); save(); render(); } },
+    setFont: function (el) { Core.setLook(S, 'font', el.getAttribute('data-v')); applyAppearance(); save(); render(); },
+    setRadius: function (el) { Core.setLook(S, 'radius', el.getAttribute('data-v')); applyAppearance(); save(); render(); },
+    setMotion: function (el) { Core.setLook(S, 'motion', el.getAttribute('data-v')); applyAppearance(); save(); render(); },
+    homeSpend: function (el) { Core.setLook(S, 'home.spend', el.getAttribute('data-v') === 'on'); save(); render(); },
+    homeStreak: function (el) { Core.setLook(S, 'home.streak', el.getAttribute('data-v') === 'on'); save(); render(); },
+    homeChecklist: function (el) { Core.setLook(S, 'home.checklist', el.getAttribute('data-v') === 'on'); save(); render(); },
+    avatarPick: function () { var f = document.getElementById('avatarFile'); if (f) f.click(); },
+    avatarDel: function () { Core.setAvatar(S, ''); save(); toast('Fotoğraf kaldırıldı.'); render(); },
     resetUsage: function () { S.usage.seconds = 0; S.usage.date = Core.dayKey(now()); save(); toast('Sohbet süresi sıfırlandı.'); render(); },
     fillUsage: function () { Core.addUsage(S, 999999, now()); save(); toast('Süre bitirildi.'); render(); }
   };

@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'tasks', 'chat', 'money', 'packages'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', glossary: 'Sözlük', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -47,6 +47,8 @@
     edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
     search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     circle: '<circle cx="12" cy="12" r="9"/>',
+    dollar: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    refresh: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
     repeat: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
     pause: '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
     play: '<polygon points="5 3 19 12 5 21 5 3"/>',
@@ -101,6 +103,15 @@
     return '<div class="segctl" role="group">' + items.map(function (it) {
       return '<button class="segbtn ' + (cur === it.v ? 'on' : '') + '" data-act="' + act + '" data-v="' + esc(it.v) + '">' + esc(it.t) + '</button>';
     }).join('') + '</div>';
+  }
+  function avatar(S, cls, tag) {
+    const u = S.user, init = esc((u.name || 'S').trim().charAt(0).toLocaleUpperCase('tr-TR') || 'S');
+    const inner = u.avatar ? '<img class="av ' + (cls || '') + '" src="' + esc(u.avatar) + '" alt="Profil fotoğrafı">' : '<span class="av ' + (cls || '') + '" aria-hidden="true">' + init + '</span>';
+    return tag === 'btn' ? '<button class="avbtn" data-act="go" data-route="settings" aria-label="Profil ve ayarlar">' + inner + '</button>' : inner;
+  }
+  const SWATCH = { green: ['#2fdc77', 'Yeşil'], blue: ['#4aa8ff', 'Mavi'], purple: ['#a78bfa', 'Mor'], orange: ['#ff9f43', 'Turuncu'], pink: ['#ff6fae', 'Pembe'], teal: ['#2dd4d4', 'Turkuaz'] };
+  function toggleRow(label, key, on) {
+    return '<div class="togrow"><span>' + esc(label) + '</span>' + seg([{ v: 'on', t: 'Açık' }, { v: 'off', t: 'Kapalı' }], on ? 'on' : 'off', key) + '</div>';
   }
   function rowLink(ic, title, sub, act, extra) {
     return '<button class="rowlink" data-act="' + act + '"' + (extra || '') + '><span class="rl-ic">' + icon(ic, 20) + '</span><span class="rl-tx"><b>' + esc(title) + '</b>' +
@@ -274,14 +285,15 @@
     const week = Core.financeSeries(S, '7d', now);
     const gp = Core.goalProgress(S, now);
     const fs = Core.financeSummary(S, now), ins = Core.insights(S, now), m30 = Core.financeSeries(S, '30d', now);
-    let html = '<div class="hello"><h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2><span class="chip">' + esc(ent.pkg.name) + ' paketi</span></div>';
+    const look = S.settings.look;
+    let html = '<div class="hello"><div class="hello-l">' + avatar(S, '', 'btn') + '<h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2></div><span class="chip">' + esc(ent.pkg.name) + ' paketi</span></div>';
     html += '<button class="card hero" data-act="go" data-route="charts"><small>Toplam net</small><div class="hero-num ' + (fs.net < 0 ? 'neg' : '') + '">' + tl(fs.net) + '</div>' +
       '<span class="trend ' + (ins.thisMonth.net > 0 ? 'up' : ins.thisMonth.net < 0 ? 'down' : 'flat') + '">' + (ins.thisMonth.net > 0 ? '▲ ' : ins.thisMonth.net < 0 ? '▼ ' : '') + 'Bu ay ' + signed(ins.thisMonth.net) + '</span>' +
       (m30.empty ? '<p class="muted small hero-empty">İlk kaydını girince grafik burada çizilir.</p>' : heroChart(m30)) + '</button>';
     html += '<div class="grid2 pair"><div class="card stat2"><small>Aylık gelir</small><b>' + tl(ins.thisMonth.in) + '</b>' + chg(ins.thisMonth.in, ins.lastMonth.in, true) + '</div>' +
       '<div class="card stat2"><small>Aylık gider</small><b>' + tl(ins.thisMonth.out) + '</b>' + chg(ins.thisMonth.out, ins.lastMonth.out, false) + '</div></div>';
     const sp = Core.categorySplit(S, 'out', '30d', now);
-    html += '<div class="card spend"><div class="row"><b>Harcamalarım</b><span class="muted small">Son 30 gün</span></div>' +
+    if (look.home.spend) html += '<div class="card spend"><div class="row"><b>Harcamalarım</b><span class="muted small">Son 30 gün</span></div>' +
       (sp.total > 0
         ? '<div class="donut-row">' + donut(sp.items, Math.round(sp.total).toLocaleString('tr-TR'), 'TL harcama') +
           '<ul class="legend spendlg">' + sp.items.map(function (it, i) { return '<li><i style="background:var(--c' + (i % 4) + ')"></i><span class="nm">' + esc(it.name) + '<small>' + tl(it.amount) + '</small></span><b>%' + Math.round(it.pct) + '</b></li>'; }).join('') + '</ul></div>'
@@ -297,13 +309,13 @@
     }
     html += '<div class="qa-row"><button class="qa in" data-act="quickAdd" data-v="in">' + icon('plus', 18) + 'Gelir ekle</button><button class="qa out" data-act="quickAdd" data-v="out">' + icon('minus', 18) + 'Gider ekle</button></div>';
     const cl = Core.checklist(S, now);
-    if (!cl.complete) {
+    if (!cl.complete && look.home.checklist) {
       html += '<div class="card checklist"><div class="row"><b>Başlangıç adımları</b><span class="muted small">' + cl.done + ' / ' + cl.total + '</span></div>' + bar(Math.round(cl.done / cl.total * 100)) +
         cl.items.map(function (it) {
           return '<button class="cl ' + (it.done ? 'done' : '') + '" data-act="go" data-route="' + it.route + '"' + (it.done ? ' tabindex="-1"' : '') + '><span class="cl-ic">' + icon(it.done ? 'check' : 'circle', 18) + '</span><span>' + esc(it.title) + '</span>' + (it.done ? '' : icon('chevron', 16)) + '</button>';
         }).join('') + '</div>';
     }
-    html += '<div class="card streak"><div class="row"><div class="sline"><span class="flame ' + (st.current > 0 ? 'on' : '') + '">' + icon('flame', 22) + '</span><b>' + st.current + ' günlük seri</b></div><span class="muted small">En iyi: ' + st.best + '</span></div>' +
+    if (look.home.streak) html += '<div class="card streak"><div class="row"><div class="sline"><span class="flame ' + (st.current > 0 ? 'on' : '') + '">' + icon('flame', 22) + '</span><b>' + st.current + ' günlük seri</b></div><span class="muted small">En iyi: ' + st.best + '</span></div>' +
       '<p class="muted small">' + (st.activeToday ? 'Bugün de çalıştın, harika.' : (st.current > 0 ? 'Serini korumak için bugün küçük bir adım at.' : 'Bir görev tamamla, kayıt gir veya sohbet et; seri başlasın.')) + '</p>' +
       '<div class="badges">' + Core.badges(S, now).map(function (b) {
         return '<span class="badge ' + (b.earned ? 'on' : '') + '" title="' + esc(b.title + ' — ' + b.desc) + '"><i>' + icon(b.earned ? (BADGE_ICON[b.id] || 'check') : 'lock', 20) + '</i><small>' + esc(b.title) + '</small></span>';
@@ -326,6 +338,7 @@
       '<button class="tile" data-act="go" data-route="money"><span class="ti">' + icon('trend', 20) + '</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
       '<button class="tile" data-act="go" data-route="auto"><span class="ti">' + icon('zap', 20) + '</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : 'Ücretli paket') + '</small></button>' +
       '<button class="tile" data-act="go" data-route="history"><span class="ti">' + icon('history', 20) + '</span><b>Geçmiş İşlemler</b><small>Eski çalışmaların</small></button>' +
+      '<button class="tile" data-act="go" data-route="market"><span class="ti">' + icon('dollar', 20) + '</span><b>Piyasa</b><small>Dolar, altın, kripto</small></button>' +
       '<button class="tile" data-act="go" data-route="plans"><span class="ti">' + icon('repeat', 20) + '</span><b>Planlar</b><small>Tekrarlayan, birikim</small></button>' +
       '<button class="tile" data-act="go" data-route="calc"><span class="ti">' + icon('calc', 20) + '</span><b>Hesaplayıcı</b><small>Hedefe kaç satış?</small></button>' +
       '<button class="tile" data-act="go" data-route="glossary"><span class="ti">' + icon('book', 20) + '</span><b>Sözlük</b><small>Terimleri öğren</small></button>' +
@@ -554,6 +567,72 @@
     return html;
   };
 
+  // ---------- Piyasa ----------
+  function miniSpark(series, up) {
+    const v = series.map(function (p) { return p.v; }), n = v.length, lo = Math.min.apply(null, v), hi = Math.max.apply(null, v), span = hi - lo || 1;
+    const pts = v.map(function (x, i) { return (2 + i * (76 / (n - 1))).toFixed(1) + ',' + (26 - (x - lo) / span * 22).toFixed(1); });
+    return '<svg viewBox="0 0 80 30" class="mkspark ' + (up ? 'up' : 'down') + '" aria-hidden="true"><polyline points="' + pts.join(' ') + '" fill="none"/></svg>';
+  }
+  function marketChart(it) {
+    const W = 340, H = 170, L = 6, R = 6, T = 14, B = 22, pw = W - L - R, ph = H - T - B;
+    const v = it.series.map(function (p) { return p.v; }), n = v.length, lo = Math.min.apply(null, v), hi = Math.max.apply(null, v), span = hi - lo || 1;
+    const x = function (i) { return L + i * pw / (n - 1); }, y = function (val) { return T + ph * (1 - (val - lo) / span); };
+    const pts = v.map(function (val, i) { return x(i).toFixed(1) + ' ' + y(val).toFixed(1); });
+    const dfmt = function (t) { const d = new Date(t); return d.getDate() + '.' + (d.getMonth() + 1); };
+    const up = it.change >= 0;
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart mkchart ' + (up ? 'up' : 'down') + '" role="img" aria-label="' + esc(it.name) + ' fiyat grafiği">' +
+      '<defs><linearGradient id="gMk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--mk);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--mk);stop-opacity:0"/></linearGradient></defs>' +
+      '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(hi) + '" y2="' + y(hi) + '"/><line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(lo) + '" y2="' + y(lo) + '"/>' +
+      '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1) + ' ' + (T + ph) + ' L' + x(0) + ' ' + (T + ph) + ' Z" fill="url(#gMk)"/>' +
+      '<path class="mkline" pathLength="1" d="M' + pts.join(' L') + '" fill="none"/><circle class="mkdot" cx="' + x(n - 1) + '" cy="' + y(v[n - 1]) + '" r="3.5"/>' +
+      '<text class="ax" x="' + L + '" y="' + (H - 6) + '">' + dfmt(it.series[0].t) + '</text><text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + dfmt(it.series[n - 1].t) + '</text></svg>';
+  }
+  function pctPill(c) { return '<span class="pc ' + (c >= 0 ? 'up' : 'down') + '"><i class="tri ' + (c >= 0 ? 'up' : 'down') + '"></i>%' + String(Math.abs(c)).replace('.', ',') + '</span>'; }
+  function convHtml(items, amount) {
+    const a = Number(String(amount).replace(',', '.'));
+    if (!(a > 0) || !items || !items.length) return '<p class="muted small">Bir TL tutarı yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.</p>';
+    const rows = [['fx-USD', 'Dolar', 2], ['fx-EUR', 'Euro', 2], ['gold-gram', 'Gram altın', 3], ['cr-BTC', 'Bitcoin', 6]];
+    return rows.map(function (r) {
+      const it = items.find(function (i) { return i.id === r[0]; }); if (!it) return '';
+      return '<div class="irow"><span>' + r[1] + '</span><b>' + (a / it.price).toLocaleString('tr-TR', { maximumFractionDigits: r[2] }) + '</b></div>';
+    }).join('');
+  }
+  views.market = function (S, ui, now) {
+    const m = ui.market || { status: 'idle', items: [], errors: [] };
+    const items = m.items || [];
+    const at = m.at ? new Date(m.at) : null;
+    const hm = at ? ('0' + at.getHours()).slice(-2) + ':' + ('0' + at.getMinutes()).slice(-2) : '';
+    let html = '<div class="row"><h2>Piyasa</h2><button class="icon ' + (m.status === 'loading' ? 'spin' : '') + '" data-act="mkRefresh" aria-label="Yenile" title="Yenile">' + icon('refresh', 20) + '</button></div>' +
+      '<p class="muted small">' + (m.status === 'loading' && !items.length ? 'Veriler yükleniyor…' : at ? 'Son güncelleme: ' + hm + (m.status === 'loading' ? ' · yenileniyor…' : '') + ' · TL karşılığı' : 'Fiyatlar internetten çekilir.') + '</p>' +
+      seg([{ v: '7', t: '7 Gün' }, { v: '30', t: '30 Gün' }, { v: '90', t: '90 Gün' }], String(ui.mkDays || 30), 'mkPeriod');
+    if (!items.length) {
+      return html + (m.status === 'loading'
+        ? '<div class="card skeleton"><div class="sk"></div><div class="sk s"></div></div>'
+        : '<div class="card note">Piyasa verileri şu an alınamadı. İnternet bağlantını kontrol edip tekrar dene.<button class="btn" data-act="mkRefresh">Tekrar dene</button></div>') + '<p class="fine">Bilgi amaçlıdır; yatırım tavsiyesi değildir.</p>';
+    }
+    const sel = items.find(function (i) { return i.id === ui.mkSel; }) || items[0];
+    html += '<div class="card mkhero"><div class="row"><div><b>' + esc(sel.name) + '</b><div class="muted small">' + esc(sel.sym) + '</div></div>' + pctPill(sel.change) + '</div>' +
+      '<div class="mkprice">' + Market_fmt(sel.price, sel.unit) + '</div>' + marketChart(sel) +
+      '<div class="pick"><span>En yüksek <b>' + Market_fmt(sel.high, sel.unit) + '</b></span><span>En düşük <b>' + Market_fmt(sel.low, sel.unit) + '</b></span></div></div>';
+    [['fx', 'Döviz'], ['gold', 'Altın'], ['crypto', 'Kripto']].forEach(function (g) {
+      const list = items.filter(function (i) { return i.group === g[0]; });
+      if (!list.length) return;
+      html += '<h3>' + g[1] + '</h3><div class="card nopad mklist">' + list.map(function (i) {
+        return '<button class="mkrow ' + (i.id === sel.id ? 'sel' : '') + '" data-act="mkSel" data-id="' + esc(i.id) + '"><span class="mkn"><b>' + esc(i.name) + '</b><small>' + esc(i.sym) + '</small></span>' +
+          miniSpark(i.series, i.change >= 0) + '<span class="mkv"><b>' + Market_fmt(i.price, i.unit) + '</b>' + pctPill(i.change) + '</span></button>';
+      }).join('') + '</div>';
+    });
+    if (m.errors && m.errors.length) html += '<p class="fine">Alınamayanlar: ' + esc(m.errors.join(', ') ) + '. Yenilemeyi dene.</p>';
+    html += '<div class="card"><b>Kendi paranı çevir</b><label class="lbl" for="mkAmount">Tutar (TL)</label><input id="mkAmount" class="inp" inputmode="decimal" placeholder="Örn: 10000">' +
+      '<div id="mkConv">' + convHtml(items, '') + '</div></div>';
+    html += '<p class="fine">Döviz kurları Avrupa Merkez Bankası verisidir (günlük). Altın ve kripto fiyatları Binance üzerindeki piyasadan alınır; gram altın PAXG (ons altına dayalı) üzerinden yaklaşık hesaplanır ve Türkiye\'deki gram altın fiyatından farklı olabilir. Veriler gecikmeli veya hatalı olabilir. Bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>';
+    return html;
+  };
+  function Market_fmt(v, unit) {
+    const d = v >= 1 ? 2 : 4;
+    return Number(v).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d }) + (unit === '$' ? ' $' : ' TL');
+  }
+
   views.calc = function (S, ui) {
     const g = S.goal.monthly || '';
     const r = ui.calcRes;
@@ -698,10 +777,20 @@
   };
 
   views.settings = function (S, ui) {
-    const rem = S.settings.reminder;
+    const rem = S.settings.reminder, look = S.settings.look;
     return '<h2>Ayarlar</h2>' +
+      '<div class="card profile">' + avatar(S, 'lg') + '<div class="pb"><b>' + esc(S.user.name || 'Profilin') + '</b><small class="muted">Fotoğraf yalnızca bu cihazda saklanır.</small><div class="row">' +
+      '<button class="btn slim" data-act="avatarPick">' + icon('upload', 16) + (S.user.avatar ? 'Değiştir' : 'Fotoğraf ekle') + '</button>' + (S.user.avatar ? '<button class="btn slim ghost" data-act="avatarDel">Kaldır</button>' : '') +
+      '</div></div><input id="avatarFile" type="file" accept="image/*" hidden></div>' +
       '<div class="card"><b>Görünüm</b><p class="muted small">Siyah tema pil tasarrufu sağlar ve geceleri gözü yormaz.</p>' +
-      seg([{ v: 'dark', t: 'Siyah' }, { v: 'light', t: 'Açık' }, { v: 'system', t: 'Sistem' }], S.settings.theme, 'setTheme') + '</div>' +
+      seg([{ v: 'dark', t: 'Siyah' }, { v: 'light', t: 'Açık' }, { v: 'system', t: 'Sistem' }], S.settings.theme, 'setTheme') +
+      '<label class="lbl">Vurgu rengi</label><div class="swatches">' + Object.keys(SWATCH).map(function (k) {
+        return '<button class="sw ' + (look.accent === k ? 'on' : '') + '" style="--c:' + SWATCH[k][0] + '" data-act="setAccent" data-v="' + k + '" aria-label="' + SWATCH[k][1] + '" title="' + SWATCH[k][1] + '">' + (look.accent === k ? icon('check', 18) : '') + '</button>';
+      }).join('') + '<label class="sw custom ' + (look.accent === 'custom' ? 'on' : '') + '" title="Özel renk"><input id="accentCustom" type="color" value="' + esc(look.custom || '#2fdc77') + '" aria-label="Özel renk seç">' + (look.accent === 'custom' ? icon('check', 18) : '') + '</label></div>' +
+      '<label class="lbl">Yazı boyutu</label>' + seg([{ v: 's', t: 'Küçük' }, { v: 'm', t: 'Normal' }, { v: 'l', t: 'Büyük' }], look.font, 'setFont') +
+      '<label class="lbl">Köşeler</label>' + seg([{ v: 'soft', t: 'Yumuşak' }, { v: 'sharp', t: 'Keskin' }], look.radius, 'setRadius') +
+      '<label class="lbl">Animasyonlar</label>' + seg([{ v: 'on', t: 'Açık' }, { v: 'off', t: 'Kapalı' }], look.motion, 'setMotion') + '</div>' +
+      '<div class="card"><b>Ana ekranda göster</b>' + toggleRow('Harcama pastası', 'homeSpend', look.home.spend) + toggleRow('Seri ve rozetler', 'homeStreak', look.home.streak) + toggleRow('Başlangıç adımları', 'homeChecklist', look.home.checklist) + '</div>' +
       '<div class="card"><b>Güvenlik</b><p class="muted small">PIN kilidi, uygulamayı açarken ve arka plandan dönerken sorulur. Cihaz içi basit bir kilittir.</p>' +
       '<div class="row"><span>' + icon('lock', 18) + ' Uygulama kilidi: <b>' + (S.lock.enabled ? 'Açık' : 'Kapalı') + '</b></span>' +
       (S.lock.enabled ? '<button class="btn ghost slim" data-act="lockOff">Kapat</button>' : '<button class="btn slim" data-act="lockOn">PIN belirle</button>') + '</div></div>' +
@@ -786,5 +875,5 @@
     };
   }
 
-  return { esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
+  return { convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
 });

@@ -568,4 +568,23 @@ test('vergi payı ve kaynağa göre net', () => {
   assert.strictEqual(C.migrate({ recurring: [null, { type: 'in', amount: -1 }], savings: 'x' }).recurring.length, 0);
 });
 
+test('görünüm ayarları ve profil fotoğrafı doğrulanır', () => {
+  const s = C.defaultState();
+  assert.strictEqual(s.settings.look.accent, 'green');
+  assert.ok(C.setLook(s, 'accent', 'blue') && s.settings.look.accent === 'blue');
+  assert.ok(!C.setLook(s, 'accent', 'neon') && !C.setLook(s, 'font', 'xxl') && !C.setLook(s, 'home.yok', true));
+  assert.ok(C.setLook(s, 'custom', '#FF8800') && s.settings.look.accent === 'custom' && s.settings.look.custom === '#ff8800');
+  assert.ok(!C.setLook(s, 'custom', 'red') && !C.setLook(s, 'custom', '#12345'));
+  assert.ok(C.setLook(s, 'home.spend', false) && s.settings.look.home.spend === false);
+  const m = C.migrate({ settings: { look: { accent: 'custom', custom: 'zzz', font: 'q', home: { spend: false } } } });
+  assert.strictEqual(m.settings.look.accent, 'green', 'bozuk özel renk yeşile döner');
+  assert.strictEqual(m.settings.look.font, 'm'); assert.strictEqual(m.settings.look.home.spend, false); assert.strictEqual(m.settings.look.home.streak, true);
+  const good = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+  assert.ok(C.setAvatar(s, good) && s.user.avatar === good);
+  assert.ok(!C.setAvatar(s, 'data:image/svg+xml;base64,PHN2Zz4=') && !C.setAvatar(s, 'javascript:alert(1)') && !C.setAvatar(s, 'data:image/jpeg;base64,' + 'A'.repeat(260000)));
+  assert.strictEqual(s.user.avatar, good, 'geçersiz fotoğraf eskisini bozmaz');
+  assert.strictEqual(C.migrate({ user: { name: 'a', avatar: '" onerror="x' } }).user.avatar, '', 'bozuk fotoğraf temizlenir');
+  assert.ok(C.setAvatar(s, '') && s.user.avatar === '');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));
