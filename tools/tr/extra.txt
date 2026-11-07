@@ -1,0 +1,650 @@
+Bu cihazda sesli okuma desteklenmiyor.
+Voice reading is not supported on this device.
+Das Vorlesen wird auf diesem Gerät nicht unterstützt.
+La lectura en voz alta no es compatible con este dispositivo.
+Озвучивание не поддерживается на этом устройстве.
+القراءة الصوتية غير مدعومة على هذا الجهاز.
+==
+Sesli okuma başlatılamadı.
+Voice reading could not be started.
+Das Vorlesen konnte nicht gestartet werden.
+No se pudo iniciar la lectura en voz alta.
+Не удалось запустить озвучивание.
+تعذّر بدء القراءة الصوتية.
+==
+Yeni rozet:
+New badge:
+Neues Abzeichen:
+Nueva insignia:
+Новый значок:
+شارة جديدة:
+==
+Dosya indirildi.
+File downloaded.
+Datei heruntergeladen.
+Archivo descargado.
+Файл скачан.
+تم تنزيل الملف.
+==
+Güncellenemedi, son veriler gösteriliyor.
+Could not update; showing the latest data.
+Aktualisierung fehlgeschlagen, die letzten Daten werden angezeigt.
+No se pudo actualizar; se muestran los últimos datos.
+Не удалось обновить, показаны последние данные.
+تعذّر التحديث، تُعرض آخر البيانات.
+==
+Yanıt alınamadı, tekrar dene.
+No reply received, try again.
+Keine Antwort erhalten, versuche es erneut.
+No se recibió respuesta, inténtalo de nuevo.
+Ответ не получен, попробуй ещё раз.
+لم يصل رد، حاول مرة أخرى.
+==
+Bağlanamadım. İnternetini kontrol edip tekrar dene.
+I couldn't connect. Check your internet and try again.
+Ich konnte keine Verbindung herstellen. Prüfe dein Internet und versuche es erneut.
+No pude conectarme. Revisa tu internet e inténtalo de nuevo.
+Не удалось подключиться. Проверь интернет и попробуй ещё раз.
+تعذّر الاتصال. تحقق من الإنترنت وحاول مرة أخرى.
+==
+Uygulama kilidi açıldı.
+App lock unlocked.
+App-Sperre entsperrt.
+Bloqueo de la app desbloqueado.
+Блокировка приложения снята.
+تم فتح قفل التطبيق.
+==
+Uygulama kilidi kapatıldı.
+App lock turned off.
+App-Sperre ausgeschaltet.
+Bloqueo de la app desactivado.
+Блокировка приложения отключена.
+تم إيقاف قفل التطبيق.
+==
+Hatırlatıcı yalnızca Android uygulamasında çalışır; ayarın kaydedildi.
+The reminder works only in the Android app; your setting was saved.
+Die Erinnerung funktioniert nur in der Android-App; deine Einstellung wurde gespeichert.
+El recordatorio solo funciona en la app de Android; tu ajuste se guardó.
+Напоминание работает только в приложении для Android; настройка сохранена.
+يعمل التذكير في تطبيق أندرويد فقط؛ وقد تم حفظ إعدادك.
+==
+Bildirim izni verilmedi, hatırlatıcı kapalı kaldı.
+Notification permission was not granted; the reminder stayed off.
+Die Benachrichtigungsberechtigung wurde nicht erteilt, die Erinnerung bleibt aus.
+No se concedió el permiso de notificaciones; el recordatorio sigue desactivado.
+Разрешение на уведомления не выдано, напоминание осталось выключенным.
+لم يُمنح إذن الإشعارات، فبقي التذكير متوقفًا.
+==
+Hatırlatıcı # için ayarlandı.
+Reminder set for #.
+Erinnerung für # eingestellt.
+Recordatorio programado para las #.
+Напоминание установлено на #.
+تم ضبط التذكير على #.
+==
+Hatırlatıcı kurulamadı.
+The reminder could not be set.
+Die Erinnerung konnte nicht eingerichtet werden.
+No se pudo configurar el recordatorio.
+Не удалось установить напоминание.
+تعذّر ضبط التذكير.
+==
+Dosya çok büyük.
+The file is too large.
+Die Datei ist zu groß.
+El archivo es demasiado grande.
+Файл слишком большой.
+الملف كبير جدًا.
+==
+Yedekteki # kayıt ve # proje yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?
+# entries and # projects in the backup will be loaded. This replaces your current data. Continue?
+# Einträge und # Projekte aus der Sicherung werden geladen. Das ersetzt deine aktuellen Daten. Fortfahren?
+Se cargarán # registros y # proyectos de la copia. Reemplaza tus datos actuales. ¿Continuar?
+Из копии будет загружено записей: #, проектов: #. Это заменит твои текущие данные. Продолжить?
+سيتم تحميل # سجلًا و# مشروعًا من النسخة الاحتياطية. سيحلّ ذلك محل بياناتك الحالية. هل تتابع؟
+==
+Yedek geri yüklendi.
+Backup restored.
+Sicherung wiederhergestellt.
+Copia restaurada.
+Копия восстановлена.
+تمت استعادة النسخة الاحتياطية.
+==
+Dosya okunamadı.
+The file could not be read.
+Die Datei konnte nicht gelesen werden.
+No se pudo leer el archivo.
+Не удалось прочитать файл.
+تعذّرت قراءة الملف.
+==
+Bir resim dosyası seç.
+Choose an image file.
+Wähle eine Bilddatei.
+Elige un archivo de imagen.
+Выбери файл изображения.
+اختر ملف صورة.
+==
+Fotoğraf güncellendi.
+Photo updated.
+Foto aktualisiert.
+Foto actualizada.
+Фото обновлено.
+تم تحديث الصورة.
+==
+Fotoğraf işlenemedi.
+The photo could not be processed.
+Das Foto konnte nicht verarbeitet werden.
+No se pudo procesar la foto.
+Не удалось обработать фото.
+تعذّرت معالجة الصورة.
+==
+Model seçmek için Manuel paket gerekir.
+The Manual plan is required to choose a model.
+Zum Auswählen eines Modells ist der Tarif „Manuell" nötig.
+Necesitas el plan Manual para elegir un modelo.
+Чтобы выбрать модель, нужен тариф «Ручной».
+تحتاج إلى الباقة اليدوية لاختيار نموذج.
+==
+Proje başlatıldı!
+Project started!
+Projekt gestartet!
+¡Proyecto iniciado!
+Проект запущен!
+بدأ المشروع!
+==
+Görev tekrar açıldı.
+Task reopened.
+Aufgabe wieder geöffnet.
+Tarea reabierta.
+Задание открыто снова.
+أُعيد فتح المهمة.
+==
+Görev tamamlandı.
+Task completed.
+Aufgabe erledigt.
+Tarea completada.
+Задание выполнено.
+اكتملت المهمة.
+==
+Tebrikler, tüm görevleri tamamladın.
+Congratulations, you completed all the tasks.
+Glückwunsch, du hast alle Aufgaben erledigt.
+Felicidades, completaste todas las tareas.
+Поздравляем, ты выполнил все задания.
+تهانينا، لقد أنجزت جميع المهام.
+==
+Yapay zekâlı anlatım açıldı (test).
+AI narration turned on (test).
+KI-Erklärung aktiviert (Test).
+Explicación con IA activada (prueba).
+Объяснение ИИ включено (тест).
+تم تفعيل الشرح بالذكاء الاصطناعي (تجريبي).
+==
+Bu ek yalnızca Manuel pakette satın alınır.
+This add-on can only be purchased on the Manual plan.
+Dieses Zusatzpaket gibt es nur im Tarif „Manuell".
+Este complemento solo se compra en el plan Manual.
+Это дополнение покупается только в тарифе «Ручной».
+هذه الإضافة تُشترى مع الباقة اليدوية فقط.
+==
+Tutarı ve tarihi kontrol et (gelecek tarih olamaz).
+Check the amount and date (the date cannot be in the future).
+Prüfe Betrag und Datum (das Datum darf nicht in der Zukunft liegen).
+Revisa el importe y la fecha (la fecha no puede ser futura).
+Проверь сумму и дату (дата не может быть в будущем).
+تحقق من المبلغ والتاريخ (لا يمكن أن يكون التاريخ في المستقبل).
+==
+Kayıt güncellendi.
+Entry updated.
+Eintrag aktualisiert.
+Movimiento actualizado.
+Запись обновлена.
+تم تحديث السجل.
+==
+Kaydedildi.
+Saved.
+Gespeichert.
+Guardado.
+Сохранено.
+تم الحفظ.
+==
+Geçerli bir tutar yaz.
+Enter a valid amount.
+Gib einen gültigen Betrag ein.
+Escribe un importe válido.
+Введи корректную сумму.
+اكتب مبلغًا صالحًا.
+==
+Bütçe kaydedildi.
+Budget saved.
+Budget gespeichert.
+Presupuesto guardado.
+Бюджет сохранён.
+تم حفظ الميزانية.
+==
+Tutarı ve tarihi kontrol et.
+Check the amount and date.
+Prüfe Betrag und Datum.
+Revisa el importe y la fecha.
+Проверь сумму и дату.
+تحقق من المبلغ والتاريخ.
+==
+Kaydedildi, # kayıt eklendi.
+Saved, # entries added.
+Gespeichert, # Einträge hinzugefügt.
+Guardado, # movimientos añadidos.
+Сохранено, добавлено записей: #.
+تم الحفظ، وأُضيف # سجلات.
+==
+Tekrarlayan kayıt eklendi.
+Recurring entry added.
+Wiederkehrender Eintrag hinzugefügt.
+Movimiento recurrente añadido.
+Регулярная запись добавлена.
+أُضيف السجل المتكرر.
+==
+Bu tekrarlayan kayıt silinsin mi? Daha önce eklenen kayıtlar kalır.
+Delete this recurring entry? Entries added earlier stay.
+Diesen wiederkehrenden Eintrag löschen? Bereits hinzugefügte Einträge bleiben erhalten.
+¿Eliminar este movimiento recurrente? Los movimientos añadidos antes se conservan.
+Удалить эту регулярную запись? Ранее добавленные записи останутся.
+هل تريد حذف هذا السجل المتكرر؟ تبقى السجلات المضافة سابقًا.
+==
+Ad ve geçerli bir hedef tutar yaz.
+Enter a name and a valid target amount.
+Gib einen Namen und einen gültigen Zielbetrag ein.
+Escribe un nombre y un importe objetivo válido.
+Введи название и корректную целевую сумму.
+اكتب اسمًا ومبلغًا مستهدفًا صالحًا.
+==
+Birikim hedefi oluşturuldu.
+Savings goal created.
+Sparziel erstellt.
+Meta de ahorro creada.
+Цель накопления создана.
+تم إنشاء هدف الادخار.
+==
+Birikim hedefine ulaştın.
+You reached your savings goal.
+Du hast dein Sparziel erreicht.
+Alcanzaste tu meta de ahorro.
+Ты достиг цели накопления.
+لقد بلغت هدف الادخار.
+==
+Bu birikim hedefi silinsin mi?
+Delete this savings goal?
+Dieses Sparziel löschen?
+¿Eliminar esta meta de ahorro?
+Удалить эту цель накопления?
+هل تريد حذف هدف الادخار هذا؟
+==
+0 ile 60 arasında bir yüzde yaz.
+Enter a percentage between # and #.
+Gib einen Prozentsatz zwischen # und # ein.
+Escribe un porcentaje entre # y #.
+Введи процент от # до #.
+اكتب نسبة بين # و#.
+==
+Bu kayıt silinsin mi?
+Delete this entry?
+Diesen Eintrag löschen?
+¿Eliminar este movimiento?
+Удалить эту запись?
+هل تريد حذف هذا السجل؟
+==
+Hedef kaydedildi.
+Goal saved.
+Ziel gespeichert.
+Meta guardada.
+Цель сохранена.
+تم حفظ الهدف.
+==
+Plan hazırlandı.
+Plan prepared.
+Plan erstellt.
+Plan preparado.
+План составлен.
+تم إعداد الخطة.
+==
+Kopyalandı.
+Copied.
+Kopiert.
+Copiado.
+Скопировано.
+تم النسخ.
+==
+Kopyalanamadı.
+Could not copy.
+Kopieren fehlgeschlagen.
+No se pudo copiar.
+Не удалось скопировать.
+تعذّر النسخ.
+==
+Aboneliği bitirmek istediğinden emin misin? (test) Kurduğun iş sende kalır, otomasyonlar durur.
+Are you sure you want to end the subscription? (test) The business you built stays with you; automations stop.
+Möchtest du das Abonnement wirklich beenden? (Test) Dein aufgebautes Geschäft bleibt bei dir, die Automatisierungen stoppen.
+¿Seguro que quieres terminar la suscripción? (prueba) El negocio que construiste se queda contigo; las automatizaciones se detienen.
+Ты уверен, что хочешь завершить подписку? (тест) Построенный бизнес останется у тебя, автоматизации остановятся.
+هل أنت متأكد من إنهاء الاشتراك؟ (تجريبي) يبقى العمل الذي بنيته معك وتتوقف الأتمتة.
+==
+Ücretsiz pakete dönüldü.
+Switched back to the Free plan.
+Zurück zum kostenlosen Tarif gewechselt.
+Se volvió al plan gratuito.
+Возврат на бесплатный тариф.
+تمت العودة إلى الباقة المجانية.
+==
+Paket değişti (test).
+Plan changed (test).
+Tarif gewechselt (Test).
+Plan cambiado (prueba).
+Тариф изменён (тест).
+تم تغيير الباقة (تجريبي).
+==
+Metni elle seçip kopyala.
+Select the text by hand and copy it.
+Markiere den Text von Hand und kopiere ihn.
+Selecciona el texto a mano y cópialo.
+Выдели текст вручную и скопируй.
+حدّد النص يدويًا وانسخه.
+==
+Tüm verilerin kalıcı olarak silinecek. Emin misin?
+All your data will be permanently deleted. Are you sure?
+Alle deine Daten werden dauerhaft gelöscht. Bist du sicher?
+Todos tus datos se eliminarán de forma permanente. ¿Seguro?
+Все твои данные будут удалены безвозвратно. Ты уверен?
+سيتم حذف جميع بياناتك نهائيًا. هل أنت متأكد؟
+==
+PIN'i kurtarmanın yolu yok: kilidi açmak için uygulama verileri silinir. Devam edilsin mi?
+There is no way to recover the PIN: to unlock, the app data is deleted. Continue?
+Die PIN lässt sich nicht wiederherstellen: Zum Entsperren werden die App-Daten gelöscht. Fortfahren?
+No hay forma de recuperar el PIN: para desbloquear se borran los datos de la app. ¿Continuar?
+Восстановить PIN невозможно: чтобы снять блокировку, данные приложения будут удалены. Продолжить?
+لا توجد طريقة لاستعادة PIN: لفتح القفل تُحذف بيانات التطبيق. هل تتابع؟
+==
+Saati kontrol et.
+Check the time.
+Prüfe die Uhrzeit.
+Revisa la hora.
+Проверь время.
+تحقق من الوقت.
+==
+Saat kaydedildi.
+Time saved.
+Uhrzeit gespeichert.
+Hora guardada.
+Время сохранено.
+تم حفظ الوقت.
+==
+Fotoğraf kaldırıldı.
+Photo removed.
+Foto entfernt.
+Foto eliminada.
+Фото удалено.
+تمت إزالة الصورة.
+==
+Sohbet süresi sıfırlandı.
+Chat time reset.
+Chat-Zeit zurückgesetzt.
+Tiempo de chat restablecido.
+Время чата сброшено.
+أُعيد ضبط وقت الدردشة.
+==
+Süre bitirildi.
+Time ended.
+Zeit beendet.
+Tiempo terminado.
+Время закончено.
+انتهى الوقت.
+==
+# tekrarlayan kayıt eklendi.
+# recurring entries added.
+# wiederkehrende Einträge hinzugefügt.
+# movimientos recurrentes añadidos.
+Добавлено регулярных записей: #.
+أُضيفت # سجلات متكررة.
+==
+Satış fiyatını yaz.
+Enter the selling price.
+Gib den Verkaufspreis ein.
+Escribe el precio de venta.
+Введи цену продажи.
+اكتب سعر البيع.
+==
+Birim maliyet geçersiz.
+The unit cost is invalid.
+Die Stückkosten sind ungültig.
+El coste unitario no es válido.
+Себестоимость единицы указана неверно.
+تكلفة الوحدة غير صالحة.
+==
+Komisyon oranı 0 ile 99 arasında olmalı.
+The commission rate must be between # and #.
+Der Provisionssatz muss zwischen # und # liegen.
+La comisión debe estar entre # y #.
+Комиссия должна быть от # до #.
+يجب أن تكون العمولة بين # و#.
+==
+Hedef net geliri yaz.
+Enter the net income goal.
+Gib das Netto-Einnahmenziel ein.
+Escribe la meta de ingresos netos.
+Введи цель по чистому доходу.
+اكتب هدف الدخل الصافي.
+==
+Dosya boş.
+The file is empty.
+Die Datei ist leer.
+El archivo está vacío.
+Файл пуст.
+الملف فارغ.
+==
+Bu bir yedek dosyası değil (JSON okunamadı).
+This is not a backup file (the JSON could not be read).
+Das ist keine Sicherungsdatei (JSON konnte nicht gelesen werden).
+Este no es un archivo de copia (no se pudo leer el JSON).
+Это не файл резервной копии (JSON не читается).
+هذا ليس ملف نسخة احتياطية (تعذّرت قراءة JSON).
+==
+Yedek dosyası geçersiz.
+The backup file is invalid.
+Die Sicherungsdatei ist ungültig.
+El archivo de copia no es válido.
+Файл резервной копии недействителен.
+ملف النسخة الاحتياطية غير صالح.
+==
+Bu dosya Pasif Gelirim yedeği gibi görünmüyor.
+This file doesn't look like a Pasif Gelirim backup.
+Diese Datei sieht nicht wie eine Pasif-Gelirim-Sicherung aus.
+Este archivo no parece una copia de Pasif Gelirim.
+Этот файл не похож на резервную копию Pasif Gelirim.
+لا يبدو هذا الملف نسخة احتياطية من Pasif Gelirim.
+==
+Bir soru yazarsan yardımcı olurum.
+If you write a question, I'll help.
+Wenn du eine Frage schreibst, helfe ich dir.
+Si escribes una pregunta, te ayudo.
+Если напишешь вопрос, я помогу.
+إذا كتبت سؤالًا سأساعدك.
+==
+Bu tür hazırlıkları "Otomasyon" bölümünden yapabilirsin. Orada günlük planı senin için hazırlıyorum.
+You can do this kind of preparation in the "Automation" section. There I prepare the daily plan for you.
+Solche Vorbereitungen kannst du im Bereich „Automatisierung" erledigen. Dort erstelle ich den Tagesplan für dich.
+Puedes hacer este tipo de preparativos en la sección «Automatización». Allí te preparo el plan diario.
+Такую подготовку можно сделать в разделе «Автоматизация». Там я составляю для тебя дневной план.
+يمكنك إجراء هذا النوع من التحضير في قسم «الأتمتة». هناك أُعدّ لك الخطة اليومية.
+==
+Bu işlemleri senin adına otomatik yapmak ücretli paketlerin (Yarı Otomasyon / CEO Modu) bir özelliği. Ama bunu kendin yapabilmen için yöntemi anlatabilirim: hedefini, haftalık sıklığını ve formatını seç, sonra her içeriği adım adım hazırla. İstersen ilk adımı birlikte netleştirelim.
+Doing this automatically for you is a feature of the paid plans (Semi-Automation / CEO Mode). But I can explain the method so you can do it yourself: choose your goal, weekly frequency and format, then prepare each piece step by step. If you like, let's clarify the first step together.
+Das automatisch für dich zu erledigen, ist eine Funktion der kostenpflichtigen Tarife (Halbautomatisierung / CEO-Modus). Ich kann dir aber die Methode erklären, damit du es selbst tun kannst: Wähle dein Ziel, die wöchentliche Häufigkeit und das Format und bereite dann jeden Inhalt Schritt für Schritt vor. Wenn du möchtest, klären wir den ersten Schritt gemeinsam.
+Hacerlo automáticamente por ti es una función de los planes de pago (Semiautomatización / Modo CEO). Pero puedo explicarte el método para que lo hagas tú: elige tu meta, la frecuencia semanal y el formato, y prepara cada contenido paso a paso. Si quieres, aclaramos juntos el primer paso.
+Автоматически делать это за тебя — функция платных тарифов («Полуавтоматизация» / «Режим CEO»). Но я могу объяснить метод, чтобы ты справился сам: выбери цель, недельную частоту и формат, затем готовь каждый материал шаг за шагом. Если хочешь, давай вместе уточним первый шаг.
+تنفيذ ذلك تلقائيًا نيابةً عنك ميزة في الباقات المدفوعة (شبه الأتمتة / وضع المدير التنفيذي). لكن يمكنني شرح الطريقة لتفعلها بنفسك: اختر هدفك وتكرارك الأسبوعي وصيغتك، ثم جهّز كل محتوى خطوة بخطوة. إن شئت نوضّح الخطوة الأولى معًا.
+==
+Dürüst olmak istiyorum: hiçbir gelir modeli için garanti verilemez. Çoğu iş ilk haftalarda hiç gelir getirmeyebilir. Önemli olan küçük adımlarla ilerleyip gerçek rakamlarını Kazanç bölümünde takip etmek.
+I want to be honest: no income model can be guaranteed. Most businesses may earn nothing in the first weeks. What matters is moving forward in small steps and tracking your real numbers in the Earnings section.
+Ich möchte ehrlich sein: Für kein Einkommensmodell kann es eine Garantie geben. Viele Geschäfte bringen in den ersten Wochen gar nichts ein. Wichtig ist, in kleinen Schritten voranzukommen und deine echten Zahlen im Bereich Einnahmen zu verfolgen.
+Quiero ser honesto: no se puede garantizar ningún modelo de ingresos. Muchos negocios pueden no generar nada en las primeras semanas. Lo importante es avanzar con pasos pequeños y seguir tus cifras reales en la sección Ganancias.
+Я хочу быть честным: ни одна модель дохода не может быть гарантирована. Многие виды бизнеса в первые недели могут не приносить ничего. Важно двигаться маленькими шагами и отслеживать реальные цифры в разделе «Заработок».
+أريد أن أكون صريحًا: لا يمكن ضمان أي نموذج دخل. قد لا تدرّ معظم الأعمال شيئًا في الأسابيع الأولى. المهم أن تتقدم بخطوات صغيرة وتتابع أرقامك الحقيقية في قسم الأرباح.
+==
+Gelir-gider kayıtlarını ve grafiklerini alttaki Kazanç sekmesinden herkes ücretsiz kullanabilir. Orada aylık hedef de koyabilirsin. Gerçek rakamlarını girdikçe grafikler kendiliğinden çizilir.
+Everyone can use income-expense records and charts for free from the Earnings tab below. You can also set a monthly goal there. As you enter your real numbers, the charts draw themselves.
+Einnahmen-/Ausgabeneinträge und Diagramme kann jeder kostenlos über den Tab Einnahmen unten nutzen. Dort kannst du auch ein Monatsziel setzen. Sobald du deine echten Zahlen eingibst, werden die Diagramme automatisch gezeichnet.
+Todos pueden usar gratis los registros de ingresos y gastos y los gráficos desde la pestaña Ganancias de abajo. Allí también puedes fijar una meta mensual. Al introducir tus cifras reales, los gráficos se dibujan solos.
+Учёт доходов и расходов и графики бесплатны для всех на вкладке «Заработок» внизу. Там же можно поставить месячную цель. По мере ввода реальных цифр графики строятся сами.
+يمكن للجميع استخدام سجلات الدخل والمصروفات ورسومها البيانية مجانًا من تبويب الأرباح في الأسفل. ويمكنك أيضًا وضع هدف شهري هناك. وكلما أدخلت أرقامك الحقيقية رُسمت الرسوم البيانية تلقائيًا.
+==
+Ana ekrandaki çalışma serisi, her gün görev tamamladığında, kayıt girdiğinde veya sohbet ettiğinde artar. Rozetler de ana ekranda duruyor.
+The work streak on the home screen grows each day you complete a task, add an entry or chat. Badges are also on the home screen.
+Die Arbeitsserie auf dem Startbildschirm wächst, wenn du jeden Tag eine Aufgabe erledigst, einen Eintrag machst oder chattest. Die Abzeichen findest du ebenfalls auf dem Startbildschirm.
+La racha de trabajo de la pantalla de inicio aumenta cada día que completas una tarea, registras un movimiento o chateas. Las insignias también están en la pantalla de inicio.
+Серия работы на главном экране растёт каждый день, когда ты выполняешь задание, добавляешь запись или общаешься в чате. Значки тоже на главном экране.
+تزداد سلسلة العمل في الشاشة الرئيسية كل يوم تنجز فيه مهمة أو تدخل سجلًا أو تدردش. والشارات أيضًا في الشاشة الرئيسية.
+==
+Daha önce tamamladığın çalışmalara ekranın üst kısmındaki ↶ simgesinden (Geçmiş İşlemler) ulaşabilirsin.
+You can reach work you completed earlier from the ↶ icon at the top of the screen (History).
+Früher erledigte Arbeiten erreichst du über das Symbol ↶ oben auf dem Bildschirm (Verlauf).
+Puedes acceder a los trabajos que completaste antes desde el icono ↶ de la parte superior de la pantalla (Historial).
+К ранее выполненным работам можно перейти по значку ↶ вверху экрана (История).
+يمكنك الوصول إلى الأعمال التي أنجزتها سابقًا من الأيقونة ↶ أعلى الشاشة (السجل).
+==
+Tüm görevlerini tamamlamışsın. Sonuçlarını Kazanç bölümünde takip edebilir ve neyi geliştireceğine karar verebilirsin.
+You have completed all your tasks. You can track your results in the Earnings section and decide what to improve.
+Du hast alle deine Aufgaben erledigt. Deine Ergebnisse kannst du im Bereich Einnahmen verfolgen und entscheiden, was du verbessern willst.
+Has completado todas tus tareas. Puedes seguir tus resultados en la sección Ganancias y decidir qué mejorar.
+Ты выполнил все задания. Результаты можно отслеживать в разделе «Заработок» и решать, что улучшать.
+لقد أنجزت جميع مهامك. يمكنك متابعة نتائجك في قسم الأرباح وتحديد ما ستطوّره.
+==
+Bunu biraz daha açabilir misin? Ya da "hedef kitle", "niş", "portfolyo" gibi anlamadığın bir terimi yaz, açıklayayım.
+Could you explain that a little more? Or write a term you don't understand, like "target audience", "niche" or "portfolio", and I'll explain it.
+Kannst du das etwas genauer erklären? Oder schreibe einen Begriff, den du nicht verstehst, etwa „Zielgruppe", „Nische" oder „Portfolio", und ich erkläre ihn.
+¿Puedes explicarlo un poco más? O escribe un término que no entiendas, como «público objetivo», «nicho» o «portafolio», y te lo explico.
+Можешь пояснить чуть подробнее? Или напиши непонятный термин, например «целевая аудитория», «ниша» или «портфолио», и я объясню.
+هل يمكنك توضيح ذلك أكثر؟ أو اكتب مصطلحًا لا تفهمه مثل «الجمهور المستهدف» أو «المجال المتخصص» أو «معرض الأعمال» وسأشرحه.
+==
+Bunu biraz daha açabilir misin? Anlamadığın bir terimi (örneğin "hedef kitle" veya "niş") yazarsan açıklayabilirim.
+Could you explain that a little more? If you write a term you don't understand (for example "target audience" or "niche"), I can explain it.
+Kannst du das etwas genauer erklären? Wenn du einen Begriff schreibst, den du nicht verstehst (zum Beispiel „Zielgruppe" oder „Nische"), kann ich ihn erklären.
+¿Puedes explicarlo un poco más? Si escribes un término que no entiendas (por ejemplo «público objetivo» o «nicho»), puedo explicártelo.
+Можешь пояснить чуть подробнее? Если напишешь непонятный термин (например, «целевая аудитория» или «ниша»), я смогу объяснить.
+هل يمكنك توضيح ذلك أكثر؟ إذا كتبت مصطلحًا لا تفهمه (مثل «الجمهور المستهدف» أو «المجال المتخصص») أستطيع شرحه.
+==
+Ana sayfa
+Home
+Start
+Inicio
+Главная
+الرئيسية
+==
+Sohbet
+Chat
+Chat
+Chat
+Чат
+الدردشة
+==
+Dil ve para birimi
+Language and currency
+Sprache und Währung
+Idioma y moneda
+Язык и валюта
+اللغة والعملة
+==
+Dil
+Language
+Sprache
+Idioma
+Язык
+اللغة
+==
+Cihaz dili (otomatik)
+Device language (automatic)
+Gerätesprache (automatisch)
+Idioma del dispositivo (automático)
+Язык устройства (автоматически)
+لغة الجهاز (تلقائي)
+==
+Para birimi
+Currency
+Währung
+Moneda
+Валюта
+العملة
+==
+Para birimi yalnızca gösterim içindir; girdiğin tutarlar otomatik dönüştürülmez. Piyasa sayfası TL cinsinden kalır.
+The currency is for display only; the amounts you entered are not converted automatically. The Markets page stays in TL.
+Die Währung dient nur der Anzeige; bereits eingegebene Beträge werden nicht automatisch umgerechnet. Die Marktseite bleibt in TL.
+La moneda es solo para mostrar; los importes que escribiste no se convierten automáticamente. La página de Mercados sigue en TL.
+Валюта нужна только для отображения; введённые суммы автоматически не пересчитываются. Страница «Рынки» остаётся в TL.
+العملة للعرض فقط؛ ولا تُحوَّل المبالغ التي أدخلتها تلقائيًا. تبقى صفحة الأسواق بالـ TL.
+==
+Türk Lirası (TL)
+Turkish lira (TL)
+Türkische Lira (TL)
+Lira turca (TL)
+Турецкая лира (TL)
+الليرة التركية (TL)
+==
+ABD Doları (USD)
+US dollar (USD)
+US-Dollar (USD)
+Dólar estadounidense (USD)
+Доллар США (USD)
+الدولار الأمريكي (USD)
+==
+Euro (EUR)
+Euro (EUR)
+Euro (EUR)
+Euro (EUR)
+Евро (EUR)
+اليورو (EUR)
+==
+İngiliz Sterlini (GBP)
+British pound (GBP)
+Britisches Pfund (GBP)
+Libra esterlina (GBP)
+Британский фунт (GBP)
+الجنيه الإسترليني (GBP)
+==
+İsviçre Frangı (CHF)
+Swiss franc (CHF)
+Schweizer Franken (CHF)
+Franco suizo (CHF)
+Швейцарский франк (CHF)
+الفرنك السويسري (CHF)
+==
+Rus Rublesi (RUB)
+Russian ruble (RUB)
+Russischer Rubel (RUB)
+Rublo ruso (RUB)
+Российский рубль (RUB)
+الروبل الروسي (RUB)
+==
+Suudi Riyali (SAR)
+Saudi riyal (SAR)
+Saudi-Riyal (SAR)
+Riyal saudí (SAR)
+Саудовский риял (SAR)
+الريال السعودي (SAR)
+==
+BAE Dirhemi (AED)
+UAE dirham (AED)
+VAE-Dirham (AED)
+Dirham de los EAU (AED)
+Дирхам ОАЭ (AED)
+الدرهم الإماراتي (AED)
+==
+Dil ve para birimini sonra Ayarlar'dan değiştirebilirsin.
+You can change the language and currency later in Settings.
+Sprache und Währung kannst du später in den Einstellungen ändern.
+Puedes cambiar el idioma y la moneda más tarde en Ajustes.
+Язык и валюту можно изменить позже в настройках.
+يمكنك تغيير اللغة والعملة لاحقًا من الإعدادات.
+==
+Fiyatlar TL cinsindendir; para birimi ayarından etkilenmez.
+Prices are in TL and are not affected by the currency setting.
+Die Preise sind in TL und werden von der Währungseinstellung nicht beeinflusst.
+Los precios están en TL y no les afecta el ajuste de moneda.
+Цены указаны в TL и не зависят от настройки валюты.
+الأسعار بالـ TL ولا تتأثر بإعداد العملة.

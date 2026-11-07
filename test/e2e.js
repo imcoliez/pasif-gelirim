@@ -12,7 +12,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, acceptDownloads: true });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, acceptDownloads: true, locale: 'tr-TR' });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -299,7 +299,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 0.9'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 1.0'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');

@@ -1,0 +1,67 @@
+0|Language
+1|Device language (automatic)
+2|Currency
+3|Turkish Lira (TRY)
+4|US Dollar (USD)
+5|Euro (EUR)
+6|British Pound (GBP)
+7|Swiss Franc (CHF)
+8|Russian Ruble (RUB)
+9|Saudi Riyal (SAR)
+10|UAE Dirham (AED)
+11|You can change the language and currency later in Settings.
+12|Language and currency
+13|The currency is for display only; the amounts you enter are not converted automatically. The Markets page stays in Turkish lira.
+14|Voice reading is not supported on this device.
+15|Voice reading could not be started.
+16|File downloaded.
+17|Could not update, showing the latest data.
+18|Couldn't connect. Check your internet and try again.
+19|App lock turned on.
+20|App lock turned off.
+21|The reminder works only in the Android app; your setting was saved.
+22|Notification permission was not granted, so the reminder stayed off.
+23|Could not set the reminder.
+24|File is too large.
+25|Backup restored.
+26|Could not read the file.
+27|Choose an image file.
+28|Photo updated.
+29|Could not process the photo.
+30|The Manual plan is required to choose a model.
+31|Project started!
+32|Task reopened.
+33|Task completed.
+34|Congratulations, you completed all the tasks.
+35|AI narration turned on (test).
+36|This add-on can only be bought with the Manual plan.
+37|Check the amount and date (the date cannot be in the future).
+38|Enter a valid amount.
+39|Budget saved.
+40|Check the amount and date.
+41|Enter a name and a valid target amount.
+42|Savings goal created.
+43|You reached your savings goal.
+44|Enter a percentage between # and #.
+45|Saved.
+46|Goal saved.
+47|Plan prepared.
+48|Copied.
+49|Could not copy.
+50|Select the text manually and copy it.
+51|Check the time.
+52|Time saved.
+53|Photo removed.
+54|Chat time reset.
+55|Time ended.
+56|Delete this recurring entry? Entries already added will stay.
+57|Delete this savings goal?
+58|Delete this entry?
+59|Are you sure you want to end the subscription? (test) The business you built stays with you; automations stop.
+60|There is no way to recover the PIN: to unlock, the app data will be deleted. Continue?
+61|# entries and # projects from the backup will be loaded. This replaces your current data. Continue?
+62|All your data will be permanently deleted. Are you sure?
+63|Home
+64|Chat
+65|Main menu
+66|New badge:

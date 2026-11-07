@@ -1,0 +1,639 @@
+0|Omitir
+1|Empieza con realismo
+2|Pasif Gelirim no promete ganancias garantizadas. Te ayuda a elegir un modelo de negocio digital adecuado para ti y a construirlo paso a paso.
+3|Continuar
+4|Atrás
+5|Tema
+6|Cambiar tema
+7|Historial
+8|Ajustes
+9|Pasif Gelirim
+10|MÁS ES POSIBLE.
+11|Aquí no te prometemos ganancias garantizadas. Te ayudamos a construir tu propio negocio digital paso a paso, a seguir tus cifras reales y a ver tu progreso.
+12|El negocio que construyes y tus datos te pertenecen.
+13|¿Cómo quieres que te llamemos?
+14|Empezar
+15|Logotipo de Pasif Gelirim
+16|Tu nombre
+17|Hola
+18|Plan gratuito
+19|Neto total
+20|# TL
+21|Este mes # TL
+22|El gráfico aparecerá aquí cuando registres tu primera entrada.
+23|Ingresos mensuales
+24|Sin datos del mes pasado
+25|Gastos mensuales
+26|Mis gastos
+27|Últimos # días
+28|A medida que añadas gastos, la distribución de tus gastos aparecerá aquí en porcentajes.
+29|Últimos movimientos
+30|Todos ›
+31|Aún no hay movimientos. Con los botones de abajo puedes añadir tu primer ingreso o gasto.
+32|Añadir ingreso
+33|Añadir gasto
+34|Primeros pasos
+35|Escribe tu nombre
+36|Elige un modelo de ingresos
+37|Completa la primera tarea
+38|Registra tu primer ingreso/gasto
+39|Fija una meta mensual de ingresos
+40|# días de racha
+41|Mejor: #
+42|Completa una tarea, registra un movimiento o chatea para empezar tu racha.
+43|Primer paso
+44|Llevar registro
+45|Primer ingreso
+46|# días de racha
+47|Meta cumplida
+48|Proyecto terminado
+49|Para elegir un modelo de ingresos y usar la lista de tareas necesitas el plan Manual.
+50|Ver planes
+51|Chat con IA
+52|Te quedan hoy: # min # s
+53|Ganancias
+54|# TL neto
+55|Automatización
+56|Plan de pago
+57|Tus trabajos anteriores
+58|Mercados
+59|Dólar, oro, cripto
+60|Planes
+61|Recurrentes, ahorro
+62|Calculadora
+63|¿Cuántas ventas para la meta?
+64|Glosario
+65|Aprende los términos
+66|Pasif Gelirim no ofrece ninguna garantía de ingresos. Los resultados reales varían de una persona a otra.
+67|Perfil y ajustes
+68|Primer paso — Completa tu primera tarea
+69|Llevar registro — Registra tu primer ingreso/gasto
+70|Primer ingreso — Registra tu primer ingreso real
+71|# días de racha — Trabaja # días seguidos
+72|Meta cumplida — Alcanza tu meta mensual de ingresos
+73|Proyecto terminado — Termina todas las tareas de un proyecto
+74|Tareas
+75|La lista de tareas se abre con el plan Manual.
+76|Te quedan hoy:
+77|# min # s
+78|Ahora funciona una IA de demostración: explica términos y te orienta. El servidor de IA real se conectará más adelante.
+79|¡Hola! Escribe un término o una tarea que no entiendas y lo aclaramos juntos.
+80|¿Por dónde empiezo?
+81|¿Qué significa público objetivo?
+82|¿Hay ganancias garantizadas?
+83|¿Cómo hago el seguimiento de mis ganancias?
+84|Enviar
+85|Escribe tu duda...
+86|Meta mensual de ingresos
+87|Fija una meta realista y sigue aquí tu progreso. Una meta no es una garantía.
+88|Guardar
+89|Presupuesto mensual de gastos
+90|Si quieres, fija un límite mensual de gasto; lo verás cuando te acerques a superarlo. Puedes dejarlo vacío.
+91|Neto de este mes
+92|Ingresos totales
+93|Gastos totales
+94|Abrir gráficos de ingresos y gastos
+95|Nuevo movimiento
+96|Ingreso
+97|Gasto
+98|Importe (TL)
+99|Categoría
+100|Venta
+101|Honorarios de servicio
+102|Afiliación / publicidad
+103|Otros
+104|Fecha
+105|Nota
+106|Escribe tus cifras reales. El objetivo es ver tu progreso sin engañarte.
+107|Movimientos
+108|Todos
+109|Aún no hay movimientos. Puedes añadir el primero arriba.
+110|Ej.: #
+111|Ej.: primera venta
+112|Gráficos
+113|Gráficos de ingresos y gastos
+114|# días
+115|# meses
+116|No hay movimientos en este periodo.
+117|Los gráficos se dibujan con los ingresos y gastos reales que registras.
+118|Registra tu primer movimiento
+119|La preparación automática de planes se abre con los planes Semiautomatización y Modo CEO.
+120|Planes
+121|MODO DE PRUEBA:
+122|No se cobra ningún pago real. Puedes probar los planes y ver cómo cambian las pantallas. Antes de publicar en Google Play se conectará una suscripción real (Play Billing).
+123|Gratis
+124|Activo
+125|Seguimiento de ingresos y gastos y gráficos
+126|Meta mensual, racha de trabajo e insignias
+127|# hora diaria de chat con IA
+128|Archivo del historial
+129|Exportar y eliminar tus datos
+130|Manual
+131|Suscripción mensual · precio aún por definir
+132|Todas las funciones del plan gratuito
+133|Elección del modelo de ingresos con preguntas y respuestas interactivas
+134|Lista de tareas y explicaciones escritas
+135|Narración de voz con IA por +# TL
+136|Probar este plan (prueba)
+137|Semiautomatización
+138|Todas las funciones del plan Manual
+139|Preparación automática de planes de contenido/trabajo
+140|Narración de voz incluida
+141|Modo CEO
+142|Funciones de Semiautomatización
+143|Tarjetas de decisión semanales: tú tomas las decisiones importantes
+144|La IA lleva a cabo la mayor parte del trabajo
+145|Esto no es una papelera, es el archivo de tus trabajos completados.
+146|Trabajos completados
+147|Aún no hay trabajos completados.
+148|Último proyecto sin terminar
+149|No hay proyectos sin terminar.
+150|La foto se guarda solo en este dispositivo.
+151|Añadir foto
+152|Apariencia
+153|El tema negro ahorra batería y no cansa la vista por la noche.
+154|Negro
+155|Claro
+156|Sistema
+157|Color de acento
+158|Tamaño del texto
+159|Pequeño
+160|Normal
+161|Grande
+162|Esquinas
+163|Suaves
+164|Rectas
+165|Animaciones
+166|Desactivadas
+167|Mostrar en la pantalla de inicio
+168|Gráfico circular de gastos
+169|Racha e insignias
+170|Seguridad
+171|El PIN se pide al abrir la app y al volver desde segundo plano. Es un bloqueo sencillo en el dispositivo.
+172|Bloqueo de la app:
+173|Establecer PIN
+174|Recordatorio diario
+175|Una única notificación, sin presión, que te recuerda dar un pequeño paso. Solo funciona en la app de Android.
+176|Hora
+177|Tus datos
+178|Tus datos se guardan por ahora solo en este dispositivo. Se pierden si eliminas la app; te recomendamos hacer copias de seguridad con regularidad.
+179|Hacer copia (JSON)
+180|Restaurar desde copia
+181|Movimientos de ingresos y gastos (CSV)
+182|Eliminar todos mis datos
+183|Ayuda e información
+184|Preguntas frecuentes, avisos
+185|Informar de un problema
+186|Copiar información de diagnóstico
+187|Herramientas de prueba
+188|Se usan solo durante el desarrollo.
+189|Restablecer el tiempo de chat de hoy
+190|Terminar el tiempo de chat (probar el límite)
+191|Pasif Gelirim · versión # (prueba)
+192|Verde
+193|Azul
+194|Morado
+195|Naranja
+196|Rosa
+197|Turquesa
+198|Color personalizado
+199|Elegir color personalizado
+200|Ayuda e información
+201|Aviso importante:
+202|Pasif Gelirim no es asesoramiento financiero, jurídico ni fiscal. Obtener ingresos no está garantizado; las ganancias varían de una persona a otra.
+203|Preguntas frecuentes
+204|¿Pasif Gelirim garantiza que ganaré dinero?
+205|No. No damos garantía para ningún modelo de ingresos. Muchos negocios pueden no generar ingresos en las primeras semanas o incluso meses. Nuestro objetivo es ayudarte a construir tu propio negocio paso a paso y a ver tus cifras reales.
+206|¿De quién es el negocio que construyo?
+207|Tuyo. Aunque termine tu suscripción, tu negocio, tus cuentas y tus trabajos no se tocan. Lo único que termina son los servicios de pago de IA y automatización.
+208|¿Qué incluye el plan gratuito?
+209|Seguimiento de ingresos y gastos y gráficos, meta mensual, racha de trabajo, insignias, # hora diaria de chat con IA y el archivo del Historial.
+210|¿Qué pasa si dejo la suscripción?
+211|Las automatizaciones se detienen. Puedes seguir con tu negocio de forma manual y acceder a tus trabajos anteriores desde el Historial. Si vuelves a suscribirte, las automatizaciones se reactivan.
+212|¿Dónde se guardan mis datos?
+213|Por ahora solo en este dispositivo. Si eliminas la app, los datos también se van; por eso recomendamos hacer copias de seguridad con regularidad desde Ajustes.
+214|¿Cómo funciona el chat diario de # hora?
+215|El contador solo corre mientras la pantalla de Chat está abierta y se renueva cada día.
+216|Privacidad (borrador)
+217|En esta versión de prueba, la información que introduces se guarda solo en tu dispositivo y no se envía a ningún servidor. Antes de la publicación en Google Play, este texto se revisará legalmente y se completará según el uso real de datos de la app.
+218|Pasif Gelirim · versión # (prueba) · MÁS ES POSIBLE.
+219|Escribe el precio de venta, el coste y la comisión de la plataforma; mira cuántas ventas necesita tu meta neta mensual.
+220|Precio de venta (TL)
+221|Coste por venta (TL)
+222|Comisión (%)
+223|Meta neta mensual (TL)
+224|Calcular
+225|Esto es una calculadora; no garantiza que consigas ese número de ventas. Debes tener en cuenta por separado los impuestos y otros gastos.
+226|Términos que pueden aparecer en las tareas, explicados de forma sencilla.
+227|Afiliación
+228|Afiliación (affiliate): recomiendas un producto y recibes una comisión si hay una venta a través de tu enlace. Debes indicárselo claramente al lector.
+229|Conversión
+230|Una conversión es cuando un visitante realiza la acción que quieres (comprar, registrarse, etc.). La tasa de conversión es el porcentaje de personas que realizan esa acción.
+231|Modelo de ingresos
+232|El modelo de ingresos describe de qué manera llegará el dinero: venta de productos, honorarios de servicio, comisiones, publicidad, etc.
+233|Público objetivo
+234|El público objetivo es el grupo de personas al que quiere llegar tu producto o contenido. Ejemplo: «estudiantes universitarios que buscan comidas económicas». Cuanto más claro sea, más eficaz será tu mensaje.
+235|Calendario de contenido
+236|El calendario de contenido es un plan que muestra qué publicarás cada día. Mantenlo pequeño y sostenible.
+237|Nicho
+238|Un nicho es un tema reducido que eliges dentro de un campo amplio. «Deporte» es amplio, «deporte en casa de # minutos» es un nicho. Un tema reducido facilita llegar al público adecuado.
+239|Alcance orgánico
+240|El alcance orgánico es el número de personas a las que llegas de forma natural, sin pagar publicidad.
+241|Portafolio
+242|El portafolio es una colección de ejemplos que muestra los trabajos que sabes hacer. Aquí el cliente ve lo que va a recibir.
+243|Referencia
+244|Una referencia es una breve opinión que escribe sobre ti un cliente satisfecho. Es una fuente de confianza para nuevos clientes.
+245|SEO
+246|El SEO es el trabajo que se hace para que una página pueda encontrarse en los buscadores. Suele tardar semanas o meses en dar resultados.
+247|No hay términos coincidentes. Prueba a preguntar en el chat.
+248|Buscar término
+249|Planes y ahorro
+250|Metas de ahorro
+251|Aún no tienes metas de ahorro. Ej.: un ordenador nuevo, presupuesto de publicidad, fondo de emergencia.
+252|Nueva meta de ahorro
+253|¿Para qué?
+254|Importe objetivo (TL)
+255|Crear meta
+256|Movimientos recurrentes
+257|Lo que se repite cada mes/semana, como alquiler, suscripciones o ingresos regulares, se registra automáticamente al vencer. Se procesa al abrir la app.
+258|No tienes movimientos recurrentes.
+259|Nuevo movimiento recurrente
+260|Herramienta / suscripción
+261|Gasto en publicidad
+262|Material / productos
+263|Frecuencia
+264|Cada mes
+265|Cada semana
+266|Primera fecha
+267|Reservar parte para impuestos
+268|Una cuenta recordatorio para apartar un porcentaje de tus ingresos. Consulta con un asesor fiscal la tasa correcta y tus obligaciones; esto no es asesoramiento fiscal.
+269|Ej.: Ordenador nuevo
+270|Ej.: renovación de dominio
+271|Porcentaje (ej.: #)
+272|Los precios se obtienen de internet.
+273|No se pudieron obtener los datos del mercado en este momento. Comprueba tu conexión a internet y vuelve a intentarlo.
+274|Reintentar
+275|Solo informativo; no es asesoramiento de inversión.
+276|Actualizar
+277|Avanza paso a paso
+278|Construye tu negocio con tareas cortas. Si te atascas, pide ayuda en el chat con IA.
+279|Sigue tus cifras
+280|Registra tus ingresos y gastos y mira tu progreso real en gráficos. Esta sección es gratuita para todos.
+281|Empecemos
+282|Busquemos el modelo adecuado para ti
+283|Pregunta # / #
+284|¿Cuánto tiempo al día puedes dedicar a esto?
+285|Unos # minutos
+286|#-# horas
+287|# horas o más
+288|Cancelar
+289|¿Con cuánto presupuesto cuentas para empezar?
+290|Ninguno, quiero empezar con herramientas gratuitas
+291|Tengo un presupuesto pequeño
+292|Puedo destinar un presupuesto moderado
+293|¿Qué te resulta más cómodo?
+294|Escribir, explicar
+295|Preparar imágenes / vídeo
+296|Hablar con la gente, convencer
+297|Trabajar de forma ordenada y sistemática
+298|¿Cuánto estás dispuesto a esperar por el primer ingreso?
+299|Lo antes posible (semanas)
+300|Puedo esperar #-# meses
+301|Estoy listo para construir a largo plazo (#+ meses)
+302|Modelos adecuados para ti
+303|Ordenados según tus respuestas. Es una estimación, no una garantía.
+304|Servicio freelance (redacción, diseño, traducción...)
+305|El más adecuado
+306|Ofreces como servicio una habilidad que ya tienes, encuentras clientes y ganas por cada trabajo.
+307|encaja bien con tu respuesta
+308|Este modelo suele ser de los que dan resultados más rápido, pero no es pasivo; conviertes tu tiempo en trabajo.
+309|Elegir este
+310|Servicios digitales para negocios locales
+311|Preparas trabajos digitales como menús QR, perfiles de negocio y organización de redes sociales para pequeños negocios y cobras honorarios por el servicio.
+312|Hay que hablar con la gente y aceptar los rechazos. Pero recibes comentarios rápidos.
+313|Cuenta de contenido en redes sociales
+314|Produces contenido con regularidad sobre un tema concreto y reúnes seguidores, y con el tiempo lo conviertes en ingresos mediante colaboraciones, productos o servicios.
+315|El número de seguidores por sí solo no significa ingresos. Puede que no ganes nada en las primeras semanas o incluso meses.
+316|Responder las preguntas de nuevo
+317|Introduce el PIN
+318|PIN incorrecto.
+319|Olvidé mi PIN
+320|Borrar
+321|Establecer un PIN nuevo
+322|Vuelve a introducir el PIN
+323|Introduce el PIN para desactivar el bloqueo
+324|Escribiendo
+325|Información de diagnóstico
+326|No se pudo guardar el archivo automáticamente. Puedes copiar el texto y pegarlo en una app de notas.
+327|Copiar
+328|Cerrar
+329|Neto por venta
+330|Ventas necesarias
+331|# unidades
+332|Facturación total
+333|Al día aproximadamente
+334|# ventas
+335|A este precio pierdes dinero en cada venta (neto por venta -# TL). Sube el precio o baja el coste.
+336|Última actualización: # · en TL
+337|Dólar
+338|USD
+339|Máximo
+340|Mínimo
+341|Divisas
+342|Euro
+343|EUR
+344|Libra esterlina
+345|GBP
+346|Franco suizo
+347|CHF
+348|Oro
+349|Gramo de oro (aprox.)
+350|GRAMO
+351|Onza de oro
+352|ONZA
+353|Cripto
+354|Bitcoin
+355|BTC
+356|Ethereum
+357|ETH
+358|BNB
+359|XRP
+360|Solana
+361|SOL
+362|No disponibles:
+363|Gramo de oro
+364|. Prueba a actualizar.
+365|Convierte tu propio dinero
+366|Escribe un importe en TL; te muestro su equivalente con los precios de mercado seleccionados.
+367|Los tipos de cambio son datos del Banco Central Europeo (diarios). Los precios de oro y cripto se toman del mercado de Binance; el gramo de oro se calcula de forma aproximada a partir de PAXG (basado en la onza de oro) y puede diferir del precio del gramo de oro en Turquía. Los datos pueden tener retraso o errores. Solo informativo; no es asesoramiento de inversión.
+368|Gráfico de precio
+369|Cargando datos…
+370|Completa tu primera tarea
+371|Registra tu primer ingreso real
+372|Trabaja # días seguidos
+373|Alcanza tu meta mensual de ingresos
+374|Termina todas las tareas de un proyecto
+375|Define tu público objetivo
+376|El público objetivo es el grupo de personas que quieres que siga tu contenido. Describe su edad, intereses y los problemas que quieres resolver en # frases, como si describieras a una sola persona. «Todo el mundo» no es un público objetivo; cuanto más claro lo escribas, más fácil será encontrar ideas de contenido.
+377|Elige tu nicho
+378|Un nicho es un área reducida que eliges dentro de un tema general. Por ejemplo, «comida» es amplio, «comidas de estudiante en una sola olla» es un nicho. Elige un tema en el que coincidan tu interés, tu conocimiento y la necesidad del público. Escribe tres candidatos y elige uno.
+379|Crea la cuenta y prepara el perfil
+380|El nombre de tu cuenta, tu foto de perfil y tu biografía breve deben explicar de un vistazo quién eres y qué beneficio ofreces. Añade a la biografía una frase de «para quién y para qué».
+381|Escribe las primeras # ideas de contenido
+382|Saca # ideas de contenido a partir de las preguntas y comentarios de tu público y de cuentas de la competencia. No copies; aporta tu propia perspectiva. Escribe cada idea en una frase.
+383|Crea un calendario semanal de publicaciones
+384|El calendario de contenido es un plan que muestra qué publicarás cada día. Sé realista al principio: # publicaciones por semana es mejor que publicar a diario con esfuerzo. Anota el calendario en tu teléfono.
+385|Primeros # días de publicación y medición
+386|Publica tus primeros contenidos. Para cada contenido anota las visualizaciones, los guardados y los comentarios. El objetivo no es ser perfecto, sino ver qué funciona.
+387|Elige tu vía de ingresos
+388|Los ingresos pueden venir de publicidad/colaboraciones, de tu propio producto digital o de un servicio. Elijas la vía que elijas, sé honesto con tu público: indica los contenidos patrocinados. En esta tarea elige una vía y escribe por qué la elegiste.
+389|Día # (#): Responde una pregunta frecuente de tu público en un contenido de #-# segundos
+390|Día # (#): Prepara un contenido que corrija una idea errónea muy extendida
+391|Día # (#): Graba un contenido paso a paso de «cómo se hace»
+392|Día # (#): Comparte algo que aprendiste en formato «hoy aprendí»
+393|Día # (#): Convierte un comentario de tus seguidores en contenido
+394|Día # (#): Revisa los resultados del mejor contenido de la semana y produce uno parecido
+395|¿Qué formato de contenido se priorizará la próxima semana?
+396|¿En qué condiciones se aceptarán las propuestas de publicidad/colaboración?
+397|Plan de # días de cuenta de contenido en redes sociales
+398|Plan de # días de cuenta de contenido en redes sociales · #
+399|Venta de plantillas digitales / libros electrónicos
+400|Preparas una plantilla, un planificador o un libro electrónico corto que resuelve un problema, lo produces una vez y lo vendes una y otra vez.
+401|Preparar el producto es la parte fácil. Lo difícil es mostrárselo a las personas adecuadas. No hay garantía de ventas.
+402|Define el público objetivo y el problema
+403|El público objetivo es el grupo de personas que usará tu producto. Elige un problema pequeño pero constante de su vida diaria (p. ej., el caos del horario de clases de un estudiante). Cuanto más claro sea el problema, más fácil se vende el producto.
+404|Elige la idea de producto
+405|Elige el producto más sencillo que resuelva el problema: una plantilla, lista de verificación, planificador o guía corta. Que el primer producto sea pequeño; de un tamaño que puedas terminar en #-# días.
+406|Analiza productos similares
+407|Revisa productos sobre el mismo tema. Mira sus precios, sus carencias y sus opiniones. El objetivo no es copiar, sino encontrar lo que falta.
+408|Prepara el primer producto
+409|Prepara el producto con una herramienta de diseño gratuita. Úsalo tú primero y luego pídele a un conocido que lo pruebe. Al comienzo del producto pon una breve explicación de «cómo se usa».
+410|Página de venta y precio
+411|En la página de venta escribe claramente el problema que resuelve el producto, su contenido y a quién le conviene. Fija el precio mirando productos similares; promete con honestidad, no exageres.
+412|Elige el canal de venta
+413|Elige dónde venderás el producto (un mercado en línea, tu propia página o las redes sociales). Cada canal tiene comisiones y normas distintas; lee las normas.
+414|Primer anuncio y comentarios
+415|Anuncia el producto a tu entorno y a tu público objetivo. Pide comentarios a los primeros compradores y mejora el producto en consecuencia.
+416|Día # (#): Prepara una publicación corta sobre el problema que resuelve el producto
+417|Día # (#): Comparte una captura del producto y un ejemplo de uso
+418|Día # (#): Comparte un comentario de un cliente (con permiso)
+419|Día # (#): Prepara una pequeña versión de muestra gratuita del producto
+420|Día # (#): Simplifica y prueba la descripción del producto
+421|Día # (#): Hazle una pregunta a tu público sobre un producto nuevo
+422|¿Se hará un producto nuevo o se mejorará el actual?
+423|¿Se probará un cambio de precio?
+424|Plan de # días de venta de plantillas digitales / libros electrónicos
+425|Plan de # días de venta de plantillas digitales / libros electrónicos · #
+426|Define tu servicio
+427|Escribe en una frase: «Yo hago ... para ...». El público objetivo es el grupo de personas/negocios al que sirves. Empieza con un único servicio claro en lugar de ofrecer muchas cosas a la vez.
+428|Prepara # ejemplos para el portafolio
+429|El portafolio es una colección de trabajos de ejemplo que muestra lo que sabes hacer. Si aún no tienes clientes, bastan # trabajos de ejemplo que prepares tú mismo. Hazlos realistas y limpios.
+430|Crea tu perfil
+431|Abre un perfil en una plataforma adecuada o en tu propia página. Añade una foto, una breve presentación y tus trabajos de ejemplo. Escribe claramente qué haces y qué no haces.
+432|Fija tu precio
+433|Compara el tiempo que dedicarás con los precios similares del mercado. Un precio muy bajo puede reducir la confianza; uno muy alto dificulta conseguir trabajo al principio. Elige un precio inicial y luego ajústalo.
+434|Contacta a los primeros # clientes potenciales
+435|Haz ofertas en anuncios de trabajo o envía mensajes breves y personales a negocios adecuados. En cada mensaje menciona el problema de la otra parte; evita los mensajes de copiar y pegar.
+436|Entrega el primer trabajo y pide una referencia
+437|Una referencia es una breve opinión que escribe sobre ti un cliente satisfecho. Entrega el trabajo a tiempo y pide una referencia con permiso.
+438|Convierte el proceso en un sistema
+439|Convierte los pasos de presupuesto, entrega y pago en una lista sencilla. Así trabajas con la misma calidad con cada cliente.
+440|Día # (#): Envía # mensajes personales a clientes potenciales
+441|Día # (#): Añade un nuevo trabajo de ejemplo a tu portafolio
+442|Día # (#): Pide una referencia a un cliente anterior
+443|Día # (#): Reescribe con más claridad la descripción de tu servicio
+444|Día # (#): Haz una oferta en # anuncios adecuados de una plataforma
+445|Día # (#): Revisa el registro semanal de entregas y tiempo
+446|¿Se actualizarán los precios esta semana?
+447|¿Se añadirá un nuevo concepto de servicio?
+448|Plan de # días de servicio freelance (redacción, diseño, traducción...)
+449|Plan de # días de servicio freelance (redacción, diseño, traducción...) · #
+450|Blog de nicho + enlaces de afiliación
+451|Escribes artículos útiles sobre un tema concreto y conviertes a los lectores que llegan desde los buscadores en ingresos mediante enlaces de afiliación.
+452|Aparecer en los buscadores puede tardar meses. Es más sano no esperar ingresos en la primera etapa.
+453|Define tu nicho y tu público objetivo
+454|Un nicho es un área de tema reducida. El público objetivo son las personas que buscan información sobre ese tema. Elige un área que pueda gustarte y que la gente busque.
+455|Investigación de palabras clave
+456|Una palabra clave es la expresión que la gente escribe en el buscador. Encuentra a quienes buscan el mismo problema con otras palabras y haz una lista de # expresiones.
+457|Crea tu blog
+458|Elige una plataforma de blog gratuita o de bajo coste. Añade las páginas Sobre mí, Contacto y Privacidad.
+459|Escribe los primeros # artículos
+460|Cada artículo debe responder con claridad a una sola pregunta. El título debe parecerse a la expresión de búsqueda. Apóyate en información real y evita promesas exageradas.
+461|Revisa los programas de afiliación
+462|La afiliación (affiliate) consiste en recibir una comisión por las ventas hechas gracias a tu recomendación. Lee las condiciones antes de solicitarlo y dile claramente al lector que usas enlaces de afiliación.
+463|Difunde los artículos
+464|Comparte tus artículos en comunidades relacionadas y en redes sociales, respetando las normas. No hagas spam.
+465|Medición y mejora
+466|Haz seguimiento de qué artículo se lee y se pulsa. Amplía los temas que funcionan y simplifica los que no.
+467|Día # (#): Esboza un borrador de artículo de # palabras que responda una pregunta
+468|Día # (#): Actualiza y mejora un artículo antiguo
+469|Día # (#): Añade # expresiones de búsqueda nuevas a tu lista de palabras clave
+470|Día # (#): Prepara un artículo de comparación de productos (indicando el enlace de afiliación)
+471|Día # (#): Añade una imagen y un resumen breve a tu artículo
+472|Día # (#): Revisa los datos semanales de visitantes y clics
+473|¿Sobre qué tema se abrirá una nueva serie de artículos?
+474|¿Qué programa de afiliación se mantendrá?
+475|Plan de # días de blog de nicho + enlaces de afiliación
+476|Plan de # días de blog de nicho + enlaces de afiliación · #
+477|Define el paquete de servicio
+478|Define un paquete claro: por ejemplo, menú QR + organización del perfil del negocio. Escribe qué haces, en cuánto tiempo entregas y qué no haces.
+479|Prepara un trabajo de muestra
+480|Muestra un trabajo de ejemplo para un negocio que hayas preparado tú mismo. No uses el nombre de un negocio real sin permiso.
+481|Lista de # negocios candidatos
+482|Haz una lista de # negocios de tu entorno cercano con poca presencia digital. Escribe en una frase la carencia de cada uno.
+483|Primer mensaje / texto de presentación
+484|Prepara una presentación breve, respetuosa y centrada en el beneficio del negocio. No presiones; pregunta: «¿le gustaría echarle un vistazo?».
+485|Reunión y presupuesto
+486|En el presupuesto escribe claramente el trabajo a realizar, el plazo y el precio. Pon por escrito lo que prometes.
+487|Entrega y referencia
+488|Entrega el trabajo, explica brevemente su uso y pide con permiso una breve referencia.
+489|Oferta de mantenimiento mensual
+490|Ofrece al cliente satisfecho un servicio regular de mantenimiento/actualización. Escribe claramente el alcance.
+491|Día # (#): Anota las carencias digitales de # negocios nuevos
+492|Día # (#): Añade un nuevo ejemplo a tu trabajo de muestra
+493|Día # (#): Envía un breve informe de situación a tu cliente actual
+494|Día # (#): Visita # negocios y haz una breve presentación
+495|Día # (#): Mejora la plantilla de mensaje según los resultados
+496|Día # (#): Presenta la oferta de mantenimiento mensual a un cliente
+497|¿Se añadirá un nuevo concepto al paquete de servicio?
+498|¿A cuántos negocios se contactará esta semana?
+499|Plan de # días de servicios digitales para negocios locales
+500|Plan de # días de servicios digitales para negocios locales · #
+501|Domingo
+502|Lunes
+503|Martes
+504|Miércoles
+505|Jueves
+506|Viernes
+507|Sábado
+508|Ene
+509|Feb
+510|Mar
+511|Abr
+512|May
+513|Jun
+514|Jul
+515|Ago
+516|Sep
+517|Oct
+518|Nov
+519|Dic
+520|— Revisión semanal: ¿Qué funcionó? ¿Qué cambiarás la próxima semana?
+521|Tu suscripción ha terminado. Puedes seguir con tu negocio de forma manual y acceder a tus trabajos anteriores desde el Historial.
+522|La preparación automática de planes se abre con los planes Semiautomatización y Modo CEO. Puedes acceder a los trabajos ya preparados desde el Historial.
+523|▲ Este mes +# TL
+524|TL de gasto
+525|+# TL
+526|Hoy también trabajaste, genial.
+527|# / # tareas completadas
+528|Siguiente:
+529|Gráfico de anillo de distribución
+530|# / # completado
+531|Tu suscripción no está activa; puedes seguir con este negocio de forma manual. Para elegir un modelo nuevo se necesita un plan.
+532|Nota honesta:
+533|¿Dónde encuentro mi historial?
+534|Meta mensual: # TL
+535|Este mes: # TL
+536|Restan: # TL
+537|Cambiar meta
+538|# TL / # TL
+539|Has superado el presupuesto en # TL.
+540|Cambiar presupuesto
+541|¿Para qué trabajo?
+542|General
+543|automático · recurrente
+544|−# TL
+545|Exportar movimientos como CSV
+546|Anillo de progreso
+547|Nueva meta (TL)
+548|Nuevo presupuesto (TL)
+549|Buscar en movimientos (nota, categoría)
+550|Editar movimiento
+551|Eliminar movimiento
+552|Neto
+553|Resumen de este mes
+554|Respecto al mes pasado
+555|Mayor ingreso
+556|Venta · # TL
+557|Mayor gasto
+558|Herramienta / suscripción · # TL
+559|Proporción que te queda
+560|Se basa solo en los movimientos que registraste; no es una previsión ni un consejo.
+561|Ingresos y gastos
+562|# mil
+563|Vie
+564|Sáb
+565|Dom
+566|Lun
+567|Mar
+568|Mié
+569|Jue
+570|Neto acumulado
+571|#: # TL
+572|La línea muestra tu situación neta total desde el inicio.
+573|Fuentes de ingresos
+574|TL
+575|Distribución de gastos
+576|Neto por trabajo (todo el tiempo)
+577|Ingresos − gastos según el trabajo que elegiste al registrar.
+578|Toca las barras para ver el detalle de ese día o mes.
+579|Gráfico de barras de ingresos y gastos
+580|Gráfico de línea del neto acumulado
+581|Último trabajo: # · %#
+582|Última información guardada:
+583|Siguiente tarea:
+584|VER PROYECTO
+585|# TL / # TL · Restan # TL
+586|Añadir
+587|Quitar
+588|Eliminar meta
+589|Cada mes el día #
+590|Siguiente: #
+591|Pausar
+592|Pausado
+593|Reanudar
+594|Cantidad recomendada para apartar (%#)
+595|Tarea
+596|Tarea # / #
+597|Tus notas
+598|Completada (deshacer)
+599|Siguiente →
+600|He completado la tarea
+601|← Anterior
+602|💚 ¿Cansado de leer?
+603|¿Hay alguna parte que te cueste entender?
+604|Que la IA te explique las tareas en voz alta, simplifique los temas complejos y aclare lo que no entiendes.
+605|¡Solo # TL de diferencia!
+606|MODO DE PRUEBA: no se cobra ningún pago real.
+607|ACTIVAR EXPLICACIÓN CON IA — # TL
+608|AHORA NO
+609|💚 Explicación con IA
+610|Explícamelo en voz alta
+611|Detener
+612|Escribe lo que no entiendes
+613|Explicar
+614|Ej.: ¿Qué significa público objetivo? Pon un ejemplo
+615|Oct #
+616|Oct #: # TL
+617|Actualizar
+618|Plan Manual
+619|Elegir un nuevo modelo de ingresos
+620|Terminar suscripción (prueba)
+621|Narración de voz con IA
+622|Se añade al plan Manual con una diferencia de +# TL.
+623|Activar — # TL (prueba)
+624|Explicación con IA
+625|Plan Semiautomatización
+626|Se prepara un plan diario según el modelo que elegiste.
+627|¿Para cuántos días?
+628|# días
+629|Preparar plan
+630|Modo CEO · Tarjetas de decisión
+631|La sección donde la IA lleva el trabajo y te deja las decisiones importantes se abre en el Modo CEO.
+632|Plan Modo CEO
+633|Aprobar
+634|Rechazar
+635|Foto de perfil
+636|aprobado
+637|Cambiar
+638|Quitar

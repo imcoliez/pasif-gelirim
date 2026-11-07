@@ -52,6 +52,9 @@ export function clean(body) {
   if (body.ctx && typeof body.ctx === 'object' && typeof body.ctx.project === 'string' && body.ctx.project.trim()) {
     ctx = 'Kullanıcının seçtiği gelir modeli: ' + body.ctx.project.trim().slice(0, 80).replace(/[\r\n]+/g, ' ');
   }
+  const LANGS = { tr: 'Türkçe', en: 'English', de: 'Deutsch', es: 'Español', ru: 'Русский', ar: 'العربية' };
+  const lang = body.ctx && typeof body.ctx.lang === 'string' && LANGS[body.ctx.lang] ? body.ctx.lang : 'tr';
+  ctx = (ctx ? ctx + ' ' : '') + 'Kullanıcının uygulama dili: ' + LANGS[lang] + '. Cevabını bu dilde yaz (kullanıcı başka bir dilde yazarsa onun dilini kullan).';
   return { device: body.device, messages: merged, ctx };
 }
 

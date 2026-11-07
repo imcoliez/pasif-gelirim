@@ -1,6 +1,6 @@
 # Pasif Gelirim — DAHA FAZLASI MÜMKÜN.
 
-Sürüm 0.9 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
+Sürüm 1.0 (test). Kendi dijital işini adım adım kurmaya yardım eden Android uygulaması.
 
 ## Neler çalışıyor
 
@@ -19,6 +19,9 @@ Sürüm 0.9 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | Profil fotoğrafı (kare kırpılır, cihazda saklanır) | ✅ |
 | Özelleştirme: vurgu rengi (6 hazır + özel), yazı boyutu, köşe stili, animasyon açık/kapalı, ana ekran bölümleri | ✅ |
 | Piyasa sayfası: dolar, euro, sterlin, frank, gram/ons altın (yaklaşık), 5 kripto; 7/30/90 gün grafik, TL çevirici | ✅ (canlı kaynaklar sandbox dışında denenmedi) |
+| **Çok dilli arayüz:** Türkçe, English, Deutsch, Español, Русский, العربية (sağdan sola düzen dahil); cihaz diline göre otomatik açılır, Ayarlar'dan değişir, sayılar dile göre biçimlenir | ✅ |
+| **Para birimi seçimi:** TL, USD, EUR, GBP, CHF, RUB, SAR, AED (ilk açılışta ve Ayarlar'da). Yalnızca gösterim etiketidir, tutarlar dönüştürülmez; Piyasa sayfası TL kalır | ✅ |
+| Canlı yapay zekâ sohbeti seçilen dilde cevap verir (sunucu kurulunca) | ✅ |
 | PIN kilidi (4 haneli, özetlenmiş saklama, 5 yanlışta 30 sn bekleme, arka plandan dönünce yeniden sorar) | ✅ |
 | Günlük hatırlatıcı bildirimi (yalnızca APK) | ✅ (cihazda denenmedi) |
 | Yedekten geri yükleme (JSON), tanılama bilgisi, aylık özet kartı, hızlı gelir/gider ekle | ✅ |
@@ -77,3 +80,7 @@ npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 - `www/app.js` — ekranlar ve SVG grafikler
 - `www/main.js` — gezinme, olaylar, kayıt, tema, sesli okuma
 - `branding/logo.png`, `tools/apply_branding.py` — ikon ve açılış ekranı üretimi
+
+
+## Çeviriler nasıl çalışır
+Kaynak metinler Türkçedir. `tools/tr/<dil>.txt` (numara|çeviri) ve `tools/tr/x_<dil>.txt` (sonradan eklenenler; `node tools/mk_extra.js`) dosyalarından `node tools/build_lang.js` ile `www/lang/*.js` üretilir. Ekrana çizilen metinler sözlükle çevrilir; sözlükte olmayan metin (ör. kullanıcının kendi yazdıkları) olduğu gibi kalır. `npm test` her ekranın tüm dillerde eksiksiz çevrildiğini denetler. Yeni bir metin eklenince `node tools/extract_strings.js` ile listeyi yenileyip çevirisini eklemek gerekir; eksikse test başarısız olur. Bilinen sınır: demo yapay zekânın bazı cevapları ve sunucudan gelen hata metinleri Türkçe kalabilir.

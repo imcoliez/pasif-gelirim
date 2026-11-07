@@ -587,4 +587,18 @@ test('görünüm ayarları ve profil fotoğrafı doğrulanır', () => {
   assert.ok(C.setAvatar(s, '') && s.user.avatar === '');
 });
 
+test('dil ve para birimi ayarları doğrulanır', () => {
+  const s = C.defaultState();
+  assert.strictEqual(s.settings.lang, 'auto'); assert.strictEqual(s.settings.currency, 'TRY');
+  assert.ok(C.setLanguage(s, 'ar') && s.settings.lang === 'ar');
+  assert.ok(!C.setLanguage(s, 'xx') && s.settings.lang === 'ar', 'geçersiz dil reddedilir');
+  assert.ok(C.setCurrency(s, 'EUR') && s.settings.currency === 'EUR');
+  assert.ok(!C.setCurrency(s, '<b>') && s.settings.currency === 'EUR');
+  const m = C.migrate({ settings: { lang: 'zz', currency: 'xyz' } });
+  assert.strictEqual(m.settings.lang, 'auto'); assert.strictEqual(m.settings.currency, 'TRY');
+  const k = C.migrate(JSON.parse(JSON.stringify(s)));
+  assert.strictEqual(k.settings.lang, 'ar'); assert.strictEqual(k.settings.currency, 'EUR');
+  assert.strictEqual(C.LANG_CURRENCY.en, 'USD'); assert.ok(C.CURRENCIES.includes(C.LANG_CURRENCY.ru));
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

@@ -1,0 +1,67 @@
+0|Sprache
+1|Gerätesprache (automatisch)
+2|Währung
+3|Türkische Lira (TRY)
+4|US-Dollar (USD)
+5|Euro (EUR)
+6|Britisches Pfund (GBP)
+7|Schweizer Franken (CHF)
+8|Russischer Rubel (RUB)
+9|Saudi-Riyal (SAR)
+10|VAE-Dirham (AED)
+11|Sprache und Währung kannst du später in den Einstellungen ändern.
+12|Sprache und Währung
+13|Die Währung dient nur der Anzeige; eingegebene Beträge werden nicht automatisch umgerechnet. Die Marktseite bleibt in türkischer Lira.
+14|Vorlesen wird auf diesem Gerät nicht unterstützt.
+15|Vorlesen konnte nicht gestartet werden.
+16|Datei heruntergeladen.
+17|Aktualisierung fehlgeschlagen, die letzten Daten werden angezeigt.
+18|Keine Verbindung. Prüfe dein Internet und versuche es erneut.
+19|App-Sperre eingeschaltet.
+20|App-Sperre ausgeschaltet.
+21|Die Erinnerung funktioniert nur in der Android-App; deine Einstellung wurde gespeichert.
+22|Die Benachrichtigungsberechtigung wurde nicht erteilt, die Erinnerung bleibt ausgeschaltet.
+23|Die Erinnerung konnte nicht eingerichtet werden.
+24|Die Datei ist zu groß.
+25|Sicherung wiederhergestellt.
+26|Die Datei konnte nicht gelesen werden.
+27|Wähle eine Bilddatei.
+28|Foto aktualisiert.
+29|Das Foto konnte nicht verarbeitet werden.
+30|Für die Modellwahl brauchst du den Tarif „Manuell".
+31|Projekt gestartet!
+32|Aufgabe wieder geöffnet.
+33|Aufgabe erledigt.
+34|Glückwunsch, du hast alle Aufgaben erledigt.
+35|KI-Erklärung aktiviert (Test).
+36|Dieses Add-on kann nur mit dem Tarif „Manuell" gekauft werden.
+37|Prüfe Betrag und Datum (das Datum darf nicht in der Zukunft liegen).
+38|Gib einen gültigen Betrag ein.
+39|Budget gespeichert.
+40|Prüfe Betrag und Datum.
+41|Gib einen Namen und einen gültigen Zielbetrag ein.
+42|Sparziel erstellt.
+43|Du hast dein Sparziel erreicht.
+44|Gib einen Prozentsatz zwischen # und # ein.
+45|Gespeichert.
+46|Ziel gespeichert.
+47|Plan erstellt.
+48|Kopiert.
+49|Kopieren nicht möglich.
+50|Markiere den Text manuell und kopiere ihn.
+51|Prüfe die Uhrzeit.
+52|Uhrzeit gespeichert.
+53|Foto entfernt.
+54|Chat-Zeit zurückgesetzt.
+55|Zeit beendet.
+56|Diesen wiederkehrenden Eintrag löschen? Bereits hinzugefügte Einträge bleiben bestehen.
+57|Dieses Sparziel löschen?
+58|Diesen Eintrag löschen?
+59|Möchtest du das Abonnement wirklich beenden? (Test) Das Geschäft, das du aufgebaut hast, bleibt bei dir; die Automatisierungen stoppen.
+60|Die PIN kann nicht wiederhergestellt werden: Zum Entsperren werden die App-Daten gelöscht. Fortfahren?
+61|# Einträge und # Projekte aus der Sicherung werden geladen. Das ersetzt deine aktuellen Daten. Fortfahren?
+62|Alle deine Daten werden dauerhaft gelöscht. Bist du sicher?
+63|Start
+64|Chat
+65|Hauptmenü
+66|Neues Abzeichen:

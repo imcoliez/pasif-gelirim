@@ -1,11 +1,11 @@
 {
   "name": "pasif-gelirim",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Pasif Gelirim - kendi dijital işini adım adım kur",
   "scripts": {
-    "test": "node test/core.test.js && node test/worker.test.js && node test/market.test.js",
-    "test:e2e": "node test/e2e.js && node test/e2e-live.js",
+    "test": "node test/core.test.js && node test/worker.test.js && node test/market.test.js && node test/i18n.test.js",
+    "test:e2e": "node test/e2e.js && node test/e2e-lang.js && node test/e2e-live.js",
     "serve": "npx --yes serve www -l 5173",
     "android:add": "npx cap add android",
     "android:sync": "npx cap sync android",

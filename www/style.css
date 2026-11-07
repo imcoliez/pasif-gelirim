@@ -443,3 +443,20 @@ button.av{padding:0;cursor:pointer}
 .skeleton .sk{height:26px;border-radius:8px;background:linear-gradient(90deg,var(--gl),var(--bd),var(--gl));background-size:200% 100%;animation:shimmer 1.4s infinite;margin:6px 0}
 .skeleton .sk.s{width:60%}
 @keyframes shimmer{to{background-position:-200% 0}}
+
+/* ---- Sağdan sola diller (Arapça) ---- */
+[dir=rtl] body{direction:rtl}
+[dir=rtl] .icon.back{margin-left:0;margin-right:-8px}
+[dir=rtl] .icon.back svg,[dir=rtl] .onb .btn svg{transform:scaleX(-1)}
+[dir=rtl] .link,[dir=rtl] .tile,[dir=rtl] .weekcard,[dir=rtl] .task,[dir=rtl] .opt,[dir=rtl] .hero,
+[dir=rtl] .welcome .card,[dir=rtl] .welcome .lbl,[dir=rtl] .spendlg .nm small{text-align:right}
+[dir=rtl] .insight .irow b,[dir=rtl] .legend small{text-align:left}
+[dir=rtl] .feat{padding-left:0;padding-right:20px}
+[dir=rtl] .lg i.out{margin-left:0;margin-right:6px}
+[dir=rtl] .row>span>.i,[dir=rtl] summary .i,[dir=rtl] .link .i{margin-right:0;margin-left:6px}
+[dir=rtl] .searchbox>.i{left:auto;right:12px}
+[dir=rtl] .searchbox .inp{padding-left:14px;padding-right:38px}
+[dir=rtl] .heart{right:auto;left:18px}
+[dir=rtl] .chart,[dir=rtl] .mkchart,[dir=rtl] svg.donut{direction:ltr}
+[dir=rtl] .inp[inputmode=decimal],[dir=rtl] input[type=time],[dir=rtl] input[type=date]{text-align:right}
+select.inp{width:100%}

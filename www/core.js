@@ -58,7 +58,7 @@
     return {
       v: STATE_VERSION,
       user: { name: '', onboarded: false },
-      settings: { theme: 'dark', reminder: { enabled: false, time: '20:00' }, look: defaultLook() },
+      settings: { theme: 'dark', lang: 'auto', currency: 'TRY', reminder: { enabled: false, time: '20:00' }, look: defaultLook() },
       lock: { enabled: false, salt: '', hash: '' },
       goal: { monthly: 0, expenseMonthly: 0 },
       pkg: 'free',
@@ -88,6 +88,8 @@
     out.usage = Object.assign({ date: '', seconds: 0 }, s.usage || {});
     out.settings = Object.assign({ theme: 'dark' }, s.settings || {});
     if (THEMES.indexOf(out.settings.theme) === -1) out.settings.theme = 'dark';
+    if (LANG_CODES.indexOf(out.settings.lang) === -1) out.settings.lang = 'auto';
+    if (CURRENCIES.indexOf(out.settings.currency) === -1) out.settings.currency = 'TRY';
     out.settings.look = cleanLook(out.settings.look);
     if (out.settings.look.accent === 'custom' && !out.settings.look.custom) out.settings.look.accent = 'green';
     out.settings.reminder = Object.assign({ enabled: false, time: '20:00' }, (s.settings && s.settings.reminder) || {});
@@ -711,6 +713,18 @@
     if (typeof dataUrl !== 'string' || dataUrl.length > 250000 || !AVATAR_RE.test(dataUrl)) return false;
     state.user.avatar = dataUrl; return true;
   }
+  const LANG_CODES = ['auto', 'tr', 'en', 'de', 'es', 'ru', 'ar'];
+  const CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP', 'CHF', 'RUB', 'SAR', 'AED'];
+  const LANG_CURRENCY = { tr: 'TRY', en: 'USD', de: 'EUR', es: 'EUR', ru: 'RUB', ar: 'SAR' };
+  function setLanguage(state, code) {
+    if (LANG_CODES.indexOf(code) === -1) return false;
+    state.settings.lang = code; return true;
+  }
+  // Para birimi yalnızca gösterim etiketidir; tutarlar dönüştürülmez.
+  function setCurrency(state, code) {
+    if (CURRENCIES.indexOf(code) === -1) return false;
+    state.settings.currency = code; return true;
+  }
   function setTheme(state, theme) {
     if (THEMES.indexOf(theme) === -1) return false;
     state.settings.theme = theme;
@@ -899,9 +913,9 @@
     CATEGORIES: CATEGORIES, categoryName: categoryName, parseDateInput: parseDateInput, dateInputValue: dateInputValue,
     PERIODS: PERIODS, periodRange: periodRange, financeSeries: financeSeries, categorySplit: categorySplit,
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
-    THEMES: THEMES, setTheme: setTheme, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
+    THEMES: THEMES, setTheme: setTheme, LANG_CODES: LANG_CODES, CURRENCIES: CURRENCIES, LANG_CURRENCY: LANG_CURRENCY, setLanguage: setLanguage, setCurrency: setCurrency, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '0.9',
+    importData: importData, APP_VERSION: '1.0',
     addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
     addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
     setTaxPct: setTaxPct, taxReserve: taxReserve, sourceSplit: sourceSplit,

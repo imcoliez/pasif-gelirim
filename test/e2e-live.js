@@ -6,7 +6,7 @@ let fails = 0;
 const ok = (c, m) => { if (c) console.log('  ok  ' + m); else { fails++; console.error('FAIL  ' + m); } };
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
-  const page = await (await browser.newContext({ viewport: { width: 390, height: 780 } })).newPage();
+  const page = await (await browser.newContext({ viewport: { width: 390, height: 780 }, locale: 'tr-TR' })).newPage();
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.addInitScript(() => {
     window.APP_CONFIG = { API_URL: 'https://api.test' };

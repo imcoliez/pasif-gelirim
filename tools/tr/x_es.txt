@@ -1,0 +1,67 @@
+0|Idioma
+1|Idioma del dispositivo (automático)
+2|Moneda
+3|Lira turca (TRY)
+4|Dólar estadounidense (USD)
+5|Euro (EUR)
+6|Libra esterlina (GBP)
+7|Franco suizo (CHF)
+8|Rublo ruso (RUB)
+9|Riyal saudí (SAR)
+10|Dírham de los EAU (AED)
+11|Puedes cambiar el idioma y la moneda más tarde en Ajustes.
+12|Idioma y moneda
+13|La moneda es solo para mostrar; los importes que introduces no se convierten automáticamente. La página de Mercados se mantiene en liras turcas.
+14|La lectura en voz alta no es compatible con este dispositivo.
+15|No se pudo iniciar la lectura en voz alta.
+16|Archivo descargado.
+17|No se pudo actualizar, se muestran los últimos datos.
+18|No pude conectarme. Revisa tu internet e inténtalo de nuevo.
+19|Bloqueo de la app activado.
+20|Bloqueo de la app desactivado.
+21|El recordatorio solo funciona en la app de Android; tu ajuste se guardó.
+22|No se concedió el permiso de notificaciones, el recordatorio quedó desactivado.
+23|No se pudo configurar el recordatorio.
+24|El archivo es demasiado grande.
+25|Copia de seguridad restaurada.
+26|No se pudo leer el archivo.
+27|Elige un archivo de imagen.
+28|Foto actualizada.
+29|No se pudo procesar la foto.
+30|Para elegir un modelo se necesita el plan Manual.
+31|¡Proyecto iniciado!
+32|Tarea reabierta.
+33|Tarea completada.
+34|Enhorabuena, completaste todas las tareas.
+35|Explicación con IA activada (prueba).
+36|Este complemento solo se compra con el plan Manual.
+37|Revisa el importe y la fecha (la fecha no puede ser futura).
+38|Escribe un importe válido.
+39|Presupuesto guardado.
+40|Revisa el importe y la fecha.
+41|Escribe un nombre y un importe objetivo válido.
+42|Meta de ahorro creada.
+43|Alcanzaste tu meta de ahorro.
+44|Escribe un porcentaje entre # y #.
+45|Guardado.
+46|Meta guardada.
+47|Plan preparado.
+48|Copiado.
+49|No se pudo copiar.
+50|Selecciona el texto manualmente y cópialo.
+51|Revisa la hora.
+52|Hora guardada.
+53|Foto eliminada.
+54|Tiempo de chat restablecido.
+55|Tiempo terminado.
+56|¿Eliminar este movimiento recurrente? Los movimientos ya añadidos se conservan.
+57|¿Eliminar esta meta de ahorro?
+58|¿Eliminar este movimiento?
+59|¿Seguro que quieres terminar la suscripción? (prueba) El negocio que construiste se queda contigo; las automatizaciones se detienen.
+60|No hay forma de recuperar el PIN: para desbloquear se borrarán los datos de la app. ¿Continuar?
+61|Se cargarán # movimientos y # proyectos de la copia de seguridad. Esto sustituye tus datos actuales. ¿Continuar?
+62|Todos tus datos se eliminarán de forma permanente. ¿Estás seguro?
+63|Inicio
+64|Chat
+65|Menú principal
+66|Nueva insignia:

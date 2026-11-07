@@ -1,0 +1,639 @@
+0|Skip
+1|Start realistic
+2|Pasif Gelirim does not promise guaranteed earnings. It helps you choose a digital business model that suits you and build it step by step.
+3|Continue
+4|Back
+5|Theme
+6|Change theme
+7|History
+8|Settings
+9|Pasif Gelirim
+10|MORE IS POSSIBLE.
+11|We do not promise you guaranteed earnings here. We help you build your own digital business step by step, track your real numbers and see your progress.
+12|The business you build and your data belong to you.
+13|What should we call you?
+14|Start
+15|Pasif Gelirim logo
+16|Your name
+17|Hello
+18|Free plan
+19|Total net
+20|# TL
+21|This month # TL
+22|The chart will appear here once you add your first entry.
+23|Monthly income
+24|No data for last month
+25|Monthly expenses
+26|My spending
+27|Last # days
+28|As you add expense entries, the breakdown of your spending shows up here in percentages.
+29|Recent transactions
+30|All ›
+31|No transactions yet. Use the buttons below to add your first income or expense.
+32|Add income
+33|Add expense
+34|Getting started
+35|Enter your name
+36|Choose a business model
+37|Complete the first task
+38|Add your first income/expense entry
+39|Set a monthly income goal
+40|# day streak
+41|Best: #
+42|Complete a task, add an entry or chat to start your streak.
+43|First step
+44|Record keeper
+45|First income
+46|# day streak
+47|Goal reached
+48|Project done
+49|The Manual plan is required to choose a business model and use the task list.
+50|See plans
+51|AI Chat
+52|Left today: # min # sec
+53|Earnings
+54|# TL net
+55|Automation
+56|Paid plan
+57|Your past work
+58|Markets
+59|Dollar, gold, crypto
+60|Plans
+61|Recurring, savings
+62|Calculator
+63|How many sales to hit the goal?
+64|Glossary
+65|Learn the terms
+66|Pasif Gelirim gives no income guarantee. Real results vary from person to person.
+67|Profile and settings
+68|First step — Complete your first task
+69|Record keeper — Add your first income/expense entry
+70|First income — Record your first real income
+71|# day streak — Work # days in a row
+72|Goal reached — Reach your monthly income goal
+73|Project done — Finish all tasks of a project
+74|Tasks
+75|The task list opens with the Manual plan.
+76|Left today:
+77|# min # sec
+78|A demo AI is running right now: it explains terms and guides you. The real AI server will be connected later.
+79|Hi! Write a term or task you don't understand and let's clear it up together.
+80|Where should I start?
+81|What does target audience mean?
+82|Is there guaranteed income?
+83|How do I track my earnings?
+84|Send
+85|Write your question...
+86|Monthly income goal
+87|Set a realistic goal and track your progress here. A goal is not a guarantee.
+88|Save
+89|Monthly expense budget
+90|Optionally set a monthly spending limit; you'll see when you get close to exceeding it. You can leave it empty.
+91|Net this month
+92|Total income
+93|Total expenses
+94|Open Income-Expense Charts
+95|New entry
+96|Income
+97|Expense
+98|Amount (TL)
+99|Category
+100|Sales
+101|Service fee
+102|Affiliate / ads
+103|Other
+104|Date
+105|Note
+106|Enter your real numbers. The point is to see progress without fooling yourself.
+107|Entries
+108|All
+109|No entries yet. You can add your first entry above.
+110|E.g. #
+111|E.g. first sale
+112|Charts
+113|Income-Expense Charts
+114|# Days
+115|# Months
+116|No entries in this period.
+117|Charts are drawn from the real income and expenses you enter.
+118|Add your first entry
+119|Automatic plan creation opens with the Semi-Automation and CEO Mode plans.
+120|Plans
+121|TEST MODE:
+122|No real payment is taken. You can try the plans and see how the screens change. Real subscriptions (Play Billing) will be connected before release on Google Play.
+123|Free
+124|Active
+125|Income-expense tracking and charts
+126|Monthly goal, work streak and badges
+127|# hour of AI chat per day
+128|History archive
+129|Export and delete your data
+130|Manual
+131|Monthly subscription · price not set yet
+132|All features of the Free plan
+133|Business model selection via interactive Q&A
+134|Task list and written explanations
+135|AI voice narration for +# TL
+136|Try this plan (test)
+137|Semi-Automation
+138|All features of the Manual plan
+139|Automatic content/work plan creation
+140|Voice narration included
+141|CEO Mode
+142|Semi-Automation features
+143|Weekly decision cards: you make the important decisions
+144|AI carries out most of the work
+145|This is not a trash bin, it is an archive of the work you completed.
+146|Completed work
+147|No completed work yet.
+148|Latest unfinished project
+149|No unfinished project.
+150|The photo is stored only on this device.
+151|Add photo
+152|Appearance
+153|The black theme saves battery and is easy on the eyes at night.
+154|Black
+155|Light
+156|System
+157|Accent color
+158|Text size
+159|Small
+160|Normal
+161|Large
+162|Corners
+163|Soft
+164|Sharp
+165|Animations
+166|Off
+167|Show on home screen
+168|Spending pie
+169|Streak and badges
+170|Security
+171|The PIN lock is asked when opening the app and when returning from the background. It is a simple on-device lock.
+172|App lock:
+173|Set PIN
+174|Daily reminder
+175|A single, non-pushy notification that reminds you to take one small step. Works only in the Android app.
+176|Time
+177|Your data
+178|Your data is currently stored only on this device. It is lost if you delete the app; we recommend regular backups.
+179|Back up (JSON)
+180|Restore from backup
+181|Income-expense entries (CSV)
+182|Delete all my data
+183|Help and info
+184|FAQ, disclaimers
+185|Report a problem
+186|Copy diagnostic info
+187|Test tools
+188|Used only during development.
+189|Reset today's chat time
+190|End chat time (test the limit)
+191|Pasif Gelirim · version # (test)
+192|Green
+193|Blue
+194|Purple
+195|Orange
+196|Pink
+197|Turquoise
+198|Custom color
+199|Pick custom color
+200|Help and Info
+201|Important notice:
+202|Pasif Gelirim is not financial, legal or tax advice. Earning income is not guaranteed; earnings vary from person to person.
+203|Frequently asked questions
+204|Does Pasif Gelirim guarantee making money?
+205|No. We give no guarantee for any income model. Most businesses may not earn anything in the first weeks or even months. Our goal is to help you build your own business step by step and see your real numbers.
+206|Who owns the business I build?
+207|You do. Even if your subscription ends, your business, accounts and work are not taken away. The only things that end are the paid AI and automation services.
+208|What is in the free plan?
+209|Income-expense tracking and charts, monthly goal, work streak, badges, # hour of daily AI chat and the History archive.
+210|What happens if I stop the subscription?
+211|Automations stop. You can continue your business manually and reach your past work from History. If you subscribe again, automations turn back on.
+212|Where is my data stored?
+213|Only on this device for now. If you delete the app, the data goes too; that's why we recommend regular backups from Settings.
+214|How does the # hour daily chat work?
+215|The counter runs only while the Chat screen is open and resets every day.
+216|Privacy (draft)
+217|In this test version, the information you enter is stored only on your device and is not sent to any server. Before the Google Play release, this text will be legally reviewed and completed according to the app's actual data use.
+218|Pasif Gelirim · version # (test) · MORE IS POSSIBLE.
+219|Enter the selling price, cost and platform commission; see how many sales your monthly net goal needs.
+220|Selling price (TL)
+221|Cost per sale (TL)
+222|Commission (%)
+223|Monthly net goal (TL)
+224|Calculate
+225|This is a calculator; it does not guarantee you will make that many sales. You must consider taxes and other expenses separately.
+226|Terms you may come across in tasks, in plain language.
+227|Affiliate
+228|Affiliate: you recommend a product and earn a commission if a sale happens through your link. You must clearly tell readers about this.
+229|Conversion
+230|A conversion is when a visitor takes the action you want (buying, signing up, etc.). The conversion rate is the percentage of people who take that action.
+231|Income model
+232|An income model describes how money will come in: product sales, service fees, commissions, ads and so on.
+233|Target audience
+234|The target audience is the group of people your product or content aims to reach. Example: "university students looking for budget meals". The clearer it is, the more effective your message.
+235|Content calendar
+236|A content calendar is a plan showing what you will publish on which day. Keep it small and sustainable.
+237|Niche
+238|A niche is a narrow topic you choose within a broad field. "Sports" is broad, "# minute home workouts" is a niche. A narrow topic makes it easier to reach the right audience.
+239|Organic reach
+240|Organic reach is the number of people reached naturally, without paying for ads.
+241|Portfolio
+242|A portfolio is a collection of samples showing the work you can do. This is where customers see what they will get.
+243|Reference
+244|A reference is a short testimonial a satisfied customer writes about you. It is a source of trust for new customers.
+245|SEO
+246|SEO is the work done so a page can be found in search engines. It usually takes weeks or months to show results.
+247|No matching terms. Try asking in the chat.
+248|Search terms
+249|Plans and Savings
+250|Savings goals
+251|You have no savings goals yet. E.g. a new computer, ad budget, emergency fund.
+252|New savings goal
+253|What for?
+254|Target amount (TL)
+255|Create goal
+256|Recurring entries
+257|Things that repeat every month/week, such as rent, subscriptions or regular income, are recorded automatically when due. They are processed when you open the app.
+258|You have no recurring entries.
+259|New recurring entry
+260|Tool / subscription
+261|Ad expense
+262|Materials / products
+263|Frequency
+264|Every month
+265|Every week
+266|First date
+267|Set aside tax share
+268|A reminder account for setting aside a percentage of your income. Ask an accountant for the right rate and your obligations; this is not tax advice.
+269|E.g. New computer
+270|E.g. domain renewal
+271|Percent (e.g. #)
+272|Prices are fetched from the internet.
+273|Market data could not be fetched right now. Check your internet connection and try again.
+274|Try again
+275|For information only; not investment advice.
+276|Refresh
+277|Go step by step
+278|Build your business with short tasks. Get support from the AI chat when you get stuck.
+279|Track your numbers
+280|Record your income and expenses and see your real progress in charts. This section is free for everyone.
+281|Let's start
+282|Let's find the model that suits you
+283|Question # / #
+284|How much time can you spend on this per day?
+285|About # minutes
+286|#-# hours
+287|# hours or more
+288|Cancel
+289|How much budget do you have to start?
+290|None, I want to start with free tools
+291|I have a small budget
+292|I can set aside a moderate budget
+293|Which feels most comfortable to you?
+294|Writing, explaining
+295|Making visuals / video
+296|Talking to and persuading people
+297|Working in an orderly, systematic way
+298|How long are you willing to wait for the first income?
+299|As early as possible (weeks)
+300|I can wait #-# months
+301|I'm ready to build for the long term (#+ months)
+302|Models that suit you
+303|Sorted by your answers. This is an estimate, not a guarantee.
+304|Freelance Service (writing, design, translation...)
+305|Best match
+306|You offer a skill you already have as a service, find customers and earn per job.
+307|matches your answer well
+308|This model is usually one of the fastest to give results but it is not passive; you turn your time into work.
+309|Choose this
+310|Digital Services for Local Businesses
+311|You prepare digital work such as QR menus, business profiles and social media setup for small businesses and charge a service fee.
+312|You need to talk to people and accept rejection. But you get quick feedback.
+313|Social Media Content Account
+314|You produce regular content on a specific topic and gather followers, then over time turn it into income through partnerships, products or services.
+315|Follower count alone does not mean income. You may earn nothing in the first weeks or even months.
+316|Answer the questions again
+317|Enter your PIN
+318|Wrong PIN.
+319|I forgot my PIN
+320|Delete
+321|Set a new PIN
+322|Re-enter the PIN
+323|Enter your PIN to turn off the lock
+324|Typing
+325|Diagnostic info
+326|The file could not be saved automatically. You can copy the text and paste it into a notes app.
+327|Copy
+328|Close
+329|Net per sale
+330|Sales needed
+331|# units
+332|Total revenue
+333|About per day
+334|# sales
+335|At this price you lose money on every sale (net per sale -# TL). Raise the price or lower the cost.
+336|Last update: # · in TL
+337|Dollar
+338|USD
+339|Highest
+340|Lowest
+341|Currencies
+342|Euro
+343|EUR
+344|Pound Sterling
+345|GBP
+346|Swiss Franc
+347|CHF
+348|Gold
+349|Gram gold (approx.)
+350|GRAM
+351|Ounce gold
+352|OUNCE
+353|Crypto
+354|Bitcoin
+355|BTC
+356|Ethereum
+357|ETH
+358|BNB
+359|XRP
+360|Solana
+361|SOL
+362|Unavailable:
+363|Gram gold
+364|. Try refreshing.
+365|Convert your own money
+366|Enter an amount in TL; I'll show its value at the selected market prices.
+367|Exchange rates are European Central Bank data (daily). Gold and crypto prices come from the Binance market; gram gold is approximated via PAXG (based on ounce gold) and may differ from the gram gold price in Turkey. Data may be delayed or wrong. For information only; not investment advice.
+368|Price chart
+369|Loading data…
+370|Complete your first task
+371|Record your first real income
+372|Work # days in a row
+373|Reach your monthly income goal
+374|Finish all tasks of a project
+375|Define Your Target Audience
+376|The target audience is the group of people you want to follow your content. Describe their age, interests and the problems you want to solve in # sentences, as if describing a single person. "Everyone" is not a target audience; the clearer you write, the easier it is to find content ideas.
+377|Choose Your Niche
+378|A niche is a narrow area you choose within a general topic. For example "food" is broad, "one-pot student meals" is a niche. Pick a topic where your interest, knowledge and the audience's need overlap. Write three candidates and choose one.
+379|Set Up the Account and Prepare the Profile
+380|Your account name, profile photo and short bio should explain who you are and what benefit you offer at a glance. Add a "who for, what for" sentence to the bio.
+381|Write the First # Content Ideas
+382|Come up with # content ideas from your audience's questions, comments and competitor accounts. Don't copy; add your own perspective. Write each idea in one sentence.
+383|Create a Weekly Publishing Calendar
+384|A content calendar is a plan showing what you will publish on which day. Be realistic at first: # posts a week is better than daily posting you struggle with. Note the calendar on your phone.
+385|First # Days of Publishing and Measuring
+386|Publish your first content. For each post note the views, saves and comments. The goal is not to be perfect but to see what works.
+387|Choose Your Income Path
+388|Income can come from ads/partnerships, your own digital product or a service. Whichever path you choose, be honest with your audience: disclose sponsored content. Pick a path in this task and write why you chose it.
+389|Day # (#): Answer a question your audience often asks in a #-# second piece of content
+390|Day # (#): Create content that corrects a common misconception
+391|Day # (#): Film a step-by-step "how to" piece
+392|Day # (#): Share something you learned in a "learned today" format
+393|Day # (#): Turn a comment from your followers into content
+394|Day # (#): Review the results of the week's best content and make something similar
+395|Which content format should be prioritized next week?
+396|Under what conditions should ad/partnership offers be accepted?
+397|# day Social Media Content Account plan
+398|# day Social Media Content Account plan · #
+399|Digital Template / E-book Sales
+400|You prepare a template, planner or short e-book that solves a problem, produce it once and sell it again and again.
+401|Making the product is the easy part. The hard part is showing it to the right people. There is no sales guarantee.
+402|Define the Target Audience and the Problem
+403|The target audience is the group of people who will use your product. Pick a small but constant problem they have in daily life (e.g. a student's messy class schedule). The clearer the problem, the easier the product sells.
+404|Choose the Product Idea
+405|Choose the simplest product that solves the problem: a template, checklist, planner or short guide. Keep the first product small; something you can finish in #-# days.
+406|Review Similar Products
+407|Review products on the same topic. Look at their prices, shortcomings and reviews. The goal is not to copy but to find what is missing.
+408|Prepare the First Product
+409|Prepare the product with a free design tool. Use it yourself first, then have an acquaintance try it. Put a short "how to use" note at the start of the product.
+410|Sales Page and Price
+411|On the sales page, clearly write the problem the product solves, its contents and who it suits. Set the price by looking at similar products; promise honestly, don't exaggerate.
+412|Choose the Sales Channel
+413|Choose where to sell the product (a marketplace, your own page or social media). Each channel has different commissions and rules; read the rules.
+414|First Announcement and Feedback
+415|Announce the product to your circle and target audience. Ask the first buyers for feedback and improve the product accordingly.
+416|Day # (#): Prepare a short post about the problem the product solves
+417|Day # (#): Share a screenshot of the product and a usage example
+418|Day # (#): Share a piece of customer feedback (with permission)
+419|Day # (#): Prepare a small free sample version of the product
+420|Day # (#): Simplify and test the product description
+421|Day # (#): Ask your audience a question for a new product
+422|Should a new product be made or the existing one improved?
+423|Should a price change be tried?
+424|# day Digital Template / E-book Sales plan
+425|# day Digital Template / E-book Sales plan · #
+426|Define Your Service
+427|Write in one sentence: "I do ... for ...". The target audience is the group of people/businesses you serve. Start with one clear service instead of offering many things at once.
+428|Prepare # Samples for the Portfolio
+429|A portfolio is a collection of sample work showing what you can do. If you have no customers, # sample works you made yourself are enough. Make the samples realistic and clean.
+430|Create Your Profile
+431|Open a profile on a suitable platform or on your own page. Add a photo, a short intro and your sample work. State clearly what you do and what you don't.
+432|Set Your Price
+433|Compare the time you will spend with similar prices on the market. A very low price can reduce trust; a very high price makes it hard to get work at first. Pick a starting price, then update it.
+434|Reach Out to the First # Prospects
+435|Bid on job listings or send short, personal messages to suitable businesses. Address the other side's problem in every message; avoid copy-paste messages.
+436|Deliver the First Job and Ask for a Reference
+437|A reference is a short testimonial a satisfied customer writes about you. Deliver the job on time and ask for a reference with permission.
+438|Turn the Process into a System
+439|Turn the quote, delivery and payment steps into a simple list. That way you work at the same quality with every customer.
+440|Day # (#): Send # personal messages to potential customers
+441|Day # (#): Add a new sample work to your portfolio
+442|Day # (#): Ask an old customer for a reference
+443|Day # (#): Rewrite your service description more clearly
+444|Day # (#): Bid on # suitable listings on a platform
+445|Day # (#): Review the weekly delivery and time log
+446|Should prices be updated this week?
+447|Should a new service item be added?
+448|# day Freelance Service (writing, design, translation...) plan
+449|# day Freelance Service (writing, design, translation...) plan · #
+450|Niche Blog + Affiliate Links
+451|You write useful articles on a specific topic and turn readers from search engines into income with affiliate links.
+452|Showing up in search engines can take months. It is healthier not to expect income in the early period.
+453|Define Your Niche and Target Audience
+454|A niche is a narrow topic area. The target audience is the people looking for information on that topic. Choose an area that you can enjoy and that people search for.
+455|Keyword Research
+456|A keyword is a phrase people type in the search box. Find people searching for the same problem with different words and list # phrases.
+457|Set Up Your Blog
+458|Choose a free or low-cost blog platform. Add About, Contact and Privacy pages.
+459|Write the First # Articles
+460|Each article should clearly answer one question. The title should be close to the search phrase. Rely on real information and avoid exaggerated promises.
+461|Review Affiliate Programs
+462|Affiliate marketing means earning a commission from sales made on your recommendation. Read the terms before applying and clearly tell readers you use affiliate links.
+463|Promote the Articles
+464|Share your articles in relevant communities and on social media, following the rules. Don't spam.
+465|Measurement and Improvement
+466|Track which article is read and clicked. Expand the topics that work and simplify the ones that don't.
+467|Day # (#): Draft a #-word article that answers a question
+468|Day # (#): Update and improve an old article
+469|Day # (#): Add # new search phrases to your keyword list
+470|Day # (#): Prepare a product comparison post (disclosing the affiliate link)
+471|Day # (#): Add an image and a short summary to your article
+472|Day # (#): Review weekly visitor and click data
+473|Which topic should a new article series cover?
+474|Which affiliate program should be continued?
+475|# day Niche Blog + Affiliate Links plan
+476|# day Niche Blog + Affiliate Links plan · #
+477|Define the Service Package
+478|Set a clear package: for example QR menu + business profile setup. Write what you do, how long delivery takes and what you don't do.
+479|Prepare a Sample Work
+480|Show a sample business project you prepared yourself. Don't use a real business's name without permission.
+481|# Business Prospect List
+482|List # businesses near you with a weak digital presence. Write the gap of each in one sentence.
+483|First Message / Pitch Text
+484|Prepare a short, respectful intro focused on the business's benefit. Don't pressure; ask "would you like to take a look?".
+485|Meeting and Quote
+486|In the quote, clearly write the work to be done, the time and the price. Put what you promise in writing.
+487|Delivery and Reference
+488|Deliver the work, briefly explain how to use it and ask for a short reference with permission.
+489|Monthly Maintenance Offer
+490|Offer a satisfied customer a regular maintenance/update service. Write the scope clearly.
+491|Day # (#): Note the digital gaps of # new businesses
+492|Day # (#): Add a new sample to your sample work
+493|Day # (#): Send a short status report to your current customer
+494|Day # (#): Visit # businesses and give a short intro
+495|Day # (#): Improve the message template based on results
+496|Day # (#): Present the monthly maintenance offer to a customer
+497|Should a new item be added to the service package?
+498|How many businesses should be contacted this week?
+499|# day Digital Services for Local Businesses plan
+500|# day Digital Services for Local Businesses plan · #
+501|Sunday
+502|Monday
+503|Tuesday
+504|Wednesday
+505|Thursday
+506|Friday
+507|Saturday
+508|Jan
+509|Feb
+510|Mar
+511|Apr
+512|May
+513|Jun
+514|Jul
+515|Aug
+516|Sep
+517|Oct
+518|Nov
+519|Dec
+520|— Weekly review: What worked? What will you change next week?
+521|Your subscription has ended. You can continue your business manually and reach your past work from History.
+522|Automatic plan creation opens with the Semi-Automation and CEO Mode plans. You can reach previously prepared work from History.
+523|▲ This month +# TL
+524|TL spent
+525|+# TL
+526|You worked today too, great.
+527|# / # tasks completed
+528|Next:
+529|Breakdown donut chart
+530|# / # completed
+531|Your subscription is not active; you can continue this work manually. A plan is needed to choose a new model.
+532|Honest note:
+533|Where can I find my history?
+534|Monthly goal: # TL
+535|This month: # TL
+536|Left: # TL
+537|Change goal
+538|# TL / # TL
+539|You exceeded the budget by # TL.
+540|Change budget
+541|For which job?
+542|General
+543|automatic · recurring
+544|−# TL
+545|Export entries as CSV
+546|Progress ring
+547|New goal (TL)
+548|New budget (TL)
+549|Search entries (note, category)
+550|Edit entry
+551|Delete entry
+552|Net
+553|Summary of this month
+554|Compared to last month
+555|Top income
+556|Sales · # TL
+557|Top expense
+558|Tool / subscription · # TL
+559|Share kept
+560|Based only on the entries you made; not a forecast or advice.
+561|Income and expenses
+562|# K
+563|Fri
+564|Sat
+565|Sun
+566|Mon
+567|Tue
+568|Wed
+569|Thu
+570|Cumulative net
+571|#: # TL
+572|The line shows your total net position since the start.
+573|Income sources
+574|TL
+575|Expense breakdown
+576|Net by job (all time)
+577|Income − expenses by the job you chose when entering.
+578|Tap the bars to see the details of that day or month.
+579|Income and expense bar chart
+580|Cumulative net line chart
+581|Last work: # · %#
+582|Last saved info:
+583|Next task:
+584|VIEW PROJECT
+585|# TL / # TL · Left # TL
+586|Add
+587|Remove
+588|Delete goal
+589|Every month on day #
+590|Next: #
+591|Pause
+592|Paused
+593|Resume
+594|Suggested to set aside (%#)
+595|Task
+596|Task # / #
+597|Your notes
+598|Completed (undo)
+599|Next →
+600|I completed the task
+601|← Previous
+602|💚 Tired of reading?
+603|Is there a section you struggle to understand?
+604|Let the AI narrate the tasks aloud, simplify complex topics and explain the parts you don't understand.
+605|Only # TL more!
+606|TEST MODE: no real payment is taken.
+607|TURN ON AI NARRATION — # TL
+608|NOT NOW
+609|💚 AI narration
+610|Narrate it to me
+611|Stop
+612|Write what you don't understand
+613|Explain
+614|E.g. What does target audience mean? Give an example
+615|Oct #
+616|Oct #: # TL
+617|Update
+618|Manual plan
+619|Choose a new income model
+620|End subscription (test)
+621|AI voice narration
+622|Added to the Manual plan for +# TL.
+623|Turn on — # TL (test)
+624|AI narration
+625|Semi-Automation plan
+626|A daily plan is prepared according to the model you chose.
+627|How many days?
+628|# days
+629|Prepare plan
+630|CEO Mode · Decision cards
+631|The section where AI runs the work and leaves the important decisions to you opens in CEO Mode.
+632|CEO Mode plan
+633|Approve
+634|Reject
+635|Profile photo
+636|approved
+637|Change
+638|Remove

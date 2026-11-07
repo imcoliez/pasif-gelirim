@@ -66,6 +66,7 @@
   const BADGE_ICON = { 'first-task': 'check', 'first-record': 'file', 'first-income': 'trend', 'streak-3': 'flame', 'streak-7': 'flame', 'goal': 'target', 'project': 'trophy' };
 
   // ---------- Yardımcılar ----------
+  function nt(x) { return '<span data-nt>' + esc(x) + '</span>'; }
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -106,7 +107,7 @@
   }
   function avatar(S, cls, tag) {
     const u = S.user, init = esc((u.name || 'S').trim().charAt(0).toLocaleUpperCase('tr-TR') || 'S');
-    const inner = u.avatar ? '<img class="av ' + (cls || '') + '" src="' + esc(u.avatar) + '" alt="Profil fotoğrafı">' : '<span class="av ' + (cls || '') + '" aria-hidden="true">' + init + '</span>';
+    const inner = u.avatar ? '<img class="av ' + (cls || '') + '" src="' + esc(u.avatar) + '" alt="Profil fotoğrafı">' : '<span class="av ' + (cls || '') + '" aria-hidden="true" data-nt>' + init + '</span>';
     return tag === 'btn' ? '<button class="avbtn" data-act="go" data-route="settings" aria-label="Profil ve ayarlar">' + inner + '</button>' : inner;
   }
   const SWATCH = { green: ['#2fdc77', 'Yeşil'], blue: ['#4aa8ff', 'Mavi'], purple: ['#a78bfa', 'Mor'], orange: ['#ff9f43', 'Turuncu'], pink: ['#ff6fae', 'Pembe'], teal: ['#2dd4d4', 'Turkuaz'] };
@@ -256,10 +257,12 @@
   views.welcome = function (S) {
     return '<div class="welcome">' +
       '<div class="logo-wrap"><img class="logo-big" src="logo.png" alt="Pasif Gelirim logosu"></div><h1>Pasif Gelirim</h1><p class="slogan">DAHA FAZLASI MÜMKÜN.</p>' +
-      '<div class="card"><p>Burada sana <b>garanti kazanç</b> vaat etmiyoruz. Kendi dijital işini adım adım kurmana, gerçek rakamlarını takip etmene ve ilerlemeni görmene yardımcı oluyoruz.</p>' +
+      '<div class="card"><p>Burada sana garanti kazanç vaat etmiyoruz. Kendi dijital işini adım adım kurmana, gerçek rakamlarını takip etmene ve ilerlemeni görmene yardımcı oluyoruz.</p>' +
       '<p class="muted">Kurduğun iş ve verilerin sana aittir.</p></div>' +
       '<label class="lbl" for="nameInput">Sana nasıl hitap edelim?</label>' +
       '<input id="nameInput" class="inp" maxlength="30" placeholder="Adın" value="' + esc(S.user.name) + '">' +
+      '<label class="lbl" for="langSel">Dil</label>' + langSelect(S) + '<label class="lbl" for="curSel">Para birimi</label>' + currencySelect(S) +
+      '<p class="muted small">Dil ve para birimini sonra Ayarlar\'dan değiştirebilirsin.</p>' +
       '<button class="btn big" data-act="start">Başla</button></div>';
   };
 
@@ -286,7 +289,7 @@
     const gp = Core.goalProgress(S, now);
     const fs = Core.financeSummary(S, now), ins = Core.insights(S, now), m30 = Core.financeSeries(S, '30d', now);
     const look = S.settings.look;
-    let html = '<div class="hello"><div class="hello-l">' + avatar(S, '', 'btn') + '<h2>Merhaba' + (S.user.name ? ' ' + esc(S.user.name) : '') + '</h2></div><span class="chip">' + esc(ent.pkg.name) + ' paketi</span></div>';
+    let html = '<div class="hello"><div class="hello-l">' + avatar(S, '', 'btn') + '<h2>Merhaba' + (S.user.name ? ' ' + nt(S.user.name) : '') + '</h2></div><span class="chip">' + esc(ent.pkg.name) + ' paketi</span></div>';
     html += '<button class="card hero" data-act="go" data-route="charts"><small>Toplam net</small><div class="hero-num ' + (fs.net < 0 ? 'neg' : '') + '">' + tl(fs.net) + '</div>' +
       '<span class="trend ' + (ins.thisMonth.net > 0 ? 'up' : ins.thisMonth.net < 0 ? 'down' : 'flat') + '">' + (ins.thisMonth.net > 0 ? '▲ ' : ins.thisMonth.net < 0 ? '▼ ' : '') + 'Bu ay ' + signed(ins.thisMonth.net) + '</span>' +
       (m30.empty ? '<p class="muted small hero-empty">İlk kaydını girince grafik burada çizilir.</p>' : heroChart(m30)) + '</button>';
@@ -302,7 +305,7 @@
     html += '<div class="row sect"><h3>Son işlemler</h3><button class="link" data-act="go" data-route="money">Tümü ›</button></div>';
     if (!recent.length) html += '<div class="card muted small">Henüz işlem yok. Aşağıdaki düğmelerle ilk geliri veya gideri ekleyebilirsin.</div>';
     else html += '<div class="card nopad txlist">' + recent.map(function (r) {
-      return '<div class="tx ' + r.type + '"><span class="tx-ic">' + icon(CAT_ICON[r.cat] || 'dots', 20) + '</span><span class="tx-tx"><b>' + esc(Core.categoryName(r.type, r.cat)) + '</b><small>' + Core.formatDate(r.date) + (r.note ? ' · ' + esc(r.note) : '') + '</small></span><b class="tx-amt">' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></div>';
+      return '<div class="tx ' + r.type + '"><span class="tx-ic">' + icon(CAT_ICON[r.cat] || 'dots', 20) + '</span><span class="tx-tx"><b>' + esc(Core.categoryName(r.type, r.cat)) + '</b><small>' + Core.formatDate(r.date) + (r.note ? ' · ' + nt(r.note) : '') + '</small></span><b class="tx-amt">' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></div>';
     }).join('') + '</div>';
     if (S.cancelledAt && ent.pkg.tier === 0) {
       html += '<div class="card note">Aboneliğin sona erdi. Kurduğun işe manuel devam edebilir, eski çalışmalarına Geçmiş İşlemler\'den ulaşabilirsin.</div>';
@@ -325,7 +328,7 @@
       const nt = Core.nextTask(p);
       html += '<div class="card"><div class="row"><b>' + esc(p.title) + '</b><span class="muted">%' + pr.pct + '</span></div>' + bar(pr.pct) +
         '<p class="muted">' + pr.done + ' / ' + pr.total + ' görev tamamlandı</p>' +
-        (nt ? '<button class="btn" data-act="openTask" data-id="' + esc(nt.id) + '">Sıradaki: ' + esc(nt.title) + '</button>'
+        (nt ? '<button class="btn" data-act="openTask" data-id="' + esc(nt.id) + '"><span>Sıradaki:</span> <span>' + esc(nt.title) + '</span></button>'
             : '<p>Tüm görevleri tamamladın. Şimdi sonuçlarını takip etme zamanı.</p>') + '</div>';
     } else if (ent.selectModel) {
       html += '<div class="card"><b>Henüz bir gelir modeli seçmedin.</b><p class="muted">Birkaç kısa soruyla sana uygun olanı bulalım.</p>' +
@@ -398,7 +401,7 @@
     rec.forEach(function (r, i) {
       h += '<div class="card"><div class="row"><b>' + esc(r.model.title) + '</b>' + (i === 0 ? '<span class="chip">En uygun</span>' : '') + '</div>' +
         '<p>' + esc(r.model.summary) + '</p>' +
-        (r.reasons.length ? '<p class="muted">' + r.reasons.map(esc).join(' • ') + '</p>' : '') +
+        (r.reasons.length ? '<p class="muted">' + r.reasons.map(function (x) { const m = /^"(.*)" cevabınla iyi uyuşuyor$/.exec(x); return m ? '"<span>' + esc(m[1]) + '</span>" <span>cevabınla iyi uyuşuyor</span>' : '<span>' + esc(x) + '</span>'; }).join(' • ') + '</p>' : '') +
         '<p class="honest-line">' + esc(r.model.honest) + '</p>' +
         '<button class="btn" data-act="pickModel" data-id="' + esc(r.model.id) + '">Bunu seç</button></div>';
     });
@@ -441,7 +444,7 @@
       '<label class="lbl" for="askInput">Anlamadığın yeri yaz</label>' +
       '<input id="askInput" class="inp" placeholder="Örn: Hedef kitle ne demek? Örnek ver">' +
       '<button class="btn" data-act="askNarr">Açıkla</button>' +
-      (ui.narrAnswer ? '<div class="card">' + nl2br(ui.narrAnswer) + '</div>' : '') +
+      (ui.narrAnswer ? '<div class="card" data-nt>' + nl2br(ui.narrAnswer) + '</div>' : '') +
       '<button class="link" data-act="narrClose">Kapat</button></div></div>';
   }
 
@@ -452,7 +455,7 @@
       (ui.live ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma.</p>' : '<p class="fine">Şu an demo yapay zekâ çalışıyor: terimleri açıklar ve yönlendirir. Gerçek yapay zekâ sunucusu sonra bağlanacak.</p>') + '<div class="chat" id="chatBox">';
     if (!S.chat.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
     S.chat.slice(-40).forEach(function (m) {
-      html += '<div class="msg ' + (m.role === 'user' ? 'me' : 'ai') + '">' + nl2br(m.text) + '</div>';
+      html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) + '</div>';
     });
     if (ui.typing) html += '<div class="msg ai typing" aria-label="Yazıyor"><i></i><i></i><i></i></div>';
     html += '</div>';
@@ -513,7 +516,7 @@
       .filter(function (r) { return flt === 'all' || r.type === flt; });
     if (!rows.length) html += '<li class="card muted">' + (S.finance.length ? 'Bu filtrede kayıt yok.' : 'Henüz kayıt yok. İlk kaydını yukarıdan ekleyebilirsin.') + '</li>';
     rows.forEach(function (r) {
-      html += '<li class="fin ' + r.type + '" data-q="' + esc((Core.categoryName(r.type, r.cat) + ' ' + r.note).toLocaleLowerCase('tr')) + '"><span>' + Core.formatDate(r.date) + ' · ' + esc(Core.categoryName(r.type, r.cat)) + (r.note ? '<br><small class="muted">' + esc(r.note) + '</small>' : '') + (r.auto ? '<br><small class="muted">otomatik · tekrarlayan</small>' : '') + '</span>' +
+      html += '<li class="fin ' + r.type + '" data-q="' + esc((Core.categoryName(r.type, r.cat) + ' ' + r.note).toLocaleLowerCase('tr')) + '"><span>' + Core.formatDate(r.date) + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.note ? '<br><small class="muted">' + nt(r.note) + '</small>' : '') + (r.auto ? '<br><small class="muted">otomatik · tekrarlayan</small>' : '') + '</span>' +
         '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="editFin" data-id="' + esc(r.id) + '" aria-label="Kaydı düzenle">' + icon('edit', 18) + '</button><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">' + icon('trash', 18) + '</button></li>';
     });
     html += '</ul>';
@@ -531,7 +534,7 @@
     if (!S.savings.length) html += '<div class="card muted small">Henüz birikim hedefin yok. Örn: yeni bilgisayar, reklam bütçesi, acil durum payı.</div>';
     S.savings.forEach(function (v) {
       const pr = Core.savingProgress(v);
-      html += '<div class="card"><div class="row"><b>' + esc(v.name) + '</b><span class="muted small">%' + pr.pct + '</span></div>' + bar(pr.pct) +
+      html += '<div class="card"><div class="row"><b>' + nt(v.name) + '</b><span class="muted small">%' + pr.pct + '</span></div>' + bar(pr.pct) +
         '<p class="small ' + (pr.reached ? 'pos' : 'muted') + '">' + tl(v.saved) + ' / ' + tl(v.target) + (pr.reached ? ' · Hedefe ulaştın' : ' · Kalan ' + tl(pr.left)) + '</p>' +
         '<div class="send"><input id="savAmt_' + esc(v.id) + '" class="inp" inputmode="decimal" placeholder="Tutar (TL)">' +
         '<button class="btn slim" data-act="savMoney" data-id="' + esc(v.id) + '" data-s="1">Ekle</button><button class="btn slim ghost" data-act="savMoney" data-id="' + esc(v.id) + '" data-s="-1">Çıkar</button></div>' +
@@ -546,9 +549,9 @@
     if (!S.recurring.length) html += '<div class="card muted small">Tekrarlayan kaydın yok.</div>';
     S.recurring.forEach(function (r) {
       const nd = new Date(r.next);
-      const when = r.freq === 'weekly' ? 'Her hafta ' + WD[nd.getDay()] : 'Her ay ' + r.dom + '. gün';
-      html += '<div class="card rec ' + r.type + (r.active ? '' : ' off') + '"><div class="row"><b>' + esc(r.note || Core.categoryName(r.type, r.cat)) + '</b><b class="' + (r.type === 'in' ? 'pos' : 'neg') + '">' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></div>' +
-        '<p class="muted small">' + when + ' · ' + esc(Core.categoryName(r.type, r.cat)) + (r.active ? ' · Sıradaki: ' + Core.formatDate(r.next) : ' · Duraklatıldı') + '</p>' +
+      const when = r.freq === 'weekly' ? '<span>Her hafta</span> <span>' + WD[nd.getDay()] + '</span>' : '<span>Her ay ' + r.dom + '. gün</span>';
+      html += '<div class="card rec ' + r.type + (r.active ? '' : ' off') + '"><div class="row"><b>' + (r.note ? nt(r.note) : esc(Core.categoryName(r.type, r.cat))) + '</b><b class="' + (r.type === 'in' ? 'pos' : 'neg') + '">' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></div>' +
+        '<p class="muted small">' + when + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.active ? ' · <span>Sıradaki: ' + Core.formatDate(r.next) + '</span>' : ' · <span>Duraklatıldı</span>') + '</p>' +
         '<div class="row"><button class="link" data-act="recToggle" data-id="' + esc(r.id) + '">' + icon(r.active ? 'pause' : 'play', 14) + ' ' + (r.active ? 'Duraklat' : 'Devam ettir') + '</button>' +
         '<button class="link danger-link" data-act="recDel" data-id="' + esc(r.id) + '">Sil</button></div></div>';
     });
@@ -580,7 +583,7 @@
     const pts = v.map(function (val, i) { return x(i).toFixed(1) + ' ' + y(val).toFixed(1); });
     const dfmt = function (t) { const d = new Date(t); return d.getDate() + '.' + (d.getMonth() + 1); };
     const up = it.change >= 0;
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart mkchart ' + (up ? 'up' : 'down') + '" role="img" aria-label="' + esc(it.name) + ' fiyat grafiği">' +
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart mkchart ' + (up ? 'up' : 'down') + '" role="img" aria-label="Fiyat grafiği">' +
       '<defs><linearGradient id="gMk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--mk);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--mk);stop-opacity:0"/></linearGradient></defs>' +
       '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(hi) + '" y2="' + y(hi) + '"/><line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(lo) + '" y2="' + y(lo) + '"/>' +
       '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1) + ' ' + (T + ph) + ' L' + x(0) + ' ' + (T + ph) + ' Z" fill="url(#gMk)"/>' +
@@ -622,7 +625,7 @@
           miniSpark(i.series, i.change >= 0) + '<span class="mkv"><b>' + Market_fmt(i.price, i.unit) + '</b>' + pctPill(i.change) + '</span></button>';
       }).join('') + '</div>';
     });
-    if (m.errors && m.errors.length) html += '<p class="fine">Alınamayanlar: ' + esc(m.errors.join(', ') ) + '. Yenilemeyi dene.</p>';
+    if (m.errors && m.errors.length) html += '<p class="fine">Alınamayanlar: ' + m.errors.map(function (e) { return '<span>' + esc(e) + '</span>'; }).join(', ') + '. Yenilemeyi dene.</p>';
     html += '<div class="card"><b>Kendi paranı çevir</b><label class="lbl" for="mkAmount">Tutar (TL)</label><input id="mkAmount" class="inp" inputmode="decimal" placeholder="Örn: 10000">' +
       '<div id="mkConv">' + convHtml(items, '') + '</div></div>';
     html += '<p class="fine">Döviz kurları Avrupa Merkez Bankası verisidir (günlük). Altın ve kripto fiyatları Binance üzerindeki piyasadan alınır; gram altın PAXG (ons altına dayalı) üzerinden yaklaşık hesaplanır ve Türkiye\'deki gram altın fiyatından farklı olabilir. Veriler gecikmeli veya hatalı olabilir. Bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>';
@@ -769,19 +772,32 @@
     else {
       const u = h.lastUnfinished;
       html += '<div class="card"><b>' + esc(u.title) + '</b><p class="muted">Son çalışma: ' + Core.formatDate(u.updatedAt) + ' · %' + u.progress.pct + '</p>' +
-        '<p><b>Son kaydedilen bilgi:</b><br>' + esc(u.lastNote) + '</p>' +
-        (u.next ? '<p class="muted">Sıradaki görev: ' + esc(u.next.title) + '</p>' : '') +
+        '<p><b>Son kaydedilen bilgi:</b><br>' + nt(u.lastNote) + '</p>' +
+        (u.next ? '<p class="muted"><span>Sıradaki görev:</span> <span>' + esc(u.next.title) + '</span></p>' : '') +
         '<button class="btn" data-act="viewProject" data-id="' + esc(u.projectId) + '">PROJEYİ GÖRÜNTÜLE</button></div>';
     }
     return html;
   };
 
+  const LANG_OPTS = [['tr', 'Türkçe'], ['en', 'English'], ['de', 'Deutsch'], ['es', 'Español'], ['ru', 'Русский'], ['ar', 'العربية']];
+  const CUR_NAMES = { TRY: 'Türk Lirası (TRY)', USD: 'ABD Doları (USD)', EUR: 'Euro (EUR)', GBP: 'İngiliz Sterlini (GBP)', CHF: 'İsviçre Frangı (CHF)', RUB: 'Rus Rublesi (RUB)', SAR: 'Suudi Riyali (SAR)', AED: 'BAE Dirhemi (AED)' };
+  function langSelect(S) {
+    return '<select id="langSel" class="inp" data-act-change="setLang" aria-label="Dil"><option value="auto"' + (S.settings.lang === 'auto' ? ' selected' : '') + '>Cihaz dili (otomatik)</option>' +
+      LANG_OPTS.map(function (l) { return '<option data-nt value="' + l[0] + '"' + (S.settings.lang === l[0] ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('') + '</select>';
+  }
+  function currencySelect(S) {
+    return '<select id="curSel" class="inp" data-act-change="setCurrency" aria-label="Para birimi">' +
+      Core.CURRENCIES.map(function (c) { return '<option value="' + c + '"' + (S.settings.currency === c ? ' selected' : '') + '>' + CUR_NAMES[c] + '</option>'; }).join('') + '</select>';
+  }
   views.settings = function (S, ui) {
     const rem = S.settings.reminder, look = S.settings.look;
     return '<h2>Ayarlar</h2>' +
-      '<div class="card profile">' + avatar(S, 'lg') + '<div class="pb"><b>' + esc(S.user.name || 'Profilin') + '</b><small class="muted">Fotoğraf yalnızca bu cihazda saklanır.</small><div class="row">' +
+      '<div class="card profile">' + avatar(S, 'lg') + '<div class="pb"><b>' + (S.user.name ? nt(S.user.name) : 'Profilin') + '</b><small class="muted">Fotoğraf yalnızca bu cihazda saklanır.</small><div class="row">' +
       '<button class="btn slim" data-act="avatarPick">' + icon('upload', 16) + (S.user.avatar ? 'Değiştir' : 'Fotoğraf ekle') + '</button>' + (S.user.avatar ? '<button class="btn slim ghost" data-act="avatarDel">Kaldır</button>' : '') +
       '</div></div><input id="avatarFile" type="file" accept="image/*" hidden></div>' +
+      '<div class="card"><b>Dil ve para birimi</b><label class="lbl" for="langSel">Dil</label>' + langSelect(S) +
+      '<label class="lbl" for="curSel">Para birimi</label>' + currencySelect(S) +
+      '<p class="muted small">Para birimi yalnızca gösterim içindir; girdiğin tutarlar otomatik dönüştürülmez. Piyasa sayfası Türk lirası cinsinden kalır.</p></div>' +
       '<div class="card"><b>Görünüm</b><p class="muted small">Siyah tema pil tasarrufu sağlar ve geceleri gözü yormaz.</p>' +
       seg([{ v: 'dark', t: 'Siyah' }, { v: 'light', t: 'Açık' }, { v: 'system', t: 'Sistem' }], S.settings.theme, 'setTheme') +
       '<label class="lbl">Vurgu rengi</label><div class="swatches">' + Object.keys(SWATCH).map(function (k) {
@@ -870,7 +886,7 @@
       chrome: NO_CHROME.indexOf(route) === -1,
       activeTab: route === 'task' ? 'tasks' : (route === 'charts' ? 'money' : route),
       top: topHtml(S, ui),
-      main: views[route](S, ui, now),
+      main: route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now),
       layer: layerHtml(S, ui)
     };
   }

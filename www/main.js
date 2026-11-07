@@ -1,7 +1,7 @@
 /* Pasif Gelirim - tarayıcı/APK denetleyicisi: gezinme, olaylar, kayıt, tema, sesli okuma, sohbet sayacı */
 (function () {
   'use strict';
-  var Core = window.Core, App = window.App;
+  var Core = window.Core, App = window.App, I18n = window.I18n || { t: function (x) { return x; }, apply: function () { }, resolve: function () { return 'tr'; }, setLang: function () { }, setCurrency: function () { }, detect: function () { return 'tr'; } };
 
   var reduce = false;
   try { reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { }
@@ -88,12 +88,14 @@
 
   // ---------- Alt menü (çizgi simgeli, hap biçimli seçili durum) ----------
   var NAV = [['home', 'home', 'Ana sayfa'], ['tasks', 'tasks', 'Görevler'], ['chat', 'chat', 'Sohbet'], ['money', 'trend', 'Kazanç'], ['packages', 'layers', 'Paketler']];
-  elTabs.innerHTML = NAV.map(function (n) {
-    return '<button class="tab" data-act="go" data-route="' + n[0] + '"><span class="pill">' + App.icon(n[1], 22) + '</span><small>' + n[2] + '</small></button>';
-  }).join('');
+  function buildTabs() {
+    elTabs.innerHTML = NAV.map(function (n) {
+      return '<button class="tab" data-act="go" data-route="' + n[0] + '"><span class="pill">' + App.icon(n[1], 22) + '</span><small>' + n[2] + '</small></button>';
+    }).join('');
+  }
 
   // ---------- Çizim ----------
-  var DRAFT_IDS = ['finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
+  var DRAFT_IDS = ['nameInput', 'finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
   function captureDraft() {
     if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
     if (lastRoute !== ui.route) { ui.draft = {}; return; }
@@ -116,7 +118,17 @@
     }
   }
 
+  function applyLocale() {
+    var code = I18n.resolve(S.settings.lang);
+    I18n.setLang(code);
+    I18n.setCurrency(S.settings.currency);
+  }
+  function localize() {
+    [elTop, elMain, elLayer, elTabs].forEach(function (el) { I18n.apply(el); });
+  }
+
   function render() {
+    applyLocale();
     captureDraft();
     prepare();
     var p = App.parts(S, ui, now());
@@ -125,7 +137,9 @@
     elTop.innerHTML = p.top;
     elMain.innerHTML = p.main;
     elLayer.innerHTML = p.layer;
+    buildTabs();
     restoreDraft();
+    localize();
     // sayfa geçiş animasyonu
     elMain.className = 'main';
     if (ui.enter && !reduce) {
@@ -149,6 +163,7 @@
   function toast(msg) {
     // Rozet bildirimi hemen ardından gelen genel bildirimle ezilmesin: ikisini birleştir.
     if (lastReward.msg && Date.now() - lastReward.at < 200 && msg !== lastReward.msg) msg = msg + ' · ' + lastReward.msg;
+    msg = String(msg).split(' · ').map(function (x) { return I18n.t(x); }).join(' · ');
     ui.toast = msg;
     clearTimeout(toastTimer);
     var old = elLayer.querySelector('.toast'); if (old) old.remove();
@@ -219,8 +234,8 @@
     try {
       if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { toast('Bu cihazda sesli okuma desteklenmiyor.'); return; }
       stopSpeak();
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = 'tr-TR'; u.rate = 0.95;
+      var u = new SpeechSynthesisUtterance(I18n.t(text));
+      u.lang = I18n.info ? I18n.info(I18n.resolve(S.settings.lang)).locale : 'tr-TR'; u.rate = 0.95;
       window.speechSynthesis.speak(u);
     } catch (e) { toast('Sesli okuma başlatılamadı.'); }
   }
@@ -252,7 +267,7 @@
     var after = earnedIds(), fresh = [];
     for (var k in after) if (!before[k]) fresh.push(after[k]);
     if (fresh.length) {
-      var rmsg = 'Yeni rozet: ' + fresh.map(function (b) { return b.title; }).join(', ');
+      var rmsg = I18n.t('Yeni rozet:') + ' ' + fresh.map(function (b) { return I18n.t(b.title); }).join(', ');
       toast(rmsg);
       lastReward = { msg: rmsg, at: Date.now() };
       celebrate(fresh.some(function (b) { return b.id === 'goal' || b.id === 'project'; }));
@@ -350,7 +365,7 @@
     try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 25000); } catch (e) { }
     fetch(url, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl ? ctl.signal : undefined,
-      body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: { project: p ? p.title : '' } })
+      body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: { project: p ? p.title : '', lang: I18n.resolve(S.settings.lang) } })
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
     }).then(function (x) {
@@ -380,7 +395,7 @@
     if (Core.remainingSeconds(S, now()) <= 0) return;
     var left = Core.addUsage(S, 1, now());
     var el = document.getElementById('timeLeft');
-    if (el) el.textContent = Core.formatDuration(left);
+    if (el) el.textContent = I18n.t(Core.formatDuration(left));
     if (left <= 0) { save(); render(); } else if (left % 10 === 0) save();
   }, 1000);
 
@@ -502,7 +517,7 @@
     rd.onload = function () {
       var res = Core.importData(String(rd.result || ''));
       if (!res.ok) { toast(res.error); return; }
-      if (!window.confirm('Yedekteki ' + res.counts.finance + ' kayıt ve ' + res.counts.projects + ' proje yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?')) return;
+      if (!window.confirm(I18n.t('Yedekteki ' + res.counts.finance + ' kayıt ve ' + res.counts.projects + ' proje yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'))) return;
       res.state.lock = S.lock;                        // kilit yedeğe girmez, mevcut kilit korunur
       res.state.user.onboarded = true;
       S = res.state; save(); applyTheme(); ui.noDraft = true; toast('Yedek geri yüklendi.'); render();
@@ -593,6 +608,12 @@
     toggleTheme: function () {
       Core.setTheme(S, ui.resolvedTheme === 'dark' ? 'light' : 'dark'); applyTheme(); save(); render();
     },
+    setLang: function (el) {
+      if (!Core.setLanguage(S, el.value)) return;
+      if (!S.user.onboarded) { S.settings.currency = Core.LANG_CURRENCY[I18n.resolve(S.settings.lang)] || 'TRY'; }
+      save(); render();
+    },
+    setCurrency: function (el) { if (Core.setCurrency(S, el.value)) { save(); render(); } },
     setTheme: function (el) { Core.setTheme(S, el.getAttribute('data-v')); applyTheme(); save(); render(); },
     quizStart: function () { ui.quiz = { step: 0, answers: {} }; ui.route = 'tasks'; ui.enter = 'fade'; render(); },
     quizCancel: function () { ui.quiz = null; render(); },
@@ -681,7 +702,7 @@
     },
     recToggle: function (el) { Core.toggleRecurring(S, el.getAttribute('data-id'), now()); save(); render(); },
     recDel: function (el) {
-      if (!window.confirm('Bu tekrarlayan kayıt silinsin mi? Daha önce eklenen kayıtlar kalır.')) return;
+      if (!window.confirm(I18n.t('Bu tekrarlayan kayıt silinsin mi? Daha önce eklenen kayıtlar kalır.'))) return;
       Core.removeRecurring(S, el.getAttribute('data-id')); save(); render();
     },
     savAdd: function () {
@@ -697,7 +718,7 @@
       if (v && Core.savingProgress(v).reached && sign > 0) { toast('Birikim hedefine ulaştın.'); celebrate(true); }
     },
     savDel: function (el) {
-      if (!window.confirm('Bu birikim hedefi silinsin mi?')) return;
+      if (!window.confirm(I18n.t('Bu birikim hedefi silinsin mi?'))) return;
       Core.removeSaving(S, el.getAttribute('data-id')); save(); render();
     },
     taxSave: function () {
@@ -717,7 +738,7 @@
       render();
     },
     delFin: function (el) {
-      if (!window.confirm('Bu kayıt silinsin mi?')) return;
+      if (!window.confirm(I18n.t('Bu kayıt silinsin mi?'))) return;
       Core.removeFinance(S, el.getAttribute('data-id')); save(); render();
     },
     saveGoal: function () {
@@ -740,7 +761,7 @@
     decide: function (el) { Core.decide(S, el.getAttribute('data-id'), el.getAttribute('data-s'), now()); save(); render(); },
     setPkg: function (el) {
       var id = el.getAttribute('data-id');
-      if (id === 'free' && !window.confirm('Aboneliği bitirmek istediğinden emin misin? (test) Kurduğun iş sende kalır, otomasyonlar durur.')) return;
+      if (id === 'free' && !window.confirm(I18n.t('Aboneliği bitirmek istediğinden emin misin? (test) Kurduğun iş sende kalır, otomasyonlar durur.'))) return;
       Core.setPackage(S, id, now()); save(); toast(id === 'free' ? 'Ücretsiz pakete dönüldü.' : 'Paket değişti (test).'); render();
     },
     saveName: function () { S.user.name = val('setName').trim(); save(); toast('Kaydedildi.'); render(); },
@@ -756,7 +777,7 @@
     },
     closeExport: function () { ui.exportText = null; ui.exportNote = ''; render(); },
     wipe: function (skipConfirm) {
-      if (skipConfirm !== true && !window.confirm('Tüm verilerin kalıcı olarak silinecek. Emin misin?')) return;
+      if (skipConfirm !== true && !window.confirm(I18n.t('Tüm verilerin kalıcı olarak silinecek. Emin misin?'))) return;
       S = Core.defaultState(); mem = null;
       try { window.localStorage.removeItem(App.STORAGE_KEY); } catch (e) { }
       applyTheme(); ui.noDraft = true; ui.depth = 0; ui.onb = 0; ui.pinMode = null;
@@ -768,7 +789,7 @@
     lockOff: function () { ui.pinMode = 'disable'; ui.pin = ''; ui.pinMsg = ''; render(); },
     pinCancel: function () { ui.pinMode = null; ui.pin = ''; ui.pinMsg = ''; ui.pinTmp = ''; render(); },
     pinForgot: function () {
-      if (!window.confirm('PIN\'i kurtarmanın yolu yok: kilidi açmak için uygulama verileri silinir. Devam edilsin mi?')) return;
+      if (!window.confirm(I18n.t('PIN\'i kurtarmanın yolu yok: kilidi açmak için uygulama verileri silinir. Devam edilsin mi?'))) return;
       actions.wipe(true);
     },
     pinKey: function (el) { pinKey(el.getAttribute('data-v')); },
@@ -827,6 +848,8 @@
   });
   document.addEventListener('change', function (e) {
     var t = e.target;
+    var ac = t && t.getAttribute && t.getAttribute('data-act-change');
+    if (ac && actions[ac]) { actions[ac](t); return; }
     if (t && t.getAttribute && t.getAttribute('data-change') === 'note') {
       var p = Core.activeProject(S);
       if (p) { Core.setTaskNote(S, p.id, t.getAttribute('data-id'), t.value, now()); save(); }
@@ -835,6 +858,7 @@
   window.addEventListener('error', function (e) { try { toast('Hata: ' + e.message); } catch (x) { } });
 
   // ---------- Başlat ----------
+  if (!S.user.onboarded && S.settings.lang === 'auto' && S.settings.currency === 'TRY') S.settings.currency = Core.LANG_CURRENCY[I18n.detect()] || 'TRY';
   applyTheme();
   function runRecurring() {
     var n = Core.applyRecurring(S, now());
