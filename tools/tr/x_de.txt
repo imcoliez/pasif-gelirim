@@ -103,3 +103,5 @@
 102|Der Bereich, in dem die KI Pläne und Entwürfe vorbereitet und dir die wichtigen Entscheidungen überlässt, wird im CEO-Modus freigeschaltet.
 103|Du kannst höchstens # Projekte anlegen. Schließe eines unter „Meine Projekte" ab, bevor du ein neues Modell wählst.
 104|Du kannst höchstens # Projekte anlegen.
+105|Auf dem Gerät konnte nicht gespeichert werden. Wir empfehlen, deine Daten zu sichern.
+106|Deine gespeicherten Daten konnten nicht gelesen werden; eine Rohkopie wurde auf dem Gerät aufbewahrt.

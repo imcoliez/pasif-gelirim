@@ -8,16 +8,25 @@
 
   // ---------- Kayıt ----------
   var mem = null;                       // localStorage çalışmazsa bellekte tut
+  var corrupt = false, saveWarned = false;
   function load() {
-    try {
-      var raw = window.localStorage.getItem(App.STORAGE_KEY);
-      if (raw) return Core.migrate(JSON.parse(raw));
-    } catch (e) { if (mem) return mem; }
+    var raw = null;
+    try { raw = window.localStorage.getItem(App.STORAGE_KEY); } catch (e) { }
+    if (raw) {
+      try { return Core.migrate(JSON.parse(raw)); } catch (e) {
+        // Okunamayan kayıt sonraki kayıtla ezilmesin: ham kopyası ayrı anahtarda saklanır.
+        corrupt = true;
+        try { window.localStorage.setItem(App.STORAGE_KEY + '_bozuk', raw); } catch (e2) { }
+      }
+    }
     return mem || Core.defaultState();
   }
   function save() {
     mem = S;
-    try { window.localStorage.setItem(App.STORAGE_KEY, JSON.stringify(S)); } catch (e) { /* sessizce geç */ }
+    try { window.localStorage.setItem(App.STORAGE_KEY, JSON.stringify(S)); }
+    catch (e) {
+      if (!saveWarned) { saveWarned = true; setTimeout(function () { toast('Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.'); }, 0); }
+    }
   }
 
   var S = load();
@@ -881,6 +890,7 @@
   runRecurring();
   if (S.lock.enabled) { ui.pinMode = 'unlock'; }
   render();
+  if (corrupt) toast('Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.');
   if (S.settings.reminder.enabled) scheduleReminder(false);
   setTimeout(function () { var s = document.getElementById('splash'); if (s) s.remove(); }, reduce ? 100 : 1750);
 })();

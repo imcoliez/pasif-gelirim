@@ -103,3 +103,5 @@
 102|The section where AI prepares plans and drafts and leaves the important decisions to you opens in CEO Mode.
 103|You can create at most # projects. Finish one in My Projects before choosing a new model.
 104|You can create at most # projects.
+105|Could not save to the device. We recommend backing up your data.
+106|Your saved data could not be read; a raw copy was kept on the device.

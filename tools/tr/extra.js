@@ -104,7 +104,9 @@ module.exports = {
   "Yeni proje başlat": "Start new project",
   "Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu'nda açılır.": "The section where AI prepares plans and drafts and leaves the important decisions to you opens in CEO Mode.",
   "En fazla # proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.": "You can create at most # projects. Finish one in My Projects before choosing a new model.",
-  "En fazla # proje oluşturabilirsin.": "You can create at most # projects."
+  "En fazla # proje oluşturabilirsin.": "You can create at most # projects.",
+  "Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.": "Could not save to the device. We recommend backing up your data.",
+  "Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.": "Your saved data could not be read; a raw copy was kept on the device."
  },
  "de": {
   "Dil": "Sprache",
@@ -211,7 +213,9 @@ module.exports = {
   "Yeni proje başlat": "Neues Projekt starten",
   "Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu'nda açılır.": "Der Bereich, in dem die KI Pläne und Entwürfe vorbereitet und dir die wichtigen Entscheidungen überlässt, wird im CEO-Modus freigeschaltet.",
   "En fazla # proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.": "Du kannst höchstens # Projekte anlegen. Schließe eines unter „Meine Projekte\" ab, bevor du ein neues Modell wählst.",
-  "En fazla # proje oluşturabilirsin.": "Du kannst höchstens # Projekte anlegen."
+  "En fazla # proje oluşturabilirsin.": "Du kannst höchstens # Projekte anlegen.",
+  "Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.": "Auf dem Gerät konnte nicht gespeichert werden. Wir empfehlen, deine Daten zu sichern.",
+  "Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.": "Deine gespeicherten Daten konnten nicht gelesen werden; eine Rohkopie wurde auf dem Gerät aufbewahrt."
  },
  "es": {
   "Dil": "Idioma",
@@ -318,7 +322,9 @@ module.exports = {
   "Yeni proje başlat": "Empezar un proyecto nuevo",
   "Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu'nda açılır.": "La sección donde la IA prepara planes y borradores y te deja las decisiones importantes se abre en el Modo CEO.",
   "En fazla # proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.": "Puedes crear como máximo # proyectos. Termina uno en Mis proyectos antes de elegir un modelo nuevo.",
-  "En fazla # proje oluşturabilirsin.": "Puedes crear como máximo # proyectos."
+  "En fazla # proje oluşturabilirsin.": "Puedes crear como máximo # proyectos.",
+  "Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.": "No se pudo guardar en el dispositivo. Te recomendamos hacer una copia de seguridad de tus datos.",
+  "Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.": "No se pudieron leer tus datos guardados; se conservó una copia sin procesar en el dispositivo."
  },
  "ru": {
   "Dil": "Язык",
@@ -425,7 +431,9 @@ module.exports = {
   "Yeni proje başlat": "Начать новый проект",
   "Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu'nda açılır.": "Раздел, где ИИ готовит планы и черновики, а важные решения оставляет тебе, открывается в режиме CEO.",
   "En fazla # proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.": "Можно создать не более # проектов. Заверши один в «Мои проекты», прежде чем выбирать новую модель.",
-  "En fazla # proje oluşturabilirsin.": "Можно создать не более # проектов."
+  "En fazla # proje oluşturabilirsin.": "Можно создать не более # проектов.",
+  "Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.": "Не удалось сохранить на устройство. Рекомендуем сделать резервную копию данных.",
+  "Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.": "Не удалось прочитать сохранённые данные; необработанная копия сохранена на устройстве."
  },
  "ar": {
   "Dil": "اللغة",
@@ -532,6 +540,8 @@ module.exports = {
   "Yeni proje başlat": "بدء مشروع جديد",
   "Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu'nda açılır.": "يُفتح في وضع المدير التنفيذي القسم الذي يعدّ فيه الذكاء الاصطناعي الخطط والمسودات ويترك لك القرارات المهمة.",
   "En fazla # proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.": "يمكنك إنشاء # مشاريع على الأكثر. أنهِ أحدها في مشاريعي قبل اختيار نموذج جديد.",
-  "En fazla # proje oluşturabilirsin.": "يمكنك إنشاء # مشاريع على الأكثر."
+  "En fazla # proje oluşturabilirsin.": "يمكنك إنشاء # مشاريع على الأكثر.",
+  "Kayıt cihaza yazılamadı. Verilerini yedeklemeni öneririz.": "تعذر الحفظ على الجهاز. نوصي بعمل نسخة احتياطية لبياناتك.",
+  "Kayıtlı verin okunamadı; ham kopyası cihazda saklandı.": "تعذرت قراءة بياناتك المحفوظة؛ وتم الاحتفاظ بنسخة خام على الجهاز."
  }
 };

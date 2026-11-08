@@ -18,7 +18,31 @@
       } catch (e) { }
     })();
   </script>
+  <style>html,body{background:#080a0b;color:#e8eeea;margin:0}html[data-theme="light"],html[data-theme="light"] body{background:#f4f6f5;color:#121a16}</style>
   <link rel="stylesheet" href="style.css">
+  <script>
+    /* Beklenmedik bir betik hatasında boş ekran yerine okunur bir hata paneli gösterir. Verilere dokunmaz. */
+    (function () {
+      var errs = [];
+      function note(m) { errs.push(String(m).slice(0, 300)); if (errs.length > 5) errs.shift(); }
+      function empty() { var m = document.getElementById('main'); return !m || !m.firstElementChild; }
+      function panel() {
+        if (document.getElementById('fatal') || !document.body) return;
+        var d = document.createElement('div'); d.id = 'fatal';
+        d.setAttribute('style', 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;overflow:auto;padding:28px 20px;background:#080a0b;color:#e8eeea;font:16px/1.5 system-ui,sans-serif');
+        var h = document.createElement('h2'); h.textContent = 'Uygulama açılamadı'; h.setAttribute('style', 'margin:0 0 8px');
+        var p = document.createElement('p'); p.textContent = 'Bir hata oluştu. Verilerin silinmedi. Yeniden dene; sorun sürerse aşağıdaki bilgiyi bildir.';
+        var pre = document.createElement('pre'); pre.textContent = errs.join('\n') || 'Bilinmeyen hata'; pre.setAttribute('style', 'white-space:pre-wrap;word-break:break-word;background:#10151a;border-radius:12px;padding:12px;font-size:13px');
+        var b = document.createElement('button'); b.textContent = 'Yeniden dene'; b.setAttribute('style', 'margin-top:12px;padding:12px 20px;border:0;border-radius:12px;background:#2ee08a;color:#06210f;font:inherit;font-weight:600');
+        b.onclick = function () { location.reload(); };
+        d.appendChild(h); d.appendChild(p); d.appendChild(pre); d.appendChild(b); document.body.appendChild(d);
+        var s = document.getElementById('splash'); if (s) s.parentNode.removeChild(s);
+      }
+      window.addEventListener('error', function (e) { note((e.message || 'Hata') + (e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + (e.lineno || 0) + ')' : '')); if (document.readyState !== 'loading' && empty()) panel(); });
+      window.addEventListener('unhandledrejection', function (e) { note('Söz hatası: ' + (e.reason && e.reason.message || e.reason)); });
+      window.addEventListener('load', function () { setTimeout(function () { if (empty()) panel(); }, 3000); });
+    })();
+  </script>
 </head>
 <body>
   <div id="splash" aria-hidden="true"><img src="logo.png" alt=""><p>DAHA FAZLASI MÜMKÜN.</p></div>

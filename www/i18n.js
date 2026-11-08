@@ -25,6 +25,8 @@
 
   const NUM = /\d[\d.,:/]*\d|\d/g;
   function collapse(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  // Harf var mı? (\p{L} eski Android WebView'larda söz dizimi hatası verir)
+  var LETTER = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u052F\u0600-\u06FF\u0750-\u077F]/;
   function norm(s) { return collapse(s).replace(NUM, '#'); }
   function nums(s) { return collapse(s).match(NUM) || []; }
 
@@ -50,7 +52,7 @@
     const key = norm(raw);
     if (!key) return text;
     const tr = d[key];
-    if (tr === undefined) { if (/\p{L}/u.test(key)) missing[key] = true; return withCur(String(text), noCur); }
+    if (tr === undefined) { if (LETTER.test(key)) missing[key] = true; return withCur(String(text), noCur); }
     const ns = nums(raw); let i = 0;
     const out = tr.replace(/#/g, function () { const n = ns[i++]; return n === undefined ? '#' : localizeNum(n, lang); });
     return (lead ? ' ' : '') + withCur(out, noCur) + (trail ? ' ' : '');
@@ -104,7 +106,7 @@
     const clean = String(html).replace(/<script[\s\S]*?<\/script>/g, '').replace(/<textarea[\s\S]*?<\/textarea>/g, '<textarea></textarea>').replace(/<[^>]*data-nt[^>]*>[^<]*</g, '<');
     clean.replace(/>([^<>]+)</g, function (_, t) { out.push(decode(t)); return _; });
     clean.replace(/\s(?:placeholder|aria-label|title|alt)="([^"]*)"/g, function (_, t) { out.push(decode(t)); return _; });
-    return out.map(collapse).filter(function (s) { return /\p{L}/u.test(norm(s)); });
+    return out.map(collapse).filter(function (s) { return LETTER.test(norm(s)); });
   }
 
   return {

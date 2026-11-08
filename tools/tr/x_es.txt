@@ -103,3 +103,5 @@
 102|La sección donde la IA prepara planes y borradores y te deja las decisiones importantes se abre en el Modo CEO.
 103|Puedes crear como máximo # proyectos. Termina uno en Mis proyectos antes de elegir un modelo nuevo.
 104|Puedes crear como máximo # proyectos.
+105|No se pudo guardar en el dispositivo. Te recomendamos hacer una copia de seguridad de tus datos.
+106|No se pudieron leer tus datos guardados; se conservó una copia sin procesar en el dispositivo.

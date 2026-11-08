@@ -936,7 +936,8 @@
     return '"' + s.replace(/"/g, '""') + '"';
   }
   function exportCsv(state) {
-    const rows = ['Tarih;Tür;Kategori;Tutar (TL);Not'];
+    const cur = state.settings && state.settings.currency, unit = !cur || cur === 'TRY' ? 'TL' : cur;
+    const rows = ['Tarih;Tür;Kategori;Tutar (' + unit + ');Not'];
     state.finance.slice().sort(function (a, b) { return a.date - b.date; }).forEach(function (f) {
       rows.push([formatDate(f.date), f.type === 'in' ? 'Gelir' : 'Gider', categoryName(f.type, f.cat), String(f.amount).replace('.', ','), f.note].map(csvCell).join(';'));
     });
