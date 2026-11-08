@@ -33,6 +33,9 @@ Sürüm 1.0 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | Çalışma serisi ve 7 rozet | ✅ |
 | Paketler: Ücretsiz / Manuel / Yarı Otomasyon / CEO Modu | ✅ (**TEST modu**, gerçek ödeme yok) |
 | Soru-cevapla gelir modeli seçimi, 7 adımlık görevler, not alma | ✅ |
+| **Projelerim (v1.1):** en fazla 4 proje, aktif proje seçme, proje başına ilerleme ve net, proje dışa aktarma (JSON) | ✅ |
+| **Model kartları (v1.1):** başlangıç maliyeti, zorluk, gereken beceriler, risk; bütçesi yetmeyen kullanıcıya bütçe isteyen model önerilmez ("şimdilik önerilmeyenler", nedeniyle) | ✅ |
+| **Görevlerde Okudum / Anladım / Tamamladım (v1.1)** aşamaları | ✅ |
 | 💚 Sesli anlatım (+150 TL, cihazın kendi sesiyle) | ✅ (ödeme test) |
 | Günlük 1 saatlik ücretsiz AI sohbet, öneri düğmeleri, "yazıyor" animasyonu | ✅ (**demo yapay zekâ**) |
 | Otomasyon planı ve CEO karar kartları | ✅ (kural tabanlı) |

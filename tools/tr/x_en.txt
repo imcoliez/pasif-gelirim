@@ -65,3 +65,41 @@
 64|Chat
 65|Main menu
 66|New badge:
+67|My Projects
+68|# / # projects
+69|Prepare a daily work plan for your chosen model (currently from ready-made templates; AI connection coming soon)
+70|AI prepares plans and drafts and asks for your approval on spending and outside actions (real AI connection coming soon)
+71|# / # projects. A few focused projects move faster than many scattered ones.
+72|You have no projects yet. Find the income model that suits you and start your first project.
+73|Starting a new project requires the Manual plan or higher.
+74|Your plan is tied to your account. Automation plans and decision cards are prepared for your active project. Your income-expense entries are not lost when you switch projects.
+75|Starting cost
+76|None or very low
+77|Difficulty
+78|Medium
+79|Skills needed
+80|Communication
+81|Organization and follow-up
+82|Risk
+83|Your income depends on the hours you work and can be irregular. It is not passive; you turn your time into work.
+84|You must be ready for rejection; businesses may decide slowly. It is not passive, it is a service job.
+85|Visual production
+86|Writing
+87|The reward for your effort may come late; reach and follower count are not in your control.
+88|Not recommended for now
+89|Low
+90|Hard
+91|Showing up in search engines can take months; partner terms and search rules are not in your control.
+92|A small budget is needed for a domain and hosting; start with other models for now.
+93|Preparing the product is not enough; you need marketing effort to reach the right people, and sales may not happen.
+94|My Projects (# / #)
+95|Net of this project
+96|Open
+97|Export project
+98|Read
+99|Understood
+100|Progress
+101|Start new project
+102|The section where AI prepares plans and drafts and leaves the important decisions to you opens in CEO Mode.
+103|You can create at most # projects. Finish one in My Projects before choosing a new model.
+104|You can create at most # projects.

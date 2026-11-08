@@ -1,0 +1,38 @@
+0|My Projects
+1|# / # projects
+2|Prepare a daily work plan for your chosen model (currently from ready-made templates; AI connection coming soon)
+3|AI prepares plans and drafts and asks for your approval on spending and outside actions (real AI connection coming soon)
+4|# / # projects. A few focused projects move faster than many scattered ones.
+5|You have no projects yet. Find the income model that suits you and start your first project.
+6|Starting a new project requires the Manual plan or higher.
+7|Your plan is tied to your account. Automation plans and decision cards are prepared for your active project. Your income-expense entries are not lost when you switch projects.
+8|Starting cost
+9|None or very low
+10|Difficulty
+11|Medium
+12|Skills needed
+13|Communication
+14|Organization and follow-up
+15|Risk
+16|Your income depends on the hours you work and can be irregular. It is not passive; you turn your time into work.
+17|You must be ready for rejection; businesses may decide slowly. It is not passive, it is a service job.
+18|Visual production
+19|Writing
+20|The reward for your effort may come late; reach and follower count are not in your control.
+21|Not recommended for now
+22|Low
+23|Hard
+24|Showing up in search engines can take months; partner terms and search rules are not in your control.
+25|A small budget is needed for a domain and hosting; start with other models for now.
+26|Preparing the product is not enough; you need marketing effort to reach the right people, and sales may not happen.
+27|My Projects (# / #)
+28|Net of this project
+29|Open
+30|Export project
+31|Read
+32|Understood
+33|Progress
+34|Start new project
+35|The section where AI prepares plans and drafts and leaves the important decisions to you opens in CEO Mode.
+36|You can create at most # projects. Finish one in My Projects before choosing a new model.
+37|You can create at most # projects.

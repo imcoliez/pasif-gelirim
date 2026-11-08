@@ -16,9 +16,9 @@
     manual: { id: 'manual', tier: 1, name: 'Manuel',         emoji: '📗', price: null, narrationIncluded: false,
               features: ['Ücretsiz paketin tüm özellikleri', 'İnteraktif soru-cevap ile gelir modeli seçimi', 'Görev listesi ve yazılı açıklamalar', '+150 TL ile sesli yapay zekâ anlatımı'] },
     semi:   { id: 'semi',   tier: 2, name: 'Yarı Otomasyon', emoji: '⚙️', price: null, narrationIncluded: true,
-              features: ['Manuel paketin tüm özellikleri', 'Otomatik içerik/iş planı hazırlama', 'Sesli anlatım dahil'] },
+              features: ['Manuel paketin tüm özellikleri', 'Seçtiğin modele göre günlük iş planı hazırlama (şu an hazır şablonlarla; yapay zekâ bağlantısı yakında)', 'Sesli anlatım dahil'] },
     ceo:    { id: 'ceo',    tier: 3, name: 'CEO Modu',       emoji: '👑', price: null, narrationIncluded: true,
-              features: ['Yarı Otomasyon özellikleri', 'Haftalık karar kartları: önemli kararları sen verirsin', 'Yapay zekâ işin büyük kısmını yürütür'] }
+              features: ['Yarı Otomasyon özellikleri', 'Haftalık karar kartları: önemli kararları sen verirsin', 'Yapay zekâ plan ve taslakları hazırlar; harcama ve dış işlemlerde senden onay ister (gerçek yapay zekâ bağlantısı yakında)'] }
   };
 
   let idCounter = 0;
@@ -119,7 +119,13 @@
       return { id: String(v.id || uid('sav')), name: String(v.name).slice(0, 40), target: +v.target, saved: Math.max(0, +v.saved), at: +v.at || 0 };
     });
     out.settings.taxPct = isFinite(out.settings.taxPct) ? Math.min(60, Math.max(0, +out.settings.taxPct)) : 0;
-    out.projects.forEach(function (p) { if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {}; });
+    out.projects.forEach(function (p) {
+      if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {};
+      Object.keys(p.tasks).forEach(function (k) {
+        const t = p.tasks[k]; if (!t || typeof t !== 'object') { delete p.tasks[k]; return; }
+        t.read = !!(t.read || t.understood || t.done); t.understood = !!(t.understood || t.done);
+      });
+    });
     return out;
   }
 
@@ -163,6 +169,8 @@
   // ---------- Gelir modeli önerisi ----------
   function modelById(id) { return Data.MODELS.find(function (m) { return m.id === id; }) || null; }
 
+  const APP_VERSION = '1.1';
+  const MONEY_RANK = { none: 0, low: 1, mid: 2 };
   function recommend(answers) {
     const list = Data.MODELS.map(function (m) {
       let score = 0;
@@ -177,16 +185,21 @@
           if (opt) reasons.push('"' + opt.t + '" cevabınla iyi uyuşuyor');
         }
       });
-      return { model: m, score: score, reasons: reasons };
+      // bütçesi yetmeyen kullanıcıya sermaye isteyen model önerilmez; nedeniyle birlikte "blocked" olarak işaretlenir
+      const blocked = !!(m.minMoney && answers.money != null && (MONEY_RANK[answers.money] || 0) < MONEY_RANK[m.minMoney]);
+      return { model: m, score: score, reasons: blocked ? [] : reasons, blocked: blocked, blockReason: blocked ? 'Alan adı ve barındırma için küçük bir bütçe gerekir; şimdilik başka modellerle başla.' : '' };
     });
-    list.sort(function (a, b) { return b.score - a.score; });
+    list.sort(function (a, b) { return (a.blocked - b.blocked) || (b.score - a.score); });
     return list;
   }
 
   // ---------- Projeler ve görevler ----------
+  const MAX_PROJECTS = 4;
+  function canStartProject(state) { return state.projects.length < MAX_PROJECTS; }
   function startProject(state, modelId, now) {
     const m = modelById(modelId);
     if (!m) throw new Error('Bilinmeyen model: ' + modelId);
+    if (!canStartProject(state)) return null;
     const p = {
       id: uid('proj'), modelId: m.id, title: m.title, createdAt: now, updatedAt: now,
       tasks: {}, lastNote: 'Proje başlatıldı.'
@@ -197,6 +210,29 @@
   }
   function projectById(state, id) { return state.projects.find(function (p) { return p.id === id; }) || null; }
   function activeProject(state) { return projectById(state, state.activeProjectId); }
+  function setActiveProject(state, id) { if (!projectById(state, id)) return false; state.activeProjectId = id; return true; }
+
+  // Projelerim kartı için özet: ilerleme + bu projeye bağlı gerçek gelir-gider
+  function projectSummary(state, p) {
+    const pr = progress(p), m = modelById(p.modelId);
+    let income = 0, expense = 0;
+    state.finance.forEach(function (f) { if (f.src === p.id) { if (f.type === 'in') income += f.amount; else expense += f.amount; } });
+    income = Math.round(income * 100) / 100; expense = Math.round(expense * 100) / 100;
+    const nt = nextTask(p);
+    return { id: p.id, title: p.title, emoji: m ? m.emoji : '', pct: pr.pct, done: pr.done, total: pr.total, complete: pr.complete,
+      income: income, expense: expense, net: Math.round((income - expense) * 100) / 100, updatedAt: p.updatedAt, lastNote: p.lastNote,
+      next: nt ? nt.title : '', active: state.activeProjectId === p.id };
+  }
+  // Tek projenin dışa aktarımı (görevler, notlar, kayıtlar, planlar, kararlar)
+  function exportProject(state, id, now) {
+    const p = projectById(state, id); if (!p) return null;
+    return JSON.stringify({
+      app: 'Pasif Gelirim', kind: 'project', version: APP_VERSION, exportedAt: now || Date.now(), project: p,
+      finance: state.finance.filter(function (f) { return f.src === p.id; }),
+      plans: state.plans.filter(function (x) { return x.projectId === p.id; }),
+      decisions: state.decisions.filter(function (x) { return x.projectId === p.id; })
+    }, null, 2);
+  }
 
   function progress(project) {
     const m = modelById(project.modelId);
@@ -219,9 +255,22 @@
     const cur = p.tasks[taskId] || { done: false, note: '' };
     cur.done = !!done;
     cur.doneAt = done ? now : null;
+    if (done) { cur.read = true; cur.understood = true; }
     p.tasks[taskId] = cur;
     p.updatedAt = now;
     p.lastNote = done ? '"' + t.title + '" görevi tamamlandı.' : '"' + t.title + '" görevi tekrar açıldı.';
+    return true;
+  }
+  // Okudum / anladım aşamaları (tamamlama ayrı; "anladım" işaretlemek "okudum"u da işaretler)
+  function setTaskStage(state, projectId, taskId, stage, value, now) {
+    const p = projectById(state, projectId);
+    if (!p || (stage !== 'read' && stage !== 'understood')) return false;
+    const m = modelById(p.modelId);
+    if (!m || !m.tasks.some(function (x) { return x.id === taskId; })) return false;
+    const cur = p.tasks[taskId] || { done: false, note: '' };
+    if (stage === 'read') { cur.read = !!value; if (!value) cur.understood = false; }
+    else { cur.understood = !!value; if (value) cur.read = true; }
+    p.tasks[taskId] = cur; p.updatedAt = now;
     return true;
   }
   function setTaskNote(state, projectId, taskId, note, now) {
@@ -915,9 +964,10 @@
     setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, LANG_CODES: LANG_CODES, CURRENCIES: CURRENCIES, LANG_CURRENCY: LANG_CURRENCY, setLanguage: setLanguage, setCurrency: setCurrency, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
-    importData: importData, APP_VERSION: '1.0',
+    importData: importData, APP_VERSION: APP_VERSION,
     addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
     addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
+    MAX_PROJECTS: MAX_PROJECTS, canStartProject: canStartProject, setActiveProject: setActiveProject, projectSummary: projectSummary, exportProject: exportProject, setTaskStage: setTaskStage,
     setTaxPct: setTaxPct, taxReserve: taxReserve, sourceSplit: sourceSplit,
     ACCENTS: ACCENTS, setLook: setLook, setAvatar: setAvatar,
     updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,

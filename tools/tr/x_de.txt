@@ -65,3 +65,41 @@
 64|Chat
 65|Hauptmenü
 66|Neues Abzeichen:
+67|Meine Projekte
+68|# / # Projekte
+69|Tagesplan für das gewählte Modell erstellen (derzeit aus Vorlagen; KI-Anbindung folgt bald)
+70|Die KI bereitet Pläne und Entwürfe vor und holt bei Ausgaben und externen Aktionen deine Zustimmung ein (echte KI-Anbindung folgt bald)
+71|# / # Projekte. Wenige, fokussierte Projekte kommen schneller voran als viele verstreute.
+72|Du hast noch keine Projekte. Finde das passende Einkommensmodell und starte dein erstes Projekt.
+73|Für ein neues Projekt brauchst du den Tarif „Manuell" oder höher.
+74|Dein Tarif ist an dein Konto gebunden. Automatisierungspläne und Entscheidungskarten werden für dein aktives Projekt erstellt. Deine Einnahmen- und Ausgabeneinträge gehen beim Wechsel des Projekts nicht verloren.
+75|Startkosten
+76|Keine oder sehr niedrig
+77|Schwierigkeit
+78|Mittel
+79|Benötigte Fähigkeiten
+80|Kommunikation
+81|Organisation und Nachverfolgung
+82|Risiko
+83|Dein Einkommen hängt von deinen Arbeitsstunden ab und kann unregelmäßig sein. Es ist nicht passiv; du verwandelst deine Zeit in Arbeit.
+84|Du musst Absagen aushalten; Unternehmen entscheiden mitunter langsam. Es ist nicht passiv, sondern ein Dienstleistungsjob.
+85|Visuelle Produktion
+86|Schreiben
+87|Der Lohn für deine Mühe kann spät kommen; Reichweite und Followerzahl hast du nicht in der Hand.
+88|Vorerst nicht empfohlen
+89|Niedrig
+90|Schwer
+91|Das Erscheinen in Suchmaschinen kann Monate dauern; Partnerbedingungen und Suchregeln liegen nicht in deiner Hand.
+92|Für Domain und Hosting braucht es ein kleines Budget; starte vorerst mit anderen Modellen.
+93|Das Produkt zu erstellen reicht nicht; du brauchst Marketingaufwand, um die richtigen Menschen zu erreichen, und Verkäufe sind nicht sicher.
+94|Meine Projekte (# / #)
+95|Netto dieses Projekts
+96|Öffnen
+97|Projekt exportieren
+98|Gelesen
+99|Verstanden
+100|Fortschritt
+101|Neues Projekt starten
+102|Der Bereich, in dem die KI Pläne und Entwürfe vorbereitet und dir die wichtigen Entscheidungen überlässt, wird im CEO-Modus freigeschaltet.
+103|Du kannst höchstens # Projekte anlegen. Schließe eines unter „Meine Projekte" ab, bevor du ein neues Modell wählst.
+104|Du kannst höchstens # Projekte anlegen.

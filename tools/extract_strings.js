@@ -34,6 +34,7 @@ function states() {
   };
   ['free', 'manual', 'semi', 'ceo'].forEach(k => out.push([k, mk(k), T]));
   Data.MODELS.slice(1).forEach(m => out.push(['m-' + m.id, mk('ceo', m.id), T]));
+  const four = mk('ceo'); ['freelance', 'blog-affiliate', 'yerel-hizmet'].forEach(m => Core.startProject(four, m, T)); out.push(['four', four, T]);
   const full = mk('ceo'); full.addonNarration = true;
   Core.decide(full, full.decisions[0].id, 'onaylandı', T);
   full.settings.look.accent = 'custom'; full.settings.look.custom = '#ff8800'; full.settings.reminder.enabled = true; full.lock = { enabled: true, salt: 'a', hash: 'b' };
@@ -46,7 +47,7 @@ function states() {
 function uiStates(S, T) {
   const ui = (o) => Object.assign({ route: 'home', quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '', period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false, exportText: null, resolvedTheme: 'dark', depth: 0, onb: 0, market: null, mkDays: 30 }, o || {});
   const list = [];
-  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market'].forEach(r => list.push(ui({ route: r })));
+  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market', 'projects'].forEach(r => list.push(ui({ route: r })));
   [0, 1, 2].forEach(i => list.push(ui({ route: 'onboarding', onb: i })));
   const p = Core.activeProject(S);
   if (p) {
@@ -81,7 +82,7 @@ function collect() {
     // Core metinleri
     Core.badges(S, T).forEach(b => { add(b.title, 'badge'); add(b.desc, 'badge'); });
     Core.chatSuggestions(S).forEach(x => add(x, 'suggest'));
-    Data.MODELS.forEach(m => { add(m.title, 'model'); add(m.summary, 'model'); add(m.honest, 'model'); m.tasks.forEach(t => { add(t.title, 'task'); add(t.body || t.text || '', 'task'); }); m.planIdeas.forEach(x => add('Gün 1 (01.01.2026): ' + x, 'plan')); m.decisions.forEach(x => add(x, 'dec')); add('# günlük ' + m.title + ' planı', 'plan'); add('# günlük ' + m.title + ' planı · #', 'plan'); });
+    Data.MODELS.forEach(m => { add(m.title, 'model'); add(m.summary, 'model'); if (m.facts) { add(m.facts.cost, 'facts'); add(m.facts.difficulty, 'facts'); m.facts.skills.forEach(x => add(x, 'facts')); add(m.facts.risk, 'facts'); } add(m.honest, 'model'); m.tasks.forEach(t => { add(t.title, 'task'); add(t.body || t.text || '', 'task'); }); m.planIdeas.forEach(x => add('Gün 1 (01.01.2026): ' + x, 'plan')); m.decisions.forEach(x => add(x, 'dec')); add('# günlük ' + m.title + ' planı', 'plan'); add('# günlük ' + m.title + ' planı · #', 'plan'); });
     ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara', '— Hafta değerlendirmesi: Ne işe yaradı? Gelecek hafta neyi değiştireceksin?'].forEach(x => add(x, 'misc'));
     Data.QUESTIONS.forEach(q => { add(q.text, 'quiz'); q.options.forEach(o => add(o.t, 'quiz')); });
     Object.values(Core.PACKAGES).forEach(p => { add(p.name, 'pkg'); p.features.forEach(f => add(f, 'pkg')); });

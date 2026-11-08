@@ -601,4 +601,54 @@ test('dil ve para birimi ayarları doğrulanır', () => {
   assert.strictEqual(C.LANG_CURRENCY.en, 'USD'); assert.ok(C.CURRENCIES.includes(C.LANG_CURRENCY.ru));
 });
 
+test('her modelde başlangıç maliyeti, zorluk, beceri ve risk bilgisi var', () => {
+  D.MODELS.forEach(m => {
+    assert.ok(m.facts && m.facts.cost && m.facts.difficulty && m.facts.risk && m.facts.skills.length, m.id);
+  });
+});
+
+test('bütçesi olmayan kullanıcıya bütçe isteyen model önerilmez (engelli olarak sona düşer, nedeni yazılır)', () => {
+  const r = C.recommend({ time: 'high', money: 'none', skill: 'write', speed: 'slow' });
+  const blog = r.find(x => x.model.id === 'blog-affiliate');
+  assert.ok(blog.blocked && blog.blockReason);
+  assert.strictEqual(r[r.length - 1].model.id, 'blog-affiliate', 'engelli model en sonda');
+  assert.ok(r.filter(x => !x.blocked).length >= 4);
+  const ok = C.recommend({ time: 'high', money: 'low', skill: 'write', speed: 'slow' });
+  assert.ok(!ok.some(x => x.blocked));
+});
+
+test('en fazla 4 proje; aktif proje seçilir; özet ve proje dışa aktarma çalışır', () => {
+  const s = C.defaultState();
+  const ids = ['sosyal-medya', 'freelance', 'dijital-sablon', 'yerel-hizmet'].map(m => C.startProject(s, m, T0).id);
+  assert.strictEqual(s.projects.length, 4);
+  assert.strictEqual(C.startProject(s, 'blog-affiliate', T0), null, '5. proje reddedilir');
+  assert.strictEqual(s.projects.length, 4);
+  assert.ok(!C.canStartProject(s));
+  assert.ok(C.setActiveProject(s, ids[1]) && s.activeProjectId === ids[1]);
+  assert.ok(!C.setActiveProject(s, 'yok') && s.activeProjectId === ids[1]);
+  C.addFinance(s, { type: 'in', amount: 500, src: ids[0] }, T0);
+  C.addFinance(s, { type: 'out', amount: 120, src: ids[0] }, T0);
+  const sum = C.projectSummary(s, s.projects[0]);
+  assert.strictEqual(sum.net, 380); assert.strictEqual(sum.income, 500); assert.strictEqual(sum.expense, 120);
+  const x = JSON.parse(C.exportProject(s, ids[0], T0));
+  assert.strictEqual(x.kind, 'project'); assert.strictEqual(x.finance.length, 2); assert.strictEqual(x.project.id, ids[0]);
+  assert.strictEqual(C.exportProject(s, 'yok', T0), null);
+  const d = C.migrate(JSON.parse(JSON.stringify(s)));
+  assert.strictEqual(d.projects.length, 4);
+});
+
+test('okudum / anladım aşamaları: anladım okudumu da işaretler, tamamlama ikisini de işaretler', () => {
+  const s = C.defaultState(); const p = C.startProject(s, 'freelance', T0); const tid = D.MODELS.find(m => m.id === 'freelance').tasks[0].id;
+  assert.ok(C.setTaskStage(s, p.id, tid, 'understood', true, T0));
+  assert.ok(p.tasks[tid].read && p.tasks[tid].understood && !p.tasks[tid].done);
+  C.setTaskStage(s, p.id, tid, 'read', false, T0);
+  assert.ok(!p.tasks[tid].read && !p.tasks[tid].understood, 'okudum kalkınca anladım da kalkar');
+  assert.ok(!C.setTaskStage(s, p.id, tid, 'bogus', true, T0));
+  C.setTaskDone(s, p.id, tid, true, T0);
+  assert.ok(p.tasks[tid].read && p.tasks[tid].understood && p.tasks[tid].done);
+  assert.strictEqual(C.progress(p).done, 1);
+  const m = C.migrate({ projects: [{ id: 'a', modelId: 'freelance', tasks: { [tid]: { done: true } } }] });
+  assert.ok(m.projects[0].tasks[tid].read && m.projects[0].tasks[tid].understood);
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

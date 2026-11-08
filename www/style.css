@@ -460,3 +460,18 @@ button.av{padding:0;cursor:pointer}
 [dir=rtl] .chart,[dir=rtl] .mkchart,[dir=rtl] svg.donut{direction:ltr}
 [dir=rtl] .inp[inputmode=decimal],[dir=rtl] input[type=time],[dir=rtl] input[type=date]{text-align:right}
 select.inp{width:100%}
+
+/* v1.1: Projelerim, model bilgileri, okudum/anladım */
+.grid2 .tile:last-child:nth-child(odd){grid-column:1/-1}
+.facts{margin:10px 0;display:grid;gap:6px}
+.facts div{display:flex;gap:10px;justify-content:space-between;font-size:13.5px;border-top:1px solid var(--bd);padding-top:6px}
+.facts dt{color:var(--mu);flex:0 0 38%}
+.facts dd{margin:0;text-align:end;flex:1}
+.card.off{opacity:.8}
+.card.proj.act{border-color:var(--g)}
+.card.proj .row{gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.stages{display:flex;gap:8px;margin:12px 0 4px}
+.stg-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font:inherit;font-size:14px;cursor:pointer}
+.stg-btn.on{border-color:var(--g);background:var(--gl);color:var(--g2);font-weight:600}
+.stg{margin-inline-start:auto;color:var(--g2);font-size:12.5px;font-weight:600}
+.task{display:flex;align-items:center;gap:10px}

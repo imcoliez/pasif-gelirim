@@ -1,0 +1,38 @@
+0|Mis proyectos
+1|# / # proyectos
+2|Preparar un plan de trabajo diario según el modelo elegido (por ahora con plantillas; la conexión con IA llegará pronto)
+3|La IA prepara planes y borradores y te pide aprobación para gastos y acciones externas (la conexión real con IA llegará pronto)
+4|# / # proyectos. Pocos proyectos enfocados avanzan más rápido que muchos dispersos.
+5|Aún no tienes proyectos. Encuentra el modelo de ingresos que te conviene y empieza tu primer proyecto.
+6|Para empezar un proyecto nuevo se necesita el plan Manual o superior.
+7|Tu plan está vinculado a tu cuenta. Los planes de automatización y las tarjetas de decisión se preparan para tu proyecto activo. Tus movimientos de ingresos y gastos no se pierden al cambiar de proyecto.
+8|Coste de inicio
+9|Ninguno o muy bajo
+10|Dificultad
+11|Media
+12|Habilidades necesarias
+13|Comunicación
+14|Organización y seguimiento
+15|Riesgo
+16|Tus ingresos dependen de las horas que trabajes y pueden ser irregulares. No es pasivo; conviertes tu tiempo en trabajo.
+17|Hay que aceptar el rechazo; los negocios pueden decidir despacio. No es pasivo, es un trabajo de servicios.
+18|Producción visual
+19|Redacción
+20|La recompensa de tu esfuerzo puede tardar; el alcance y el número de seguidores no dependen de ti.
+21|No recomendados por ahora
+22|Bajo
+23|Difícil
+24|Aparecer en los buscadores puede tardar meses; las condiciones de afiliación y las reglas de búsqueda no dependen de ti.
+25|Se necesita un pequeño presupuesto para dominio y alojamiento; empieza por ahora con otros modelos.
+26|Preparar el producto no basta; hace falta esfuerzo de marketing para llegar a las personas adecuadas y puede que no haya ventas.
+27|Mis proyectos (# / #)
+28|Neto de este proyecto
+29|Abrir
+30|Exportar proyecto
+31|Leído
+32|Entendido
+33|Progreso
+34|Empezar un proyecto nuevo
+35|La sección donde la IA prepara planes y borradores y te deja las decisiones importantes se abre en el Modo CEO.
+36|Puedes crear como máximo # proyectos. Termina uno en Mis proyectos antes de elegir un modelo nuevo.
+37|Puedes crear como máximo # proyectos.

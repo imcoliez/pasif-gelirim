@@ -43,6 +43,7 @@
   const MODELS = [
     {
       id: 'sosyal-medya',
+      facts: { cost: 'Yok veya çok düşük', difficulty: 'Orta', skills: ['Görsel üretim', 'Yazı'], risk: 'Emeğin karşılığı geç gelebilir; erişim ve takipçi sayısı senin kontrolünde değildir.' },
       title: 'Sosyal Medya İçerik Hesabı',
       emoji: '📱',
       summary: 'Belirli bir konuda düzenli içerik üretip takipçi topluyor, zamanla ortaklık, ürün veya hizmetle gelire çeviriyorsun.',
@@ -72,6 +73,7 @@
     },
     {
       id: 'dijital-sablon',
+      facts: { cost: 'Düşük', difficulty: 'Orta', skills: ['Görsel üretim', 'Yazı'], risk: 'Ürünü hazırlamak yetmez; doğru insanlara ulaşmak için pazarlama emeği gerekir ve satış olmayabilir.' },
       title: 'Dijital Şablon / E-kitap Satışı',
       emoji: '📄',
       summary: 'Bir sorunu çözen şablon, planlayıcı veya kısa e-kitap hazırlıyor, bir kez üretip tekrar tekrar satıyorsun.',
@@ -102,6 +104,7 @@
     },
     {
       id: 'freelance',
+      facts: { cost: 'Yok veya çok düşük', difficulty: 'Orta', skills: ['İletişim', 'Düzen ve takip'], risk: 'Gelirin çalıştığın saate bağlıdır ve düzensiz olabilir. Pasif değildir; zamanını işe çevirirsin.' },
       title: 'Freelance Hizmet (yazı, tasarım, çeviri...)',
       emoji: '🧰',
       summary: 'Bildiğin bir beceriyi hizmet olarak sunuyor, müşteri buluyor ve iş başına gelir elde ediyorsun.',
@@ -131,6 +134,8 @@
     },
     {
       id: 'blog-affiliate',
+      facts: { cost: 'Düşük', difficulty: 'Zor', skills: ['Yazı', 'Düzen ve takip'], risk: 'Arama motorlarında görünmek aylar sürebilir; ortaklık şartları ve arama kuralları senin kontrolünde değildir.' },
+      minMoney: 'low',
       title: 'Niş Blog + Bağlantı Ortaklığı',
       emoji: '✍️',
       summary: 'Belirli bir konuda faydalı yazılar yazıyor, arama motorlarından gelen okuyucuları ortaklık bağlantılarıyla gelire çeviriyorsun.',
@@ -160,6 +165,7 @@
     },
     {
       id: 'yerel-hizmet',
+      facts: { cost: 'Yok veya çok düşük', difficulty: 'Orta', skills: ['İletişim', 'Düzen ve takip'], risk: 'Reddedilmeyi göze almak gerekir; işletmeler yavaş karar verebilir. Pasif değildir, bir hizmet işidir.' },
       title: 'Yerel İşletmelere Dijital Hizmet',
       emoji: '🏪',
       summary: 'Küçük işletmelere QR menü, işletme profili, sosyal medya düzeni gibi dijital işleri hazırlıyor, hizmet bedeli alıyorsun.',

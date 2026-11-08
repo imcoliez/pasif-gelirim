@@ -216,6 +216,8 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await shot('08-soru');
   await page.click('[data-act=answer][data-q=speed][data-v=fast]');
   ok(await has('En uygun') && await has('garanti değildir'), 'öneri ekranı ve dürüstlük notu');
+  ok(await has('Başlangıç maliyeti') && await has('Gereken beceriler') && await has('Risk'), 'model kartında maliyet, beceri ve risk');
+  ok(await has('Şimdilik önerilmeyenler') && await has('küçük bir bütçe gerekir'), 'bütçesi yoksa bütçe isteyen model önerilmez, nedeni yazılır');
   await page.click('[data-act=pickModel] >> nth=0');
   ok(await has('0 / 7 tamamlandı'), 'proje başladı, 7 görev');
   await shot('09-gorevler');
@@ -236,11 +238,24 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await page.click('[data-act=askNarr]');
   ok(await has('örnek koleksiyonudur'), 'anlatım panelinde terim açıklaması');
   await page.click('[data-act=narrClose]');
+  await page.click('[data-act=stage][data-stage=understood]');
+  ok(await page.locator('.stg-btn.on').count() === 2, 'anladım işaretlenince okudum da işaretlenir');
+  await page.goBack();
+  ok(await has('Anladım'), 'görev listesinde aşama etiketi görünür');
+  await page.click('[data-act=openTask] >> nth=0');
   await page.fill('#noteInput', 'Hedef kitlem: üniversite öğrencileri');
   await page.click('[data-act=toggleTask]');
   ok(await page.waitForSelector('.confetti', { timeout: 2000 }).then(() => true, () => false), 'görev tamamlanınca konfeti');
   await waitText('Görev 2 / 7');
   ok(true, 'tamamlanınca sıradaki göreve geçer');
+  await tab('Ana');
+  await click('.tile:has-text("Projelerim")');
+  ok(await has('1 / 4 proje') && await has('Bu projenin neti') && await has('1 / 7 görev tamamlandı'), 'Projelerim: sayaç, ilerleme ve net');
+  await shot('11b-projelerim');
+  const [dlp] = await Promise.all([page.waitForEvent('download'), page.click('[data-act=exportProject]')]);
+  const pj = JSON.parse(require('fs').readFileSync(await dlp.path(), 'utf8'));
+  ok(pj.kind === 'project' && pj.project && pj.project.tasks, 'proje dışa aktarma dosyası (JSON) iner');
+  await page.goBack().catch(() => { });
   await tab('Ana');
   ok(await has('1 günlük seri'), 'seri sayacı 1 gün');
   ok((await page.locator('.badge.on').count()) >= 3, 'kazanılan rozetler renkli');
@@ -299,7 +314,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   await click('[data-act=remToggle][data-v=off]');
   // tanılama
   await click('[data-act=diag]');
-  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 1.0'), 'tanılama bilgisi açılıyor');
+  ok(await has('Tanılama bilgisi') && (await page.inputValue('#exportBox')).includes('Pasif Gelirim 1.1'), 'tanılama bilgisi açılıyor');
   await click('[data-act=closeExport]');
   const [dl] = await Promise.all([page.waitForEvent('download'), click('[data-act=export]')]);
   ok(dl.suggestedFilename().endsWith('.json'), 'JSON dışa aktarma indi');

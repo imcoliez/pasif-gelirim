@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'tasks', 'chat', 'money', 'packages'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -337,6 +337,7 @@
       html += lock('Gelir modeli seçmek ve görev listesini kullanmak için Manuel paket gerekir.', 'Paketlere bak', 'packages');
     }
     html += '<div class="grid2">' +
+      '<button class="tile" data-act="go" data-route="projects"><span class="ti">' + icon('layers', 20) + '</span><b>Projelerim</b><small>' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje</small></button>' +
       '<button class="tile" data-act="go" data-route="chat"><span class="ti">' + icon('chat', 20) + '</span><b>AI Sohbet</b><small>Bugün kalan: ' + Core.formatDuration(left) + '</small></button>' +
       '<button class="tile" data-act="go" data-route="money"><span class="ti">' + icon('trend', 20) + '</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
       '<button class="tile" data-act="go" data-route="auto"><span class="ti">' + icon('zap', 20) + '</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : 'Ücretli paket') + '</small></button>' +
@@ -350,6 +351,18 @@
     return html;
   };
 
+  function factsHtml(m) {
+    const f = m.facts; if (!f) return '';
+    return '<dl class="facts"><div><dt>Başlangıç maliyeti</dt><dd>' + esc(f.cost) + '</dd></div><div><dt>Zorluk</dt><dd>' + esc(f.difficulty) + '</dd></div>' +
+      '<div><dt>Gereken beceriler</dt><dd>' + f.skills.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join(', ') + '</dd></div>' +
+      '<div><dt>Risk</dt><dd>' + esc(f.risk) + '</dd></div></dl>';
+  }
+  function stageTag(st) {
+    if (!st || st.done) return '';
+    if (st.understood) return '<small class="stg">Anladım</small>';
+    if (st.read) return '<small class="stg">Okudum</small>';
+    return '';
+  }
   views.tasks = function (S, ui, now) {
     const ent = Core.entitlements(S);
     const p = Core.activeProject(S);
@@ -368,17 +381,10 @@
     m.tasks.forEach(function (t, i) {
       const done = p.tasks[t.id] && p.tasks[t.id].done;
       html += '<li><button class="task ' + (done ? 'done' : '') + '" data-act="openTask" data-id="' + esc(t.id) + '">' +
-        '<span class="chk">' + (done ? icon('check', 16) : (i + 1)) + '</span><span>' + esc(t.title) + '</span></button></li>';
+        '<span class="chk">' + (done ? icon('check', 16) : (i + 1)) + '</span><span>' + esc(t.title) + '</span>' + stageTag(p.tasks[t.id]) + '</button></li>';
     });
     html += '</ul>';
-    if (S.projects.length > 1) {
-      html += '<details class="card"><summary>Diğer projelerim (' + (S.projects.length - 1) + ')</summary>';
-      S.projects.forEach(function (q) {
-        if (q.id === p.id) return;
-        html += '<button class="link" data-act="switchProject" data-id="' + esc(q.id) + '">' + esc(q.title) + ' (%' + Core.progress(q).pct + ')</button>';
-      });
-      html += '</details>';
-    }
+    html += '<button class="link" data-act="go" data-route="projects">Projelerim (' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ')</button>';
     if (ent.selectModel) html += '<button class="btn ghost" data-act="quizStart">Yeni gelir modeli seç</button>';
     return html;
   };
@@ -396,15 +402,23 @@
       h += '<button class="link" data-act="quizCancel">Vazgeç</button>';
       return h;
     }
-    const rec = Core.recommend(q.answers).slice(0, 3);
+    const all = Core.recommend(q.answers);
+    const rec = all.filter(function (r) { return !r.blocked; }).slice(0, 3), blocked = all.filter(function (r) { return r.blocked; });
     let h = '<h2>Sana uygun modeller</h2><p class="muted">Cevaplarına göre sıraladık. Bu bir tahmindir, garanti değildir.</p>';
+    if (!Core.canStartProject(S)) h += '<div class="card note">En fazla ' + Core.MAX_PROJECTS + ' proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.</div>';
     rec.forEach(function (r, i) {
       h += '<div class="card"><div class="row"><b>' + esc(r.model.title) + '</b>' + (i === 0 ? '<span class="chip">En uygun</span>' : '') + '</div>' +
-        '<p>' + esc(r.model.summary) + '</p>' +
+        '<p>' + esc(r.model.summary) + '</p>' + factsHtml(r.model) +
         (r.reasons.length ? '<p class="muted">' + r.reasons.map(function (x) { const m = /^"(.*)" cevabınla iyi uyuşuyor$/.exec(x); return m ? '"<span>' + esc(m[1]) + '</span>" <span>cevabınla iyi uyuşuyor</span>' : '<span>' + esc(x) + '</span>'; }).join(' • ') + '</p>' : '') +
         '<p class="honest-line">' + esc(r.model.honest) + '</p>' +
         '<button class="btn" data-act="pickModel" data-id="' + esc(r.model.id) + '">Bunu seç</button></div>';
     });
+    if (blocked.length) {
+      h += '<h3>Şimdilik önerilmeyenler</h3>';
+      blocked.forEach(function (r) {
+        h += '<div class="card off"><b>' + esc(r.model.title) + '</b>' + factsHtml(r.model) + '<p class="muted">' + esc(r.blockReason) + '</p></div>';
+      });
+    }
     h += '<button class="link" data-act="quizStart">Soruları baştan cevapla</button>';
     return h;
   }
@@ -420,6 +434,9 @@
     const prev = m.tasks[idx - 1], next = m.tasks[idx + 1];
     return '<p class="muted small">Görev ' + (idx + 1) + ' / ' + m.tasks.length + '</p><h2>' + esc(t.title) + '</h2>' +
       '<div class="card"><p>' + nl2br(t.body) + '</p></div>' +
+      '<div class="stages" role="group" aria-label="İlerleme">' +
+        '<button class="stg-btn' + (st.read ? ' on' : '') + '" data-act="stage" data-stage="read" data-id="' + esc(t.id) + '" aria-pressed="' + (st.read ? 'true' : 'false') + '">' + icon('check', 14) + ' Okudum</button>' +
+        '<button class="stg-btn' + (st.understood ? ' on' : '') + '" data-act="stage" data-stage="understood" data-id="' + esc(t.id) + '" aria-pressed="' + (st.understood ? 'true' : 'false') + '">' + icon('check', 14) + ' Anladım</button></div>' +
       '<label class="lbl" for="noteInput">Notların</label>' +
       '<textarea id="noteInput" class="inp" rows="4" data-change="note" data-id="' + esc(t.id) + '" placeholder="Bu görevle ilgili yazdıkların burada saklanır">' + esc(st.note) + '</textarea>' +
       '<button class="btn ' + (st.done ? 'ghost' : '') + '" data-act="toggleTask" data-id="' + esc(t.id) + '">' + (st.done ? 'Tamamlandı (geri al)' : 'Görevi tamamladım') + '</button>' +
@@ -654,6 +671,26 @@
     return html + '<p class="fine">Bu bir hesap makinesidir; o kadar satış yapacağını garanti etmez. Vergi ve diğer giderleri ayrıca düşünmelisin.</p>';
   };
 
+  views.projects = function (S, ui, now) {
+    const ent = Core.entitlements(S);
+    let h = '<h2>Projelerim</h2><p class="muted">' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje. Az ve odaklı proje, dağınık çok işten daha iyi ilerler.</p>';
+    if (!S.projects.length) h += '<div class="card muted">Henüz projen yok. Sana uygun gelir modelini bulup ilk projeni başlatabilirsin.</div>';
+    S.projects.slice().sort(function (a, b) { return (b.id === S.activeProjectId) - (a.id === S.activeProjectId) || b.updatedAt - a.updatedAt; }).forEach(function (p) {
+      const x = Core.projectSummary(S, p);
+      h += '<div class="card proj' + (x.active ? ' act' : '') + '"><div class="row"><b>' + esc(x.title) + '</b>' + (x.active ? '<span class="chip">Aktif</span>' : (x.complete ? '<span class="chip">Proje bitti</span>' : '')) + '</div>' +
+        bar(x.pct) + '<p class="muted small">' + x.done + ' / ' + x.total + ' görev tamamlandı</p>' +
+        '<div class="irow"><span>Bu projenin neti</span><b class="' + (x.net < 0 ? 'neg' : 'pos') + '">' + signed(x.net) + '</b></div>' +
+        (x.next ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
+        '<div class="row"><button class="btn slim" data-act="viewProject" data-id="' + esc(p.id) + '">Aç</button>' +
+        '<button class="btn slim ghost" data-act="exportProject" data-id="' + esc(p.id) + '">' + icon('download', 16) + ' Projeyi dışa aktar</button></div></div>';
+    });
+    if (!ent.selectModel) h += '<div class="card note">Yeni proje başlatmak için Manuel veya üstü paket gerekir.</div>';
+    else if (!Core.canStartProject(S)) h += '<div class="card note">En fazla ' + Core.MAX_PROJECTS + ' proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.</div>';
+    else h += '<button class="btn" data-act="quizStart">Yeni proje başlat</button>';
+    h += '<p class="fine">Paketin hesabına bağlıdır. Otomasyon planları ve karar kartları aktif projen için hazırlanır. Projeyi değiştirsen de gelir-gider kayıtların kaybolmaz.</p>';
+    return h;
+  };
+
   views.glossary = function () {
     const list = Core.glossaryList('');
     return '<h2>Sözlük</h2><p class="muted">Görevlerde karşına çıkabilecek terimler, sade anlatımla.</p>' +
@@ -722,7 +759,7 @@
     });
     html += '<h3>CEO Modu · Karar kartları</h3>';
     if (!ent.ceo) {
-      html += lock('Önemli kararları sana bırakıp işi yapay zekânın yürüttüğü bölüm CEO Modu\'nda açılır.', null);
+      html += lock('Yapay zekânın plan ve taslak hazırlayıp önemli kararları sana bıraktığı bölüm CEO Modu\'nda açılır.', null);
     } else {
       const all = S.decisions.filter(function (d) { return d.projectId === p.id; }).slice().reverse();
       all.forEach(function (d) {
@@ -884,7 +921,7 @@
     return {
       route: route,
       chrome: NO_CHROME.indexOf(route) === -1,
-      activeTab: route === 'task' ? 'tasks' : (route === 'charts' ? 'money' : route),
+      activeTab: (route === 'task' || route === 'projects') ? 'tasks' : (route === 'charts' ? 'money' : route),
       top: topHtml(S, ui),
       main: route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now),
       layer: layerHtml(S, ui)

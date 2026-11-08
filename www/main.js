@@ -623,10 +623,22 @@
     },
     pickModel: function (el) {
       if (!Core.entitlements(S).selectModel) { toast('Model seçmek için Manuel paket gerekir.'); return; }
-      Core.startProject(S, el.getAttribute('data-id'), now());
+      if (!Core.startProject(S, el.getAttribute('data-id'), now())) { toast('En fazla 4 proje oluşturabilirsin.'); return; }
       ui.quiz = null; save(); toast('Proje başlatıldı!'); celebrate(false); go('tasks');
     },
     switchProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); ui.enter = 'fade'; render(); },
+    stage: function (el) {
+      var p = Core.activeProject(S); if (!p) return;
+      var id = el.getAttribute('data-id'), k = el.getAttribute('data-stage');
+      var cur = p.tasks[id] || {};
+      Core.setTaskNote(S, p.id, id, val('noteInput'), now());
+      Core.setTaskStage(S, p.id, id, k, !cur[k], now());
+      save(); render();
+    },
+    exportProject: function (el) {
+      var id = el.getAttribute('data-id'), txt = Core.exportProject(S, id, now()); if (!txt) return;
+      exportFile('pasif-gelirim-proje.json', txt, 'application/json', 'Proje (JSON)');
+    },
     viewProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); go('tasks'); },
     openTask: function (el) { go('task', { taskId: el.getAttribute('data-id') }); },
     toggleTask: function (el) {

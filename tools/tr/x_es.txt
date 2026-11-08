@@ -65,3 +65,41 @@
 64|Chat
 65|Menú principal
 66|Nueva insignia:
+67|Mis proyectos
+68|# / # proyectos
+69|Preparar un plan de trabajo diario según el modelo elegido (por ahora con plantillas; la conexión con IA llegará pronto)
+70|La IA prepara planes y borradores y te pide aprobación para gastos y acciones externas (la conexión real con IA llegará pronto)
+71|# / # proyectos. Pocos proyectos enfocados avanzan más rápido que muchos dispersos.
+72|Aún no tienes proyectos. Encuentra el modelo de ingresos que te conviene y empieza tu primer proyecto.
+73|Para empezar un proyecto nuevo se necesita el plan Manual o superior.
+74|Tu plan está vinculado a tu cuenta. Los planes de automatización y las tarjetas de decisión se preparan para tu proyecto activo. Tus movimientos de ingresos y gastos no se pierden al cambiar de proyecto.
+75|Coste de inicio
+76|Ninguno o muy bajo
+77|Dificultad
+78|Media
+79|Habilidades necesarias
+80|Comunicación
+81|Organización y seguimiento
+82|Riesgo
+83|Tus ingresos dependen de las horas que trabajes y pueden ser irregulares. No es pasivo; conviertes tu tiempo en trabajo.
+84|Hay que aceptar el rechazo; los negocios pueden decidir despacio. No es pasivo, es un trabajo de servicios.
+85|Producción visual
+86|Redacción
+87|La recompensa de tu esfuerzo puede tardar; el alcance y el número de seguidores no dependen de ti.
+88|No recomendados por ahora
+89|Bajo
+90|Difícil
+91|Aparecer en los buscadores puede tardar meses; las condiciones de afiliación y las reglas de búsqueda no dependen de ti.
+92|Se necesita un pequeño presupuesto para dominio y alojamiento; empieza por ahora con otros modelos.
+93|Preparar el producto no basta; hace falta esfuerzo de marketing para llegar a las personas adecuadas y puede que no haya ventas.
+94|Mis proyectos (# / #)
+95|Neto de este proyecto
+96|Abrir
+97|Exportar proyecto
+98|Leído
+99|Entendido
+100|Progreso
+101|Empezar un proyecto nuevo
+102|La sección donde la IA prepara planes y borradores y te deja las decisiones importantes se abre en el Modo CEO.
+103|Puedes crear como máximo # proyectos. Termina uno en Mis proyectos antes de elegir un modelo nuevo.
+104|Puedes crear como máximo # proyectos.
