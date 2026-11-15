@@ -105,3 +105,19 @@
 104|Puedes crear como máximo # proyectos.
 105|No se pudo guardar en el dispositivo. Te recomendamos hacer una copia de seguridad de tus datos.
 106|No se pudieron leer tus datos guardados; se conservó una copia sin procesar en el dispositivo.
+107|Lista de tareas de tu proyecto activo
+108|Herramientas
+109|Aquí están todas las herramientas para seguir tus ingresos y tomar decisiones.
+110|Desglose de ingresos y gastos
+111|Test de modelo de ingresos
+112|Encuentra el modelo que mejor te encaja
+113|Mi cuenta
+114|Perfil, idioma, tema, seguridad, copia de seguridad
+115|Plan gratuito (prueba)
+116|Preguntas frecuentes, privacidad
+117|Plan Manual (prueba)
+118|Plan Semiautomatización (prueba)
+119|Plan Modo CEO (prueba)
+120|Inicio
+121|Proyectos
+122|IA

@@ -105,3 +105,19 @@
 104|You can create at most # projects.
 105|Could not save to the device. We recommend backing up your data.
 106|Your saved data could not be read; a raw copy was kept on the device.
+107|Task list of your active project
+108|Tools
+109|All the tools to track your income and make decisions are here.
+110|Income and expense breakdown
+111|Income model test
+112|Find the model that suits you
+113|My account
+114|Profile, language, theme, security, backup
+115|Free plan (test)
+116|FAQ, privacy
+117|Manual plan (test)
+118|Semi-Automation plan (test)
+119|CEO Mode plan (test)
+120|Home
+121|Projects
+122|AI

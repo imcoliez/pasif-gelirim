@@ -95,11 +95,11 @@
     });
   } catch (e) { }
 
-  // ---------- Alt menü (çizgi simgeli, hap biçimli seçili durum) ----------
-  var NAV = [['home', 'home', 'Ana sayfa'], ['tasks', 'tasks', 'Görevler'], ['chat', 'chat', 'Sohbet'], ['money', 'trend', 'Kazanç'], ['packages', 'layers', 'Paketler']];
+  // ---------- Alt menü (yüzen kapsül; seçili sekme simge + ad ile genişler) ----------
+  var NAV = [['home', 'home', 'Ana Sayfa'], ['projects', 'folder', 'Projeler'], ['chat', 'sparkles', 'Yapay Zekâ'], ['tools', 'wrench', 'Araçlar'], ['account', 'user', 'Hesabım']];
   function buildTabs() {
     elTabs.innerHTML = NAV.map(function (n) {
-      return '<button class="tab" data-act="go" data-route="' + n[0] + '"><span class="pill">' + App.icon(n[1], 22) + '</span><small>' + n[2] + '</small></button>';
+      return '<button class="tab" data-act="go" data-route="' + n[0] + '" aria-label="' + n[2] + '"><span class="tic">' + App.icon(n[1], 22) + '</span><span class="lb">' + n[2] + '</span></button>';
     }).join('');
   }
 

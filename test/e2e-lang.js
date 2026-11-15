@@ -42,7 +42,7 @@ function ok(c, m) { if (c) console.log('  ok  ' + m); else { fails++; console.er
   await shot('L3-en-ana');
   // alt menü ve tutar
   ok(await has('Tasks') && await has('Plans') === false || true, 'alt menü');
-  await page.click('.tab:nth-child(4)');
+  await page.click('.tab[data-route="tools"]'); await page.click('#main [data-route="money"]');
   await page.fill('#finAmount', '1250');
   await page.click('[data-act=addFin]');
   await page.waitForTimeout(300);

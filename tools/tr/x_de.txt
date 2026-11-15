@@ -105,3 +105,19 @@
 104|Du kannst höchstens # Projekte anlegen.
 105|Auf dem Gerät konnte nicht gespeichert werden. Wir empfehlen, deine Daten zu sichern.
 106|Deine gespeicherten Daten konnten nicht gelesen werden; eine Rohkopie wurde auf dem Gerät aufbewahrt.
+107|Aufgabenliste deines aktiven Projekts
+108|Tools
+109|Hier findest du alle Werkzeuge, um dein Einkommen zu verfolgen und Entscheidungen zu treffen.
+110|Aufteilung von Einnahmen und Ausgaben
+111|Einkommensmodell-Test
+112|Finde das Modell, das zu dir passt
+113|Mein Konto
+114|Profil, Sprache, Design, Sicherheit, Backup
+115|Kostenloses Paket (Test)
+116|FAQ, Datenschutz
+117|Manuelles Paket (Test)
+118|Halbautomatisierungs-Paket (Test)
+119|CEO-Modus-Paket (Test)
+120|Start
+121|Projekte
+122|KI

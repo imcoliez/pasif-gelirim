@@ -47,7 +47,7 @@ function states() {
 function uiStates(S, T) {
   const ui = (o) => Object.assign({ route: 'home', quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '', period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false, exportText: null, resolvedTheme: 'dark', depth: 0, onb: 0, market: null, mkDays: 30 }, o || {});
   const list = [];
-  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market', 'projects'].forEach(r => list.push(ui({ route: r })));
+  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market', 'projects', 'tools', 'account'].forEach(r => list.push(ui({ route: r })));
   [0, 1, 2].forEach(i => list.push(ui({ route: 'onboarding', onb: i })));
   const p = Core.activeProject(S);
   if (p) {

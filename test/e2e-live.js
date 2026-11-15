@@ -23,7 +23,7 @@ const ok = (c, m) => { if (c) console.log('  ok  ' + m); else { fails++; console
   });
   await page.goto(URL);
   await page.waitForSelector('#splash', { state: 'detached', timeout: 5000 });
-  await page.click('.tab:has-text("Sohbet")');
+  await page.click('.tab[data-route="chat"]');
   ok((await page.innerText('body')).includes('Yanıtlar yapay zekâdan gelir'), 'canlı modda doğru bilgilendirme');
   await page.fill('#chatInput', 'Hedef kitle ne demek?');
   await page.click('[data-act=send]');

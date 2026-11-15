@@ -39,7 +39,14 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   const click = sel => page.click(sel);
   const text = () => page.innerText('body');
   const has = async s => (await text()).includes(s);
-  const tab = async n => { await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur()); await page.waitForTimeout(100); await click('.tab:has-text("' + n + '")'); };
+  // Aşama 2: eski sekme adları yeni 5 sekmeli yapıya eşlenir (sekme + gerekirse giriş ekranındaki kutucuk)
+  const TABMAP = { Ana: ['home'], Sohbet: ['chat'], 'Görevler': ['projects', 'tasks'], 'Kazanç': ['tools', 'money'], Paketler: ['account', 'packages'] };
+  const tab = async n => {
+    await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur()); await page.waitForTimeout(100);
+    const m = TABMAP[n];
+    await click('.tab[data-route="' + m[0] + '"]');
+    if (m[1]) { await page.waitForSelector('#main [data-act=go][data-route="' + m[1] + '"]'); await click('#main [data-act=go][data-route="' + m[1] + '"]'); }
+  };
   const theme = () => page.getAttribute('html', 'data-theme');
   const bodyBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   const shot = async (n, wait = 1100) => { await page.waitForTimeout(wait); await page.screenshot({ path: path.resolve(__dirname, '../shots/' + n + '.png') }); };
@@ -74,8 +81,8 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(await page.getAttribute('#main', 'class').then(c => c.includes('anim')), 'sayfa geçiş animasyonu sınıfı uygulanıyor');
   ok((await page.locator('.tab').count()) === 5 && (await page.locator('.tab svg.i').count()) === 5, 'alt menü: 5 çizgi simge, emoji yok');
   ok(await page.evaluate(() => !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(document.getElementById('tabs').innerText)), 'alt menüde emoji yok');
-  ok((await page.locator('.tab.on').count()) === 1 && (await page.locator('.tab.on').innerText()).includes('Ana sayfa'), 'seçili sekme vurgulu');
-  ok(await page.evaluate(() => getComputedStyle(document.querySelector('.tab.on .pill')).backgroundColor !== 'rgba(0, 0, 0, 0)'), 'seçili simgenin arkasında hap');
+  ok((await page.locator('.tab.on').count()) === 1 && (await page.locator('.tab.on').innerText()).includes('Ana Sayfa'), 'seçili sekme vurgulu');
+  ok(await page.evaluate(() => getComputedStyle(document.querySelector('.tab.on')).backgroundColor !== 'rgba(0, 0, 0, 0)'), 'seçili sekme kapsül dolgusuyla belirgin');
   ok(await has('Gelir ekle') && await has('Gider ekle'), 'ana ekranda hızlı ekle düğmeleri');
   await shot('02-ana-siyah');
   await noOverflow('ana');
@@ -195,7 +202,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
 
   // ---------- Geri tuşu ----------
   await page.goBack();
-  ok(await has('Yeni kayıt') && !(await page.isVisible('[data-act=back]')), 'geri tuşu grafikten Kazanç ekranına döner');
+  ok(await has('Yeni kayıt') && (await page.getAttribute('.tab.on', 'data-route')) === 'tools', 'geri tuşu grafikten Kazanç ekranına döner (Araçlar sekmesi seçili)');
   await click('button[title="Geçmiş İşlemler"]');
   await click('[data-act=back]');
   ok(await has('Merhaba Ali') || await has('Kazanç'), 'üstteki geri oku önceki ekrana döner');

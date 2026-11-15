@@ -5,12 +5,15 @@
 })(typeof self !== 'undefined' ? self : this, function (Core, Data) {
 
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
-  const TOP = ['home', 'tasks', 'chat', 'money', 'packages'];
+  const TOP = ['home', 'projects', 'chat', 'tools', 'account'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
+    folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+    sparkles: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+    wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
     home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
     tasks: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
     chat: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>',
@@ -673,7 +676,8 @@
 
   views.projects = function (S, ui, now) {
     const ent = Core.entitlements(S);
-    let h = '<h2>Projelerim</h2><p class="muted">' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje. Az ve odaklı proje, dağınık çok işten daha iyi ilerler.</p>';
+    let h = '<h2>Projelerim</h2><p class="muted">' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje. Az ve odaklı proje, dağınık çok işten daha iyi ilerler.</p>' +
+      '<button class="tile wide" data-act="go" data-route="tasks"><span class="ti">' + icon('tasks', 20) + '</span><b>Görevler</b><small>Aktif projenin görev listesi</small></button>';
     if (!S.projects.length) h += '<div class="card muted">Henüz projen yok. Sana uygun gelir modelini bulup ilk projeni başlatabilirsin.</div>';
     S.projects.slice().sort(function (a, b) { return (b.id === S.activeProjectId) - (a.id === S.activeProjectId) || b.updatedAt - a.updatedAt; }).forEach(function (p) {
       const x = Core.projectSummary(S, p);
@@ -882,6 +886,35 @@
       '<p class="fine">Pasif Gelirim · sürüm ' + esc(Core.APP_VERSION) + ' (test) · DAHA FAZLASI MÜMKÜN.</p>';
   };
 
+  // ---------- Sekme giriş ekranları (Araçlar, Hesabım) ----------
+  function hubTile(route, ic, title, sub) {
+    return '<button class="tile" data-act="go" data-route="' + route + '"><span class="ti">' + icon(ic, 20) + '</span><b>' + title + '</b><small>' + sub + '</small></button>';
+  }
+  views.tools = function (S, ui, now) {
+    const ent = Core.entitlements(S);
+    return '<h2>Araçlar</h2><p class="muted">Gelirini takip etmek ve karar vermek için araçların hepsi burada.</p><div class="grid2">' +
+      hubTile('money', 'trend', 'Kazanç', tl(Core.financeSummary(S, now).net) + ' net') +
+      hubTile('charts', 'chart', 'Grafikler', 'Gelir ve gider dağılımı') +
+      hubTile('calc', 'calc', 'Hesaplayıcı', 'Hedefe kaç satış?') +
+      hubTile('market', 'dollar', 'Piyasa', 'Dolar, altın, kripto') +
+      hubTile('plans', 'repeat', 'Planlar', 'Tekrarlayan, birikim') +
+      hubTile('auto', 'zap', 'Otomasyon', ent.automation ? 'Açık' : 'Ücretli paket') +
+      hubTile('glossary', 'book', 'Sözlük', 'Terimleri öğren') +
+      hubTile('tasks', 'target', 'Gelir modeli testi', 'Sana uygun modeli bul') +
+      '</div>';
+  };
+  views.account = function (S, ui) {
+    const ent = Core.entitlements(S);
+    return '<h2>Hesabım</h2>' +
+      '<div class="card profile">' + avatar(S, 'lg') + '<div class="pb"><b>' + (S.user.name ? nt(S.user.name) : 'Profilin') + '</b><small class="muted">' + esc(ent.pkg.name) + ' paketi</small></div></div>' +
+      '<div class="grid2">' +
+      hubTile('settings', 'sliders', 'Ayarlar', 'Profil, dil, tema, güvenlik, yedek') +
+      hubTile('packages', 'layers', 'Paketler', esc(ent.pkg.name) + ' paketi (test)') +
+      hubTile('history', 'history', 'Geçmiş İşlemler', 'Eski çalışmaların') +
+      hubTile('about', 'info', 'Yardım ve Bilgi', 'Sık sorulanlar, gizlilik') +
+      '</div>';
+  };
+
   // ---------- Üst çubuk, katman (modal, kalp, bildirim) ----------
   function topHtml(S, ui) {
     const sub = TOP.indexOf(ui.route) === -1;
@@ -916,17 +949,20 @@
     return html;
   }
 
+  const TAB_OF = { task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
+  function tabOf(route) { return TAB_OF[route] || (TOP.indexOf(route) !== -1 ? route : 'home'); }
+
   function parts(S, ui, now) {
     const route = ui.pinMode ? 'lock' : (views[ui.route] ? ui.route : 'home');
     return {
       route: route,
       chrome: NO_CHROME.indexOf(route) === -1,
-      activeTab: (route === 'task' || route === 'projects') ? 'tasks' : (route === 'charts' ? 'money' : route),
+      activeTab: tabOf(route),
       top: topHtml(S, ui),
       main: route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now),
       layer: layerHtml(S, ui)
     };
   }
 
-  return { convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
+  return { tabOf: tabOf, convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
 });
