@@ -119,13 +119,23 @@
       return { id: String(v.id || uid('sav')), name: String(v.name).slice(0, 40), target: +v.target, saved: Math.max(0, +v.saved), at: +v.at || 0 };
     });
     out.settings.taxPct = isFinite(out.settings.taxPct) ? Math.min(60, Math.max(0, +out.settings.taxPct)) : 0;
+    let pkgSeen = false;
     out.projects.forEach(function (p) {
+      p.status = p.status === 'archived' ? 'archived' : 'active';
+      p.desc = typeof p.desc === 'string' ? p.desc.slice(0, 160) : '';
+      p.note = typeof p.note === 'string' ? p.note.slice(0, 2000) : '';
+      p.goal = isFinite(p.goal) && p.goal > 0 ? +p.goal : 0;
+      const mm = modelById(p.modelId);
+      p.title = (typeof p.title === 'string' && p.title.trim() ? p.title.trim() : (mm ? mm.title : 'Proje')).slice(0, 40);
+      p.pkg = typeof p.pkg === 'string' && PACKAGES[p.pkg] && p.pkg !== 'free' && !pkgSeen && p.status === 'active' ? p.pkg : '';
+      if (p.pkg) pkgSeen = true;
       if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {};
       Object.keys(p.tasks).forEach(function (k) {
         const t = p.tasks[k]; if (!t || typeof t !== 'object') { delete p.tasks[k]; return; }
         t.read = !!(t.read || t.understood || t.done); t.understood = !!(t.understood || t.done);
       });
     });
+    if (out.projects.length) { const cur = out.projects.find(function (q) { return q.id === out.activeProjectId; }); if (!cur || cur.status === 'archived') { const live = out.projects.filter(function (q) { return q.status !== 'archived'; }); out.activeProjectId = live.length ? live[live.length - 1].id : null; } }
     return out;
   }
 
@@ -195,13 +205,16 @@
 
   // ---------- Projeler ve görevler ----------
   const MAX_PROJECTS = 4;
-  function canStartProject(state) { return state.projects.length < MAX_PROJECTS; }
+  function isArchived(p) { return !!p && p.status === 'archived'; }
+  function liveProjects(state) { return state.projects.filter(function (p) { return !isArchived(p); }); }
+  // Üst sınır: aynı anda en fazla 4 (arşivde olmayan) proje. Arşiv yer açar, geri alma da aynı sınıra tabidir.
+  function canStartProject(state) { return liveProjects(state).length < MAX_PROJECTS; }
   function startProject(state, modelId, now) {
     const m = modelById(modelId);
     if (!m) throw new Error('Bilinmeyen model: ' + modelId);
     if (!canStartProject(state)) return null;
     const p = {
-      id: uid('proj'), modelId: m.id, title: m.title, createdAt: now, updatedAt: now,
+      id: uid('proj'), modelId: m.id, title: m.title, desc: '', status: 'active', goal: 0, note: '', pkg: '', createdAt: now, updatedAt: now,
       tasks: {}, lastNote: 'Proje başlatıldı.'
     };
     state.projects.push(p);
@@ -210,7 +223,89 @@
   }
   function projectById(state, id) { return state.projects.find(function (p) { return p.id === id; }) || null; }
   function activeProject(state) { return projectById(state, state.activeProjectId); }
-  function setActiveProject(state, id) { if (!projectById(state, id)) return false; state.activeProjectId = id; return true; }
+  function setActiveProject(state, id) { const p = projectById(state, id); if (!p || isArchived(p)) return false; state.activeProjectId = id; return true; }
+  function fallbackActive(state) {
+    const cur = projectById(state, state.activeProjectId);
+    if (cur && !isArchived(cur)) return;
+    const live = liveProjects(state).sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    state.activeProjectId = live.length ? live[0].id : null;
+  }
+
+  // ---- Proje yönetimi (Aşama 3) ----
+  const PROJECT_LIMITS = { title: 40, desc: 160, note: 2000, goal: 1e9 };
+  function updateProject(state, id, fields, now) {
+    const p = projectById(state, id); if (!p) return null;
+    const f = fields || {};
+    if ('title' in f) { const t = String(f.title || '').trim().slice(0, PROJECT_LIMITS.title); if (!t) return null; p.title = t; }
+    if ('desc' in f) p.desc = String(f.desc || '').trim().slice(0, PROJECT_LIMITS.desc);
+    if ('note' in f) p.note = String(f.note || '').slice(0, PROJECT_LIMITS.note);
+    if ('goal' in f) {
+      const g = typeof f.goal === 'number' ? f.goal : parseFloat(String(f.goal || '0').replace(/\./g, '').replace(',', '.'));
+      if (!isFinite(g) || g < 0 || g > PROJECT_LIMITS.goal) return null;
+      p.goal = Math.round(g * 100) / 100;
+    }
+    p.updatedAt = now;
+    return p;
+  }
+  // Arşivleme veri silmez: görevler, notlar, kayıtlar yerinde kalır; yalnızca proje listeden kalkar ve bir yer açar.
+  function archiveProject(state, id, now) {
+    const p = projectById(state, id); if (!p || isArchived(p)) return false;
+    p.status = 'archived'; p.archivedAt = now; p.updatedAt = now; p.pkg = '';
+    fallbackActive(state);
+    return true;
+  }
+  function restoreProject(state, id, now) {
+    const p = projectById(state, id); if (!p || !isArchived(p)) return false;
+    if (!canStartProject(state)) return false;
+    p.status = 'active'; delete p.archivedAt; p.updatedAt = now;
+    if (!state.activeProjectId) state.activeProjectId = p.id;
+    return true;
+  }
+  // Silme: proje, görevleri, notları, planları ve kararları gider. Gelir-gider kayıtları SİLİNMEZ; "Genel"e döner.
+  function deleteProject(state, id) {
+    const p = projectById(state, id); if (!p) return null;
+    let keptFinance = 0;
+    state.finance.forEach(function (f) { if (f.src === id) { delete f.src; keptFinance++; } });
+    const plans = state.plans.filter(function (x) { return x.projectId === id; }).length;
+    const decisions = state.decisions.filter(function (x) { return x.projectId === id; }).length;
+    state.plans = state.plans.filter(function (x) { return x.projectId !== id; });
+    state.decisions = state.decisions.filter(function (x) { return x.projectId !== id; });
+    state.projects = state.projects.filter(function (x) { return x.id !== id; });
+    fallbackActive(state);
+    return { keptFinance: keptFinance, plans: plans, decisions: decisions, tasks: Object.keys(p.tasks).length };
+  }
+  // Eski, hiçbir projeye bağlı olmayan kayıtlar
+  function unlinkedFinance(state) {
+    return state.finance.filter(function (f) { return !f.src || !projectById(state, f.src); });
+  }
+  function linkUnlinkedFinance(state, id) {
+    const p = projectById(state, id); if (!p || isArchived(p)) return 0;
+    const list = unlinkedFinance(state);
+    list.forEach(function (f) { f.src = id; });
+    return list.length;
+  }
+
+  // ---- Paket - proje ilişkisi (gerçek ödeme yok; yalnızca atama) ----
+  function projectPackageState(state, p) {
+    if (!p || !p.pkg) return { state: 'none', pkg: null };
+    const cur = PACKAGES[state.pkg];
+    if (p.pkg === state.pkg && cur && cur.tier >= 2) return { state: 'active', pkg: cur };
+    return { state: 'inactive', pkg: PACKAGES[p.pkg] || null };   // paket bitti/değişti: veriler durur, atama yeniden açılabilir
+  }
+  function assignPackage(state, id, now) {
+    const p = projectById(state, id);
+    if (!p || isArchived(p)) return { ok: false, error: 'Arşivdeki projeye paket atanamaz.' };
+    if (!entitlements(state).automation) return { ok: false, error: 'Atayabileceğin bir otomasyon paketin yok.' };
+    let from = null;
+    state.projects.forEach(function (q) { if (q.id !== id && q.pkg) { from = q; q.pkg = ''; q.updatedAt = now; } });
+    p.pkg = state.pkg; p.updatedAt = now;
+    return { ok: true, movedFrom: from ? from.id : null };
+  }
+  function unassignPackage(state, id, now) {
+    const p = projectById(state, id); if (!p || !p.pkg) return false;
+    p.pkg = ''; p.updatedAt = now; return true;
+  }
+  function projectFinance(state, id) { return state.finance.filter(function (f) { return f.src === id; }).sort(function (a, b) { return b.date - a.date; }); }
 
   // Projelerim kartı için özet: ilerleme + bu projeye bağlı gerçek gelir-gider
   function projectSummary(state, p) {
@@ -221,7 +316,11 @@
     const nt = nextTask(p);
     return { id: p.id, title: p.title, emoji: m ? m.emoji : '', pct: pr.pct, done: pr.done, total: pr.total, complete: pr.complete,
       income: income, expense: expense, net: Math.round((income - expense) * 100) / 100, updatedAt: p.updatedAt, lastNote: p.lastNote,
-      next: nt ? nt.title : '', active: state.activeProjectId === p.id };
+      next: nt ? nt.title : '', active: state.activeProjectId === p.id && !isArchived(p),
+      desc: p.desc || '', archived: isArchived(p), goal: p.goal || 0,
+      goalPct: p.goal > 0 ? Math.min(100, Math.round(income / p.goal * 100)) : 0,
+      pkgState: projectPackageState(state, p).state, pkgName: (projectPackageState(state, p).pkg || {}).name || '',
+      status: isArchived(p) ? 'archived' : (pr.complete ? 'complete' : 'active') };
   }
   // Tek projenin dışa aktarımı (görevler, notlar, kayıtlar, planlar, kararlar)
   function exportProject(state, id, now) {
@@ -957,7 +1056,7 @@
     dayKey: dayKey, monthKey: monthKey, formatDate: formatDate, formatDuration: formatDuration,
     remainingSeconds: remainingSeconds, addUsage: addUsage,
     modelById: modelById, recommend: recommend,
-    startProject: startProject, projectById: projectById, activeProject: activeProject,
+    startProject: startProject, updateProject: updateProject, archiveProject: archiveProject, restoreProject: restoreProject, deleteProject: deleteProject, unlinkedFinance: unlinkedFinance, linkUnlinkedFinance: linkUnlinkedFinance, assignPackage: assignPackage, unassignPackage: unassignPackage, projectPackageState: projectPackageState, projectFinance: projectFinance, isArchived: isArchived, liveProjects: liveProjects, PROJECT_LIMITS: PROJECT_LIMITS, projectById: projectById, activeProject: activeProject,
     progress: progress, nextTask: nextTask, setTaskDone: setTaskDone, setTaskNote: setTaskNote,
     addFinance: addFinance, removeFinance: removeFinance, financeSummary: financeSummary,
     CATEGORIES: CATEGORIES, categoryName: categoryName, parseDateInput: parseDateInput, dateInputValue: dateInputValue,

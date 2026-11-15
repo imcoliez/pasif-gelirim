@@ -651,4 +651,128 @@ test('okudum / anladım aşamaları: anladım okudumu da işaretler, tamamlama i
   assert.ok(m.projects[0].tasks[tid].read && m.projects[0].tasks[tid].understood);
 });
 
+console.log('\nAşama 3 - proje yönetimi');
+function mk() { const s = C.defaultState(); C.setPackage(s, 'manual', T0); return s; }
+const MODELS = D.MODELS.map(m => m.id);
+
+test('proje: yeni alanlar varsayılanla gelir (açıklama, durum, hedef, not, paket)', () => {
+  const s = mk(); const p = C.startProject(s, MODELS[0], T0);
+  assert.strictEqual(p.status, 'active'); assert.strictEqual(p.desc, ''); assert.strictEqual(p.goal, 0); assert.strictEqual(p.pkg, ''); assert.strictEqual(p.note, '');
+});
+test('4 proje sınırı: beşincisi oluşmaz, arşiv yer açar, geri alma da sınıra tabidir', () => {
+  const s = mk(); const ids = [];
+  for (let i = 0; i < 4; i++) ids.push(C.startProject(s, MODELS[i % MODELS.length], T0 + i).id);
+  assert.ok(!C.canStartProject(s)); assert.strictEqual(C.startProject(s, MODELS[0], T0 + 9), null); assert.strictEqual(s.projects.length, 4);
+  assert.ok(C.archiveProject(s, ids[0], T0 + 10));
+  assert.ok(C.canStartProject(s)); const fifth = C.startProject(s, MODELS[1], T0 + 11); assert.ok(fifth);
+  assert.ok(!C.restoreProject(s, ids[0], T0 + 12), 'dolu iken arşivden geri alınamaz');
+  C.deleteProject(s, fifth.id); assert.ok(C.restoreProject(s, ids[0], T0 + 13));
+  assert.strictEqual(C.liveProjects(s).length, 4);
+});
+test('proje düzenleme: ad/açıklama/hedef/not doğrulanır', () => {
+  const s = mk(); const p = C.startProject(s, MODELS[0], T0);
+  assert.ok(C.updateProject(s, p.id, { title: '  Yeni Ad  ', desc: 'kısa açıklama', goal: '1.500,50', note: 'not' }, T0 + 1));
+  assert.strictEqual(p.title, 'Yeni Ad'); assert.strictEqual(p.desc, 'kısa açıklama'); assert.strictEqual(p.goal, 1500.5); assert.strictEqual(p.note, 'not');
+  assert.strictEqual(C.updateProject(s, p.id, { title: '   ' }, T0), null, 'boş ad reddedilir');
+  assert.strictEqual(C.updateProject(s, p.id, { goal: -5 }, T0), null); assert.strictEqual(C.updateProject(s, p.id, { goal: 'abc' }, T0), null);
+  assert.strictEqual(p.title, 'Yeni Ad', 'reddedilen güncelleme eskiyi bozmaz');
+  C.updateProject(s, p.id, { title: 'x'.repeat(100), desc: 'y'.repeat(500) }, T0); assert.strictEqual(p.title.length, 40); assert.strictEqual(p.desc.length, 160);
+  assert.strictEqual(C.updateProject(s, 'yok', { title: 'a' }, T0), null);
+});
+test('arşiv veri silmez; aktif proje otomatik başka projeye geçer', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 5);
+  C.setTaskNote(s, a.id, D.MODELS.find(m => m.id === a.modelId).tasks[0].id, 'önemli not', T0);
+  C.addFinance(s, { type: 'in', amount: 100, src: a.id }, T0);
+  C.setActiveProject(s, a.id); assert.ok(C.archiveProject(s, a.id, T0 + 6));
+  assert.strictEqual(s.activeProjectId, b.id); assert.ok(!C.setActiveProject(s, a.id), 'arşivdeki proje aktif yapılamaz');
+  assert.strictEqual(s.finance.length, 1); assert.strictEqual(s.finance[0].src, a.id); assert.ok(Object.keys(a.tasks).length === 1);
+  assert.ok(C.archiveProject(s, b.id, T0 + 7)); assert.strictEqual(s.activeProjectId, null);
+});
+test('silme: görev/not/plan/karar gider, gelir-gider kayıtları KORUNUR (Genel\'e döner)', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addFinance(s, { type: 'in', amount: 100, src: a.id }, T0); C.addFinance(s, { type: 'out', amount: 40, src: a.id }, T0); C.addFinance(s, { type: 'in', amount: 7, src: b.id }, T0);
+  s.plans.push({ id: 'pl1', projectId: a.id }, { id: 'pl2', projectId: b.id }); s.decisions.push({ id: 'd1', projectId: a.id, status: 'bekliyor' });
+  const r = C.deleteProject(s, a.id);
+  assert.strictEqual(r.keptFinance, 2); assert.strictEqual(r.plans, 1); assert.strictEqual(r.decisions, 1);
+  assert.strictEqual(s.finance.length, 3, 'hiçbir kayıt silinmez'); assert.ok(s.finance.every(f => !f.src || f.src === b.id));
+  assert.strictEqual(s.plans.length, 1); assert.strictEqual(s.plans[0].id, 'pl2'); assert.strictEqual(s.decisions.length, 0);
+  assert.strictEqual(s.projects.length, 1); assert.strictEqual(s.activeProjectId, b.id); assert.strictEqual(C.deleteProject(s, 'yok'), null);
+});
+test('veri ayrımı: gelir-gider özeti ve görevler yalnızca kendi projesine aittir', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addFinance(s, { type: 'in', amount: 500, src: a.id }, T0); C.addFinance(s, { type: 'out', amount: 120, src: a.id }, T0); C.addFinance(s, { type: 'in', amount: 30, src: b.id }, T0); C.addFinance(s, { type: 'in', amount: 9 }, T0);
+  const ta = D.MODELS.find(m => m.id === a.modelId).tasks[0].id;
+  C.setTaskDone(s, a.id, ta, true, T0); C.setTaskNote(s, a.id, ta, 'A notu', T0);
+  const sa = C.projectSummary(s, a), sb = C.projectSummary(s, b);
+  assert.strictEqual(sa.income, 500); assert.strictEqual(sa.expense, 120); assert.strictEqual(sa.net, 380);
+  assert.strictEqual(sb.income, 30); assert.strictEqual(sb.net, 30);
+  assert.strictEqual(sa.done, 1); assert.strictEqual(sb.done, 0); assert.ok(!b.tasks[ta]);
+  assert.strictEqual(C.projectFinance(s, a.id).length, 2); assert.strictEqual(C.projectFinance(s, b.id).length, 1);
+  assert.strictEqual(C.unlinkedFinance(s).length, 1);
+});
+test('hedef ilerlemesi proje gelirine göre hesaplanır, %100\'ü aşmaz', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0); C.updateProject(s, a.id, { goal: 200 }, T0);
+  C.addFinance(s, { type: 'in', amount: 50, src: a.id }, T0); assert.strictEqual(C.projectSummary(s, a).goalPct, 25);
+  C.addFinance(s, { type: 'in', amount: 900, src: a.id }, T0); assert.strictEqual(C.projectSummary(s, a).goalPct, 100);
+});
+test('eski kayıtlar: projesiz kayıtlar korunur; yalnızca açık eylemle projeye bağlanır', () => {
+  const s = mk(); C.addFinance(s, { type: 'in', amount: 10 }, T0); C.addFinance(s, { type: 'out', amount: 3 }, T0);
+  const a = C.startProject(s, MODELS[0], T0);
+  assert.strictEqual(C.unlinkedFinance(s).length, 2, 'proje oluşturmak eski kayıtları kendiliğinden taşımaz');
+  assert.strictEqual(C.linkUnlinkedFinance(s, a.id), 2); assert.strictEqual(C.unlinkedFinance(s).length, 0); assert.strictEqual(s.finance.length, 2);
+  C.archiveProject(s, a.id, T0); const b = C.startProject(s, MODELS[1], T0); C.addFinance(s, { type: 'in', amount: 1 }, T0);
+  assert.strictEqual(C.linkUnlinkedFinance(s, a.id), 0, 'arşivdeki projeye bağlanmaz');
+});
+test('migrate: v1.1 kullanıcısının projeleri bozulmadan yeni alanları alır', () => {
+  const old = { v: 1, user: { name: 'Ali' }, pkg: 'manual', activeProjectId: 'p1', projects: [{ id: 'p1', modelId: MODELS[0], title: 'Eski Proje', createdAt: 1, updatedAt: 2, tasks: { x: { done: true, note: 'n' } }, lastNote: 'ln' }], finance: [{ id: 'f1', type: 'in', amount: 12, date: T0, src: 'p1' }] };
+  const m = C.migrate(JSON.parse(JSON.stringify(old)));
+  const p = m.projects[0];
+  assert.strictEqual(p.title, 'Eski Proje'); assert.strictEqual(p.status, 'active'); assert.strictEqual(p.pkg, ''); assert.strictEqual(p.desc, ''); assert.strictEqual(p.tasks.x.note, 'n');
+  assert.strictEqual(m.activeProjectId, 'p1'); assert.strictEqual(m.finance[0].src, 'p1'); assert.strictEqual(m.finance.length, 1);
+  assert.deepStrictEqual(C.migrate(m).projects[0], p, 'migrate ikinci kez çalışınca değişmez (idempotent)');
+});
+test('migrate: bozuk alanlar ayıklanır; arşivdeki aktif proje düzeltilir; tek paket kuralı', () => {
+  const m = C.migrate({ activeProjectId: 'a', projects: [
+    { id: 'a', modelId: MODELS[0], status: 'archived', tasks: {}, pkg: 'ceo' },
+    { id: 'b', modelId: MODELS[1], status: 'weird', desc: 5, goal: -3, title: '', tasks: {}, pkg: 'ceo' },
+    { id: 'c', modelId: MODELS[2], tasks: {}, pkg: 'ceo' }, { id: 'd', modelId: MODELS[3], tasks: {}, pkg: 'free' }] });
+  assert.strictEqual(m.activeProjectId, 'd', 'arşivdeki proje aktif kalmaz');
+  const b = m.projects[1]; assert.strictEqual(b.status, 'active'); assert.strictEqual(b.desc, ''); assert.strictEqual(b.goal, 0); assert.ok(b.title.length > 0);
+  assert.strictEqual(m.projects.filter(p => p.pkg).length, 1, 'aynı anda tek projede paket'); assert.strictEqual(m.projects[0].pkg, '');
+  assert.strictEqual(m.projects[3].pkg, '', 'free paket atanamaz');
+});
+test('paket ataması: otomasyon yoksa reddedilir, atanır, başka projeye taşınır, kaldırılır', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  assert.ok(!C.assignPackage(s, a.id, T0).ok, 'Manuel paket otomasyon değil'); assert.strictEqual(a.pkg, '');
+  C.setPackage(s, 'semi', T0); let r = C.assignPackage(s, a.id, T0 + 2);
+  assert.ok(r.ok); assert.strictEqual(a.pkg, 'semi'); assert.strictEqual(C.projectPackageState(s, a).state, 'active'); assert.strictEqual(C.projectPackageState(s, b).state, 'none');
+  r = C.assignPackage(s, b.id, T0 + 3); assert.ok(r.ok); assert.strictEqual(r.movedFrom, a.id);
+  assert.strictEqual(a.pkg, ''); assert.strictEqual(b.pkg, 'semi'); assert.strictEqual(s.projects.filter(p => p.pkg).length, 1);
+  assert.ok(C.unassignPackage(s, b.id, T0)); assert.strictEqual(b.pkg, ''); assert.ok(!C.unassignPackage(s, b.id, T0));
+  assert.ok(!C.assignPackage(s, 'yok', T0).ok);
+});
+test('paket bitince / değişince proje verisi silinmez; atama pasif görünür, paket dönünce yeniden aktif olur', () => {
+  const s = mk(); C.setPackage(s, 'semi', T0); const a = C.startProject(s, MODELS[0], T0);
+  C.addFinance(s, { type: 'in', amount: 77, src: a.id }, T0); C.setTaskNote(s, a.id, D.MODELS.find(m => m.id === a.modelId).tasks[0].id, 'kalıcı', T0);
+  C.assignPackage(s, a.id, T0); C.setPackage(s, 'free', T0 + 1);
+  assert.strictEqual(C.projectPackageState(s, a).state, 'inactive'); assert.strictEqual(s.projects.length, 1); assert.strictEqual(s.finance.length, 1);
+  assert.strictEqual(Object.values(a.tasks)[0].note, 'kalıcı');
+  C.setPackage(s, 'ceo', T0 + 2); assert.strictEqual(C.projectPackageState(s, a).state, 'inactive', 'farklı paket otomatik devralınmaz');
+  C.setPackage(s, 'semi', T0 + 3); assert.strictEqual(C.projectPackageState(s, a).state, 'active');
+  assert.ok(C.archiveProject(s, a.id, T0)); assert.strictEqual(a.pkg, '', 'arşiv koltuğu serbest bırakır'); assert.ok(!C.assignPackage(s, a.id, T0).ok);
+});
+test('yedek: dışa aktar → içe aktar proje alanlarını, arşivi, paketi ve bağlantıları korur', () => {
+  const s = mk(); C.setPackage(s, 'semi', T0); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.updateProject(s, a.id, { title: 'Alfa', desc: 'açıklama', goal: 300, note: 'proje notu' }, T0); C.addFinance(s, { type: 'in', amount: 55, src: a.id }, T0);
+  C.assignPackage(s, a.id, T0); C.archiveProject(s, b.id, T0);
+  const r = C.importData(C.exportData(s, T0)); assert.ok(r.ok);
+  const x = r.state.projects.find(p => p.id === a.id), y = r.state.projects.find(p => p.id === b.id);
+  assert.strictEqual(x.title, 'Alfa'); assert.strictEqual(x.desc, 'açıklama'); assert.strictEqual(x.goal, 300); assert.strictEqual(x.note, 'proje notu'); assert.strictEqual(x.pkg, 'semi');
+  assert.strictEqual(y.status, 'archived'); assert.strictEqual(r.state.finance[0].src, a.id); assert.strictEqual(r.state.activeProjectId, a.id);
+});
+test('proje dışa aktarımı yeni alanları içerir', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0); C.updateProject(s, a.id, { desc: 'd', note: 'n' }, T0);
+  const j = JSON.parse(C.exportProject(s, a.id, T0)); assert.strictEqual(j.project.desc, 'd'); assert.strictEqual(j.project.note, 'n');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

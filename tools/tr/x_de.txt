@@ -121,3 +121,67 @@
 120|Start
 121|Projekte
 122|KI
+123|aktive Projekte. Wenige fokussierte Projekte schlagen viele verstreute.
+124|Dein Tarif gehört zu deinem Konto; du kannst deinen Automatisierungs-Tarif einem Projekt zuweisen. Wenn du das Projekt wechselst, verschwinden deine Einnahmen und Ausgaben nicht.
+125|Projekt
+126|Wähle zuerst ein Projekt.
+127|Zu den Projekten
+128|Aktives Projekt:
+129|Aktives Projekt
+130|In Arbeit
+131|Kein Tarif zugewiesen
+132|Zu den Aufgaben
+133|Projektnotizen
+134|Einnahmen und Ausgaben
+135|Eintrag hinzufügen ›
+136|deiner Einträge sind keinem Projekt zugeordnet (ältere Einträge). Du kannst alle diesem Projekt zuordnen; nichts wird gelöscht und du kannst sie später einzeln ändern.
+137|# Einträge diesem Projekt zuordnen
+138|Tarif
+139|Dieses Projekt hat keinen Tarif; es lässt sich auch ohne nutzen.
+140|Du hast keinen Automatisierungs-Tarif zum Zuweisen. Tarife gehören zu deinem Konto (Mein Konto › Tarife, Testmodus).
+141|Projektdetails
+142|Projektname
+143|Kurzbeschreibung
+144|Projektziel: Gesamteinnahmen (TL)
+145|Exportieren
+146|Archivieren
+147|Projekt löschen
+148|Überlege, vor dem Löschen zu archivieren: im Archiv geht nichts verloren. Beim Löschen werden Aufgaben, Notizen, Pläne und Entscheidungen des Projekts entfernt; deine Einnahmen und Ausgaben bleiben und kehren zu „Allgemein“ zurück. Du kannst vorher exportieren.
+149|Worum geht es in diesem Projekt?
+150|Optional
+151|Neues Projekt erstellen
+152|Meinen Tarif diesem Projekt zuweisen
+153|Aktiv setzen
+154|Du hast das Projektlimit erreicht.
+155|Du kannst höchstens # aktive Projekte gleichzeitig führen, damit du fokussiert bleibst. Archiviere ein Projekt, um ein neues zu starten: im Archiv wird nichts gelöscht.
+156|Diesem Projekt sind keine Einträge zugeordnet. Wähle beim Hinzufügen eines Eintrags unter „Für welche Arbeit?“ dieses Projekt.
+157|Archiv (#)
+158|Archiviert
+159|Aus dem Archiv holen
+160|Projektziel (Einnahmen)
+161|%# · noch # TL bis zum Ziel
+162|Die letzten # Einträge werden angezeigt (# Einträge).
+163|Der Automatisierungs-Tarif deines Kontos ist diesem Projekt zugewiesen. (TESTMODUS: keine echte Zahlung.)
+164|Tarif von diesem Projekt entfernen
+165|Tarif derzeit nicht aktiv
+166|Der diesem Projekt zugewiesene Tarif ist in deinem Konto gerade nicht aktiv. Daten, Verlauf und Aufgaben des Projekts bleiben unverändert. Du kannst deinen aktiven Tarif zuweisen oder die Zuweisung entfernen.
+167|Zuweisung entfernen
+168|Der Projektname darf nicht leer sein.
+169|Das Projektziel muss ein gültiger Betrag sein.
+170|Projekt gespeichert.
+171|Projekt archiviert.
+172|Du kannst höchstens # aktive Projekte haben. Archiviere zuerst eines.
+173|Projekt aus dem Archiv geholt.
+174|Projekt gelöscht.
+175|# Einträge dem Projekt zugeordnet.
+176|Tarif auf dieses Projekt übertragen.
+177|Tarif dem Projekt zugewiesen.
+178|Tarif-Zuweisung entfernt.
+179|Aktives Projekt gewechselt.
+180|Einem archivierten Projekt kann kein Tarif zugewiesen werden.
+181|Du hast keinen Automatisierungs-Tarif zum Zuweisen.
+182|Dieses Projekt archivieren? Es wird nichts gelöscht; es kommt in den Archivbereich und du kannst es jederzeit zurückholen. Ein zugewiesener Tarif wird freigegeben.
+183|Dieses Projekt endgültig löschen? Gelöscht werden: Aufgaben, Notizen, Pläne und Entscheidungen. Erhalten bleiben: deine Einnahmen und Ausgaben (sie kehren zu „Allgemein“ zurück). Das lässt sich nicht rückgängig machen. Wenn du unsicher bist, tippe auf Abbrechen und archiviere das Projekt.
+184|Alle Einträge ohne Projekt diesem Projekt zuordnen? Es wird nichts gelöscht; du kannst sie später einzeln ändern.
+185|Der Tarif liegt derzeit auf diesem Projekt:
+186|Tarif hierher verschieben

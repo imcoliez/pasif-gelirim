@@ -40,6 +40,10 @@ function states() {
   full.settings.look.accent = 'custom'; full.settings.look.custom = '#ff8800'; full.settings.reminder.enabled = true; full.lock = { enabled: true, salt: 'a', hash: 'b' };
   full.user.avatar = 'data:image/jpeg;base64,AAAA';
   out.push(['full', full, T]);
+  const pm = mk('semi'); Core.startProject(pm, 'freelance', T); Core.startProject(pm, 'blog-affiliate', T + 1); Core.startProject(pm, 'yerel-hizmet', T + 2);
+  Core.updateProject(pm, pm.projects[0].id, { desc: 'zzdesc', goal: 100, note: 'zznote' }, T); Core.addFinance(pm, { type: 'in', amount: 30, src: pm.projects[0].id, note: 'zzrec' }, T); Core.addFinance(pm, { type: 'in', amount: 5, note: 'legacy' }, T);
+  Core.assignPackage(pm, pm.projects[0].id, T); Core.archiveProject(pm, pm.projects[1].id, T); Core.setActiveProject(pm, pm.projects[0].id); out.push(['projMix', pm, T]);
+  const pn = mk('ceo'); Core.startProject(pn, 'freelance', T); Core.startProject(pn, 'blog-affiliate', T + 1); Core.assignPackage(pn, pn.projects[0].id, T); Core.setPackage(pn, 'free', T); Core.setActiveProject(pn, pn.projects[0].id); out.push(['projInactive', pn, T]);
   const man = mk('manual'); man.addonNarration = true; out.push(['manualNarr', man, T]);
   return out;
 }
@@ -47,7 +51,7 @@ function states() {
 function uiStates(S, T) {
   const ui = (o) => Object.assign({ route: 'home', quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '', period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false, exportText: null, resolvedTheme: 'dark', depth: 0, onb: 0, market: null, mkDays: 30 }, o || {});
   const list = [];
-  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market', 'projects', 'tools', 'account'].forEach(r => list.push(ui({ route: r })));
+  ['onboarding', 'welcome', 'home', 'tasks', 'chat', 'money', 'charts', 'auto', 'packages', 'history', 'settings', 'about', 'calc', 'glossary', 'plans', 'market', 'projects', 'project', 'tools', 'account'].forEach(r => list.push(ui({ route: r })));
   [0, 1, 2].forEach(i => list.push(ui({ route: 'onboarding', onb: i })));
   const p = Core.activeProject(S);
   if (p) {

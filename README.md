@@ -36,6 +36,7 @@ Sürüm 1.0 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | **Projelerim (v1.1):** en fazla 4 proje, aktif proje seçme, proje başına ilerleme ve net, proje dışa aktarma (JSON) | ✅ |
 | **Model kartları (v1.1):** başlangıç maliyeti, zorluk, gereken beceriler, risk; bütçesi yetmeyen kullanıcıya bütçe isteyen model önerilmez ("şimdilik önerilmeyenler", nedeniyle) | ✅ |
 | **Görevlerde Okudum / Anladım / Tamamladım (v1.1)** aşamaları | ✅ |
+| **Proje yönetimi (Aşama 3):** projeler ekranı (durum, gelir-gider, görev ilerlemesi, paket), proje ayrıntısı, ad/açıklama/hedef/not düzenleme, arşiv ve onaylı silme, en fazla 4 aktif proje, paketi projeye atama/taşıma (test modu), eski kayıtları açık onayla projeye bağlama | ✅ |
 | **Alt menü (Aşama 2):** yüzen kapsül, 5 sekme (Ana Sayfa, Projeler, Yapay Zekâ, Araçlar, Hesabım); aktif sekme simge + adla genişler. Araçlar ve Hesabım giriş ekranlarıyla mevcut ekranlara erişim korunur | ✅ |
 | 💚 Sesli anlatım (+150 TL, cihazın kendi sesiyle) | ✅ (ödeme test) |
 | Günlük 1 saatlik ücretsiz AI sohbet, öneri düğmeleri, "yazıyor" animasyonu | ✅ (**demo yapay zekâ**) |

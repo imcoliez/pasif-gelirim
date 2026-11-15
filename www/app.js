@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'projects', 'chat', 'tools', 'account'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', project: 'Proje', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -340,7 +340,7 @@
       html += lock('Gelir modeli seçmek ve görev listesini kullanmak için Manuel paket gerekir.', 'Paketlere bak', 'packages');
     }
     html += '<div class="grid2">' +
-      '<button class="tile" data-act="go" data-route="projects"><span class="ti">' + icon('layers', 20) + '</span><b>Projelerim</b><small>' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje</small></button>' +
+      '<button class="tile" data-act="go" data-route="projects"><span class="ti">' + icon('layers', 20) + '</span><b>Projelerim</b><small>' + Core.liveProjects(S).length + ' / ' + Core.MAX_PROJECTS + ' proje</small></button>' +
       '<button class="tile" data-act="go" data-route="chat"><span class="ti">' + icon('chat', 20) + '</span><b>AI Sohbet</b><small>Bugün kalan: ' + Core.formatDuration(left) + '</small></button>' +
       '<button class="tile" data-act="go" data-route="money"><span class="ti">' + icon('trend', 20) + '</span><b>Kazanç</b><small>' + tl(Core.financeSummary(S, now).net) + ' net</small></button>' +
       '<button class="tile" data-act="go" data-route="auto"><span class="ti">' + icon('zap', 20) + '</span><b>Otomasyon</b><small>' + (ent.automation ? 'Açık' : 'Ücretli paket') + '</small></button>' +
@@ -387,7 +387,7 @@
         '<span class="chk">' + (done ? icon('check', 16) : (i + 1)) + '</span><span>' + esc(t.title) + '</span>' + stageTag(p.tasks[t.id]) + '</button></li>';
     });
     html += '</ul>';
-    html += '<button class="link" data-act="go" data-route="projects">Projelerim (' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ')</button>';
+    html += '<button class="link" data-act="go" data-route="projects">Projelerim (' + Core.liveProjects(S).length + ' / ' + Core.MAX_PROJECTS + ')</button>';
     if (ent.selectModel) html += '<button class="btn ghost" data-act="quizStart">Yeni gelir modeli seç</button>';
     return html;
   };
@@ -526,7 +526,7 @@
       '<div class="two"><div><label class="lbl" for="finCat">Kategori</label><select id="finCat" class="inp">' + catOptions(type, ed && ed.cat) + '</select></div>' +
       '<div><label class="lbl" for="finDate">Tarih</label><input id="finDate" type="date" class="inp" value="' + (ed ? Core.dateInputValue(ed.date) : today) + '" max="' + today + '"></div></div>' +
       '<label class="lbl" for="finNote">Not</label><input id="finNote" class="inp" maxlength="120" placeholder="Örn: ilk satış"' + (ed ? ' value="' + esc(ed.note) + '"' : '') + '>' +
-      (S.projects.length ? '<label class="lbl" for="finSrc">Hangi iş için?</label><select id="finSrc" class="inp"><option value="">Genel</option>' + S.projects.map(function (q) { return '<option value="' + esc(q.id) + '"' + (ed && ed.src === q.id ? ' selected' : '') + '>' + esc(q.title) + '</option>'; }).join('') + '</select>' : '') +
+      (S.projects.length ? '<label class="lbl" for="finSrc">Hangi iş için?</label><select id="finSrc" class="inp"><option value="">Genel</option>' + S.projects.filter(function (q) { return !Core.isArchived(q) || (ed && ed.src === q.id); }).map(function (q) { return '<option value="' + esc(q.id) + '"' + ((ed ? ed.src === q.id : q.id === S.activeProjectId) ? ' selected' : '') + '>' + esc(q.title) + (Core.isArchived(q) ? ' (arşivde)' : '') + '</option>'; }).join('') + '</select>' : '') +
       '<button class="btn" data-act="addFin">' + (ed ? 'Güncelle' : 'Kaydet') + '</button></div>' +
       '<p class="fine">Gerçek rakamlarını yaz. Amaç kendini kandırmadan ilerlemeyi görmek.</p>';
     const flt = ui.finFilter || 'all';
@@ -674,24 +674,90 @@
     return html + '<p class="fine">Bu bir hesap makinesidir; o kadar satış yapacağını garanti etmez. Vergi ve diğer giderleri ayrıca düşünmelisin.</p>';
   };
 
+  function statusChip(x) {
+    return x.archived ? '<span class="chip mute">Arşivde</span>' : (x.complete ? '<span class="chip">Proje bitti</span>' : '<span class="chip soft">Devam ediyor</span>');
+  }
+  function pkgLine(S, p) {
+    const st = Core.projectPackageState(S, p);
+    if (st.state === 'active') return '<span class="chip">' + icon('zap', 14) + ' ' + esc(st.pkg.name) + ' paketi (test)</span>';
+    if (st.state === 'inactive') return '<span class="chip mute">Paket şu an aktif değil</span>';
+    return '<span class="chip mute">Paket atanmadı</span>';
+  }
+  function projCard(S, p) {
+    const x = Core.projectSummary(S, p), id = esc(p.id);
+    return '<div class="card proj' + (x.active ? ' act' : '') + (x.archived ? ' arch' : '') + '">' +
+      '<div class="row"><b class="ptitle">' + esc(x.title) + '</b>' + (x.active ? '<span class="chip">Aktif proje</span>' : '') + '</div>' +
+      (x.desc ? '<p class="muted small">' + nt(x.desc) + '</p>' : '') +
+      '<div class="pchips">' + statusChip(x) + pkgLine(S, p) + '</div>' +
+      bar(x.pct) + '<p class="muted small">' + x.done + ' / ' + x.total + ' görev tamamlandı</p>' +
+      '<div class="irow"><span>Gelir</span><b class="pos">' + tl(x.income) + '</b></div>' +
+      '<div class="irow"><span>Gider</span><b>' + tl(x.expense) + '</b></div>' +
+      '<div class="irow"><span>Bu projenin neti</span><b class="' + (x.net < 0 ? 'neg' : 'pos') + '">' + signed(x.net) + '</b></div>' +
+      (x.next && !x.archived ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
+      '<div class="row wrap"><button class="btn slim" data-act="viewProject" data-id="' + id + '">Aç</button>' +
+      (!x.archived && !x.active ? '<button class="btn slim ghost" data-act="switchProject" data-id="' + id + '">Aktif yap</button>' : '') +
+      (x.archived ? '<button class="btn slim ghost" data-act="restoreProject" data-id="' + id + '">Arşivden çıkar</button>' : '') + '</div></div>';
+  }
   views.projects = function (S, ui, now) {
-    const ent = Core.entitlements(S);
-    let h = '<h2>Projelerim</h2><p class="muted">' + S.projects.length + ' / ' + Core.MAX_PROJECTS + ' proje. Az ve odaklı proje, dağınık çok işten daha iyi ilerler.</p>' +
+    const ent = Core.entitlements(S), live = Core.liveProjects(S), arch = S.projects.filter(Core.isArchived);
+    let h = '<h2>Projelerim</h2><p class="muted"><b>' + live.length + ' / ' + Core.MAX_PROJECTS + '</b> aktif proje. Az ve odaklı proje, dağınık çok işten daha iyi ilerler.</p>' +
       '<button class="tile wide" data-act="go" data-route="tasks"><span class="ti">' + icon('tasks', 20) + '</span><b>Görevler</b><small>Aktif projenin görev listesi</small></button>';
     if (!S.projects.length) h += '<div class="card muted">Henüz projen yok. Sana uygun gelir modelini bulup ilk projeni başlatabilirsin.</div>';
-    S.projects.slice().sort(function (a, b) { return (b.id === S.activeProjectId) - (a.id === S.activeProjectId) || b.updatedAt - a.updatedAt; }).forEach(function (p) {
-      const x = Core.projectSummary(S, p);
-      h += '<div class="card proj' + (x.active ? ' act' : '') + '"><div class="row"><b>' + esc(x.title) + '</b>' + (x.active ? '<span class="chip">Aktif</span>' : (x.complete ? '<span class="chip">Proje bitti</span>' : '')) + '</div>' +
-        bar(x.pct) + '<p class="muted small">' + x.done + ' / ' + x.total + ' görev tamamlandı</p>' +
-        '<div class="irow"><span>Bu projenin neti</span><b class="' + (x.net < 0 ? 'neg' : 'pos') + '">' + signed(x.net) + '</b></div>' +
-        (x.next ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
-        '<div class="row"><button class="btn slim" data-act="viewProject" data-id="' + esc(p.id) + '">Aç</button>' +
-        '<button class="btn slim ghost" data-act="exportProject" data-id="' + esc(p.id) + '">' + icon('download', 16) + ' Projeyi dışa aktar</button></div></div>';
-    });
+    live.sort(function (a, b) { return (b.id === S.activeProjectId) - (a.id === S.activeProjectId) || b.updatedAt - a.updatedAt; }).forEach(function (p) { h += projCard(S, p); });
     if (!ent.selectModel) h += '<div class="card note">Yeni proje başlatmak için Manuel veya üstü paket gerekir.</div>';
-    else if (!Core.canStartProject(S)) h += '<div class="card note">En fazla ' + Core.MAX_PROJECTS + ' proje oluşturabilirsin. Yeni model seçmeden önce Projelerim bölümünden birini tamamla.</div>';
-    else h += '<button class="btn" data-act="quizStart">Yeni proje başlat</button>';
-    h += '<p class="fine">Paketin hesabına bağlıdır. Otomasyon planları ve karar kartları aktif projen için hazırlanır. Projeyi değiştirsen de gelir-gider kayıtların kaybolmaz.</p>';
+    else if (!Core.canStartProject(S)) h += '<div class="card note"><b>Proje sınırına ulaştın.</b> Aynı anda en fazla ' + Core.MAX_PROJECTS + ' aktif proje yürütebilirsin; böylece dağılmadan ilerlersin. Yeni proje için bir projeni arşivleyebilirsin: arşivlenen projenin hiçbir verisi silinmez.</div>';
+    else h += '<button class="btn" data-act="quizStart">' + icon('plus', 18) + ' Yeni proje oluştur</button>';
+    if (arch.length) {
+      h += '<details class="archbox"' + (ui.archOpen ? ' open' : '') + '><summary>Arşiv (' + arch.length + ')</summary>';
+      arch.sort(function (a, b) { return (b.archivedAt || 0) - (a.archivedAt || 0); }).forEach(function (p) { h += projCard(S, p); });
+      h += '</details>';
+    }
+    h += '<p class="fine">Paketin hesabına bağlıdır; otomasyon paketini bir projene atayabilirsin. Projeyi değiştirsen de gelir-gider kayıtların kaybolmaz.</p>';
+    return h;
+  };
+
+  views.project = function (S, ui, now) {
+    const p = Core.activeProject(S) || Core.projectById(S, ui.projectId);
+    if (!p) return lock('Önce bir proje seç.', 'Projelere git', 'projects');
+    const x = Core.projectSummary(S, p), id = esc(p.id), ent = Core.entitlements(S);
+    const recs = Core.projectFinance(S, p.id), unl = Core.unlinkedFinance(S).length, pst = Core.projectPackageState(S, p);
+    let h = '<div class="row"><h2 class="ptitle">' + esc(x.title) + '</h2>' + (x.active ? '<span class="chip">Aktif proje</span>' : '') + '</div>' +
+      (x.desc ? '<p class="muted">' + nt(x.desc) + '</p>' : '') +
+      '<div class="pchips">' + statusChip(x) + pkgLine(S, p) + '</div>';
+    h += '<div class="grid3"><div class="stat in"><small>Gelir</small><b>' + tl(x.income) + '</b></div><div class="stat out"><small>Gider</small><b>' + tl(x.expense) + '</b></div>' +
+      '<div class="stat"><small>Net</small><b class="' + (x.net < 0 ? 'neg' : '') + '">' + tl(x.net) + '</b></div></div>';
+    if (x.goal > 0) h += '<div class="card"><div class="irow"><span>Proje hedefi (gelir)</span><b>' + tl(x.goal) + '</b></div>' + bar(x.goalPct) + '<p class="muted small">%' + x.goalPct + ' · Hedefe ' + tl(Math.max(0, Math.round((x.goal - x.income) * 100) / 100)) + ' kaldı</p></div>';
+    h += '<div class="card"><div class="row"><b>Görevler</b><span class="muted small">' + x.done + ' / ' + x.total + '</span></div>' + bar(x.pct) +
+      (x.next && !x.archived ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
+      (x.archived ? '' : '<button class="btn slim" data-act="go" data-route="tasks">Görevlere git</button>') + '</div>';
+    h += '<div class="card"><b>Proje notları</b><textarea id="pjNote" class="inp" rows="4" maxlength="2000" data-change="projNote" placeholder="Bu projeyle ilgili notların burada saklanır"' + (x.archived ? ' readonly' : '') + '>' + esc(p.note || '') + '</textarea></div>';
+    h += '<div class="card"><div class="row"><b>Gelir ve giderler</b><button class="link" data-act="go" data-route="money">Kayıt ekle ›</button></div>';
+    if (!recs.length) h += '<p class="muted small">Bu projeye bağlı kayıt yok. Kayıt eklerken “Hangi iş için?” alanından bu projeyi seçebilirsin.</p>';
+    else h += '<ul class="list">' + recs.slice(0, 6).map(function (r) { return '<li class="fin ' + r.type + '"><span>' + Core.formatDate(r.date) + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.note ? '<br><small class="muted">' + nt(r.note) + '</small>' : '') + '</span><b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></li>'; }).join('') + '</ul>' + (recs.length > 6 ? '<p class="muted small">Son 6 kayıt gösteriliyor (' + recs.length + ' kayıt).</p>' : '');
+    if (unl && !x.archived) h += '<div class="note-in"><p class="muted small"><b>' + unl + '</b> kaydın hiçbir projeye bağlı değil (eski kayıtlar). Hepsini bu projeye bağlayabilirsin; kayıtlar silinmez, istediğinde tek tek yeniden değiştirebilirsin.</p><button class="btn slim ghost" data-act="linkLegacy" data-id="' + id + '">' + unl + ' kaydı bu projeye bağla</button></div>';
+    h += '</div>';
+    // paket
+    h += '<div class="card"><b>Paket</b>';
+    if (pst.state === 'active') h += '<p class="muted small">Hesabındaki otomasyon paketi bu projeye atanmış. (TEST MODU: gerçek ödeme yok.)</p><button class="btn slim ghost" data-act="unassignPkg" data-id="' + id + '">Paketi bu projeden kaldır</button>';
+    else if (pst.state === 'inactive') h += '<p class="muted small">Bu projeye atanmış paket şu an hesabında aktif değil. Projenin verileri, geçmişi ve görevleri olduğu gibi duruyor. Hesabındaki aktif paketi atayabilir ya da atamayı kaldırabilirsin.</p>';
+    else h += '<p class="muted small">Bu projede paket yok; proje paketsiz de kullanılabilir.</p>';
+    if (!x.archived && ent.automation && pst.state !== 'active') {
+      const other = S.projects.find(function (q) { return q.id !== p.id && Core.projectPackageState(S, q).state === 'active'; });
+      h += (other ? '<p class="muted small"><span>Paket şu an bu projede:</span> ' + nt(other.title) + '</p>' : '') + '<button class="btn slim" data-act="assignPkg" data-id="' + id + '">' + (other ? 'Paketi buraya taşı' : 'Paketimi bu projeye ata') + '</button>';
+    } else if (!x.archived && !ent.automation) h += '<p class="fine">Atanabilir bir otomasyon paketin yok. Paketler hesabına bağlıdır (Hesabım › Paketler, test modu).</p>';
+    if (pst.state === 'inactive' && !x.archived) h += '<button class="btn slim ghost" data-act="unassignPkg" data-id="' + id + '">Atamayı kaldır</button>';
+    h += '</div>';
+    // düzenleme
+    if (!x.archived) h += '<div class="card"><b>Proje bilgileri</b>' +
+      '<label class="lbl" for="pjTitle">Proje adı</label><input id="pjTitle" class="inp" maxlength="40" value="' + esc(p.title) + '">' +
+      '<label class="lbl" for="pjDesc">Kısa açıklama</label><input id="pjDesc" class="inp" maxlength="160" value="' + esc(p.desc || '') + '" placeholder="Bu proje ne hakkında?">' +
+      '<label class="lbl" for="pjGoal">Proje hedefi: toplam gelir (TL)</label><input id="pjGoal" class="inp" inputmode="decimal" value="' + (p.goal > 0 ? esc(String(p.goal).replace('.', ',')) : '') + '" placeholder="İsteğe bağlı">' +
+      '<button class="btn" data-act="saveProject" data-id="' + id + '">Kaydet</button></div>';
+    // aktif yap / arşiv / dışa aktar / sil
+    h += '<div class="row wrap">' + (!x.archived && !x.active ? '<button class="btn slim" data-act="switchProject" data-id="' + id + '">Aktif yap</button>' : '') +
+      '<button class="btn slim ghost" data-act="exportProject" data-id="' + id + '">' + icon('download', 16) + ' Dışa aktar</button>' +
+      (x.archived ? '<button class="btn slim ghost" data-act="restoreProject" data-id="' + id + '">Arşivden çıkar</button>' : '<button class="btn slim ghost" data-act="archiveProject" data-id="' + id + '">Arşivle</button>') + '</div>';
+    h += '<div class="card danger"><b>Projeyi sil</b><p class="muted small">Silmeden önce arşivlemeyi düşün: arşivde hiçbir veri kaybolmaz. Silersen projenin görevleri, notları, planları ve kararları gider; gelir-gider kayıtların kalır ve “Genel”e döner. Silmeden önce dışa aktarabilirsin.</p><button class="btn slim danger" data-act="deleteProject" data-id="' + id + '">' + icon('trash', 16) + ' Projeyi sil</button></div>';
     return h;
   };
 
@@ -949,8 +1015,16 @@
     return html;
   }
 
-  const TAB_OF = { task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
+  const TAB_OF = { project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
   function tabOf(route) { return TAB_OF[route] || (TOP.indexOf(route) !== -1 ? route : 'home'); }
+
+  const NO_CHIP = ['welcome', 'onboarding', 'lock', 'projects', 'project', 'chat', 'settings', 'account'];
+  // Hangi projede çalıştığını her ekranda gösteren küçük gösterge
+  function activeChip(S, route) {
+    const p = Core.activeProject(S);
+    if (!p || Core.isArchived(p) || NO_CHIP.indexOf(route) !== -1) return '';
+    return '<button class="pchip" data-act="go" data-route="project" aria-label="Aktif proje"><span class="dot"></span><span class="pl">Aktif proje:</span> <b>' + esc(p.title) + '</b>' + icon('chevron', 14) + '</button>';
+  }
 
   function parts(S, ui, now) {
     const route = ui.pinMode ? 'lock' : (views[ui.route] ? ui.route : 'home');
@@ -959,7 +1033,7 @@
       chrome: NO_CHROME.indexOf(route) === -1,
       activeTab: tabOf(route),
       top: topHtml(S, ui),
-      main: route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now),
+      main: activeChip(S, route) + (route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now)),
       layer: layerHtml(S, ui)
     };
   }

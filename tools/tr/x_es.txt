@@ -121,3 +121,67 @@
 120|Inicio
 121|Proyectos
 122|IA
+123|proyectos activos. Pocos proyectos enfocados rinden más que muchos dispersos.
+124|Tu plan pertenece a tu cuenta; puedes asignar tu plan de automatización a un proyecto. Cambiar de proyecto nunca hace desaparecer tus registros de ingresos y gastos.
+125|Proyecto
+126|Elige primero un proyecto.
+127|Ir a proyectos
+128|Proyecto activo:
+129|Proyecto activo
+130|En curso
+131|Sin plan asignado
+132|Ir a las tareas
+133|Notas del proyecto
+134|Ingresos y gastos
+135|Añadir registro ›
+136|de tus registros no están vinculados a ningún proyecto (registros antiguos). Puedes vincularlos todos a este proyecto; no se borra nada y luego puedes cambiarlos uno a uno.
+137|Vincular # registros a este proyecto
+138|Plan
+139|Este proyecto no tiene plan; se puede usar sin él.
+140|No tienes un plan de automatización para asignar. Los planes pertenecen a tu cuenta (Mi cuenta › Planes, modo de prueba).
+141|Datos del proyecto
+142|Nombre del proyecto
+143|Descripción breve
+144|Meta del proyecto: ingresos totales (TL)
+145|Exportar
+146|Archivar
+147|Eliminar proyecto
+148|Considera archivar antes de eliminar: en el archivo no se pierde nada. Si eliminas, se borran las tareas, notas, planes y decisiones del proyecto; tus registros de ingresos y gastos se conservan y vuelven a “General”. Puedes exportar antes.
+149|¿De qué trata este proyecto?
+150|Opcional
+151|Crear proyecto nuevo
+152|Asignar mi plan a este proyecto
+153|Activar
+154|Has llegado al límite de proyectos.
+155|Puedes llevar como máximo # proyectos activos a la vez para mantener el enfoque. Para empezar uno nuevo, archiva un proyecto: en un proyecto archivado no se elimina nada.
+156|Ningún registro está vinculado a este proyecto. Al añadir un registro, elige este proyecto en “¿Para qué trabajo?”.
+157|Archivo (#)
+158|Archivado
+159|Sacar del archivo
+160|Meta del proyecto (ingresos)
+161|%# · faltan # TL para la meta
+162|Se muestran los últimos # registros (# registros).
+163|El plan de automatización de tu cuenta está asignado a este proyecto. (MODO DE PRUEBA: sin pago real.)
+164|Quitar el plan de este proyecto
+165|Plan no activo ahora mismo
+166|El plan asignado a este proyecto no está activo en tu cuenta ahora mismo. Los datos, el historial y las tareas del proyecto siguen intactos. Puedes asignar tu plan activo o quitar la asignación.
+167|Quitar asignación
+168|El nombre del proyecto no puede estar vacío.
+169|La meta del proyecto debe ser un importe válido.
+170|Proyecto guardado.
+171|Proyecto archivado.
+172|Puedes tener como máximo # proyectos activos. Archiva uno primero.
+173|Proyecto sacado del archivo.
+174|Proyecto eliminado.
+175|# registros vinculados al proyecto.
+176|Plan trasladado a este proyecto.
+177|Plan asignado al proyecto.
+178|Asignación del plan eliminada.
+179|Proyecto activo cambiado.
+180|No se puede asignar un plan a un proyecto archivado.
+181|No tienes un plan de automatización para asignar.
+182|¿Archivar este proyecto? No se borra nada; pasa a la sección Archivo y puedes recuperarlo cuando quieras. Si tenía un plan asignado, se libera.
+183|¿Eliminar este proyecto de forma permanente? Se borrarán: tareas, notas, planes y decisiones. Se conservarán: tus registros de ingresos y gastos (vuelven a General). No se puede deshacer. Si dudas, pulsa Cancelar y archiva el proyecto.
+184|¿Vincular a este proyecto todos los registros que no pertenecen a ningún proyecto? No se borra nada; luego puedes cambiarlos uno a uno.
+185|El plan está ahora en este proyecto:
+186|Mover el plan aquí

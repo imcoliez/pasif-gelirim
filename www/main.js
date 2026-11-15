@@ -635,7 +635,6 @@
       if (!Core.startProject(S, el.getAttribute('data-id'), now())) { toast('En fazla 4 proje oluşturabilirsin.'); return; }
       ui.quiz = null; save(); toast('Proje başlatıldı!'); celebrate(false); go('tasks');
     },
-    switchProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); ui.enter = 'fade'; render(); },
     stage: function (el) {
       var p = Core.activeProject(S); if (!p) return;
       var id = el.getAttribute('data-id'), k = el.getAttribute('data-stage');
@@ -648,7 +647,52 @@
       var id = el.getAttribute('data-id'), txt = Core.exportProject(S, id, now()); if (!txt) return;
       exportFile('pasif-gelirim-proje.json', txt, 'application/json', 'Proje (JSON)');
     },
-    viewProject: function (el) { S.activeProjectId = el.getAttribute('data-id'); save(); go('tasks'); },
+    viewProject: function (el) {
+      var id = el.getAttribute('data-id'), q = Core.projectById(S, id); if (!q) return;
+      if (!Core.isArchived(q)) { Core.setActiveProject(S, id); save(); }
+      go('project', { projectId: id });
+    },
+    switchProject: function (el) {
+      var q = Core.projectById(S, el.getAttribute('data-id'));
+      if (!q || !Core.setActiveProject(S, q.id)) return;
+      save(); toast('Aktif proje değişti.'); render();
+    },
+    saveProject: function (el) {
+      var id = el.getAttribute('data-id'), q = Core.projectById(S, id); if (!q) return;
+      if (!val('pjTitle').trim()) { toast('Proje adı boş olamaz.'); return; }
+      var r = Core.updateProject(S, id, { title: val('pjTitle'), desc: val('pjDesc'), goal: val('pjGoal') }, now());
+      if (!r) { toast('Proje hedefi geçerli bir tutar olmalı.'); return; }
+      save(); toast('Proje kaydedildi.'); render();
+    },
+    archiveProject: function (el) {
+      var id = el.getAttribute('data-id'), q = Core.projectById(S, id); if (!q) return;
+      if (!window.confirm(I18n.t('Bu proje arşivlensin mi? Hiçbir veri silinmez; proje Arşiv bölümüne taşınır ve istediğin zaman geri alabilirsin. Projeye atanmış paket varsa atama kalkar.'))) return;
+      Core.archiveProject(S, id, now()); save(); toast('Proje arşivlendi.'); go('projects');
+    },
+    restoreProject: function (el) {
+      var id = el.getAttribute('data-id');
+      if (!Core.canStartProject(S)) { toast('En fazla 4 aktif proje olabilir. Önce birini arşivle.'); return; }
+      if (Core.restoreProject(S, id, now())) { save(); toast('Proje arşivden çıkarıldı.'); render(); }
+    },
+    deleteProject: function (el) {
+      var id = el.getAttribute('data-id'), q = Core.projectById(S, id); if (!q) return;
+      var msg = I18n.t('Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel\'e döner). Bu işlem geri alınamaz. Emin değilsen İptal\'e bas ve projeyi arşivle.') + '\n\n' + q.title;
+      if (!window.confirm(msg)) return;
+      Core.deleteProject(S, id); save(); toast('Proje silindi.'); go('projects');
+    },
+    linkLegacy: function (el) {
+      var id = el.getAttribute('data-id'), n = Core.unlinkedFinance(S).length; if (!n) return;
+      if (!window.confirm(I18n.t('Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.'))) return;
+      var k = Core.linkUnlinkedFinance(S, id); save(); toast(k + ' kayıt projeye bağlandı.'); render();
+    },
+    assignPkg: function (el) {
+      var r = Core.assignPackage(S, el.getAttribute('data-id'), now());
+      if (!r.ok) { toast(r.error); return; }
+      save(); toast(r.movedFrom ? 'Paket bu projeye taşındı.' : 'Paket projeye atandı.'); render();
+    },
+    unassignPkg: function (el) {
+      if (Core.unassignPackage(S, el.getAttribute('data-id'), now())) { save(); toast('Paket ataması kaldırıldı.'); render(); }
+    },
     openTask: function (el) { go('task', { taskId: el.getAttribute('data-id') }); },
     toggleTask: function (el) {
       var p = Core.activeProject(S); if (!p) return;
@@ -871,6 +915,10 @@
     var t = e.target;
     var ac = t && t.getAttribute && t.getAttribute('data-act-change');
     if (ac && actions[ac]) { actions[ac](t); return; }
+    if (t && t.getAttribute && t.getAttribute('data-change') === 'projNote') {
+      var pp = Core.activeProject(S);
+      if (pp) { Core.updateProject(S, pp.id, { note: t.value }, now()); save(); }
+    }
     if (t && t.getAttribute && t.getAttribute('data-change') === 'note') {
       var p = Core.activeProject(S);
       if (p) { Core.setTaskNote(S, p.id, t.getAttribute('data-id'), t.value, now()); save(); }

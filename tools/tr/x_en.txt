@@ -121,3 +121,67 @@
 120|Home
 121|Projects
 122|AI
+123|active projects. A few focused projects beat many scattered ones.
+124|Your plan belongs to your account; you can assign your automation plan to one project. Switching projects never makes your income and expense records disappear.
+125|Project
+126|Choose a project first.
+127|Go to projects
+128|Active project:
+129|Active project
+130|In progress
+131|No plan assigned
+132|Go to tasks
+133|Project notes
+134|Income and expenses
+135|Add record ›
+136|of your records are not linked to any project (older records). You can link them all to this project; nothing is deleted and you can change them one by one later.
+137|Link # records to this project
+138|Plan
+139|This project has no plan; it can be used without one.
+140|You have no automation plan to assign. Plans belong to your account (My account › Plans, test mode).
+141|Project details
+142|Project name
+143|Short description
+144|Project goal: total income (TL)
+145|Export
+146|Archive
+147|Delete project
+148|Consider archiving before deleting: nothing is lost in the archive. If you delete, the project's tasks, notes, plans and decisions are removed; your income and expense records stay and return to “General”. You can export first.
+149|What is this project about?
+150|Optional
+151|Create new project
+152|Assign my plan to this project
+153|Make active
+154|You've reached the project limit.
+155|You can run at most # active projects at a time so you stay focused. To start a new one, archive a project: nothing in an archived project is deleted.
+156|No records are linked to this project. When adding a record, choose this project under “For which job?”.
+157|Archive (#)
+158|Archived
+159|Restore from archive
+160|Project goal (income)
+161|%# · # TL left to the goal
+162|Showing the last # records (# records).
+163|The automation plan on your account is assigned to this project. (TEST MODE: no real payment.)
+164|Remove plan from this project
+165|Plan not active right now
+166|The plan assigned to this project is not active on your account right now. The project's data, history and tasks are untouched. You can assign your active plan or remove the assignment.
+167|Remove assignment
+168|Project name cannot be empty.
+169|Project goal must be a valid amount.
+170|Project saved.
+171|Project archived.
+172|You can have at most # active projects. Archive one first.
+173|Project restored from archive.
+174|Project deleted.
+175|# records linked to the project.
+176|Plan moved to this project.
+177|Plan assigned to the project.
+178|Plan assignment removed.
+179|Active project changed.
+180|A plan cannot be assigned to an archived project.
+181|You have no automation plan to assign.
+182|Archive this project? Nothing is deleted; it moves to the Archive section and you can restore it any time. Any plan assigned to it is unassigned.
+183|Permanently delete this project? Deleted: tasks, notes, plans and decisions. Kept: your income and expense records (they return to General). This cannot be undone. If unsure, press Cancel and archive the project instead.
+184|Link all records that are not tied to a project to this project? Nothing is deleted; you can change them one by one later.
+185|The plan is currently on this project:
+186|Move plan here

@@ -257,8 +257,10 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(true, 'tamamlanınca sıradaki göreve geçer');
   await tab('Ana');
   await click('.tile:has-text("Projelerim")');
-  ok(await has('1 / 4 proje') && await has('Bu projenin neti') && await has('1 / 7 görev tamamlandı'), 'Projelerim: sayaç, ilerleme ve net');
+  ok(await has('1 / 4 aktif proje') && await has('Bu projenin neti') && await has('1 / 7 görev tamamlandı'), 'Projelerim: sayaç, ilerleme ve net');
   await shot('11b-projelerim');
+  await click('[data-act=viewProject]');
+  ok(await has('Proje bilgileri'), 'Projelerim: Aç proje ayrıntılarını gösterir');
   const [dlp] = await Promise.all([page.waitForEvent('download'), page.click('[data-act=exportProject]')]);
   const pj = JSON.parse(require('fs').readFileSync(await dlp.path(), 'utf8'));
   ok(pj.kind === 'project' && pj.project && pj.project.tasks, 'proje dışa aktarma dosyası (JSON) iner');
