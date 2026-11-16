@@ -896,6 +896,70 @@
     fillUsage: function () { Core.addUsage(S, 999999, now()); save(); toast('Süre bitirildi.'); render(); }
   };
 
+  // ---------- Grafikte parmakla gezdirme (çizgi + ipucu) ----------
+  var scrubSvg = null, scrubPressed = false, scrubTimer = 0, scrubIdx = -1;
+  function escHtml(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function scrubClear(svg) {
+    if (!svg) return;
+    var g = svg.querySelector('.scrubg'); if (g) g.parentNode.removeChild(g);
+    var tip = svg.parentNode && svg.parentNode.querySelector('.scrubtip'); if (tip) tip.parentNode.removeChild(tip);
+  }
+  function scrubAt(svg, clientX) {
+    var pts = svg._scrub;
+    if (!pts) { try { pts = svg._scrub = JSON.parse(svg.getAttribute('data-scrub')); } catch (e) { return; } }
+    if (!pts || !pts.length) return;
+    var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    if (!r.width) return;
+    var x = (clientX - r.left) / r.width * vb.width, best = 0, bd = 1e9;
+    for (var i = 0; i < pts.length; i++) { var d = Math.abs(pts[i].x - x); if (d < bd) { bd = d; best = i; } }
+    var p = pts[best]; scrubIdx = best;
+    var NS = 'http://www.w3.org/2000/svg', g = svg.querySelector('.scrubg');
+    if (!g) {
+      g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'scrubg');
+      g.innerHTML = '<line class="sl"/><circle class="sd" r="4.5"/>';
+      svg.appendChild(g);
+    }
+    var ln = g.firstChild, dot = g.lastChild;
+    ln.setAttribute('x1', p.x); ln.setAttribute('x2', p.x); ln.setAttribute('y1', 4); ln.setAttribute('y2', vb.height - 20);
+    if (p.y != null) { dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.style.display = ''; } else dot.style.display = 'none';
+    var wrap = svg.parentNode; if (!wrap.querySelector) return;
+    if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+    var tip = wrap.querySelector('.scrubtip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'scrubtip'; wrap.appendChild(tip); }
+    tip.innerHTML = '<b>' + escHtml(p.l) + '</b>' + p.r.map(function (q) { return '<div class="sr ' + (q[2] || '') + '"><span>' + escHtml(q[0]) + '</span><b>' + escHtml(q[1]) + '</b></div>'; }).join('');
+    I18n.apply(tip);
+    var wr = wrap.getBoundingClientRect(), px = r.left - wr.left + p.x / vb.width * r.width, tw = tip.offsetWidth;
+    var left = px > r.width * 0.5 + (r.left - wr.left) ? px - tw - 12 : px + 12;
+    left = Math.max(4, Math.min(left, wr.width - tw - 4));
+    tip.style.left = left + 'px'; tip.style.top = (r.top - wr.top + 6) + 'px';
+  }
+  function scrubTarget(e) { var t = e.target; return t && t.closest ? t.closest('svg[data-scrub]') : null; }
+  document.addEventListener('pointerdown', function (e) {
+    var svg = scrubTarget(e); if (!svg) return;
+    clearTimeout(scrubTimer);
+    if (scrubSvg && scrubSvg !== svg) scrubClear(scrubSvg);
+    scrubSvg = svg; scrubPressed = true; scrubAt(svg, e.clientX);
+    try { svg.setPointerCapture(e.pointerId); } catch (x) { }
+  });
+  document.addEventListener('pointermove', function (e) {
+    var svg = scrubPressed ? scrubSvg : (e.pointerType === 'mouse' ? scrubTarget(e) : null);
+    if (!svg || !svg.isConnected) return;
+    if (svg !== scrubSvg) { scrubClear(scrubSvg); scrubSvg = svg; }
+    clearTimeout(scrubTimer); scrubAt(svg, e.clientX);
+  });
+  function scrubEnd(e) {
+    if (!scrubSvg) return;
+    var svg = scrubSvg, was = scrubPressed; scrubPressed = false;
+    if (!svg.isConnected) { scrubSvg = null; return; }
+    // Gelir/gider grafiklerinde bırakılan dönem seçilir (altındaki özet güncellenir)
+    if (was && scrubIdx >= 0 && svg.querySelector('.hit[data-act="chartPick"]') && ui.chartSel !== scrubIdx && e.type === 'pointerup') { ui.chartSel = scrubIdx; render(); scrubSvg = null; return; }
+    clearTimeout(scrubTimer);
+    scrubTimer = setTimeout(function () { scrubClear(svg); if (scrubSvg === svg) scrubSvg = null; }, e.pointerType === 'mouse' ? 0 : 2500);
+  }
+  document.addEventListener('pointerup', scrubEnd);
+  document.addEventListener('pointercancel', scrubEnd);
+  document.addEventListener('pointerout', function (e) { if (e.pointerType === 'mouse' && !scrubPressed && scrubSvg && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('svg[data-scrub]'))) { scrubClear(scrubSvg); scrubSvg = null; } });
+
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!el) return;

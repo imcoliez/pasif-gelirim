@@ -11,7 +11,8 @@
     "android:sync": "npx cap sync android",
     "android:debug": "npx cap sync android && cd android && ./gradlew assembleDebug",
     "branding": "python3 tools/apply_branding.py android/app/src/main/res branding/logo.png",
-    "capacitor:sync:after": "python3 tools/apply_branding.py android/app/src/main/res branding/logo.png"
+    "capacitor:sync:after": "python3 tools/apply_branding.py android/app/src/main/res branding/logo.png",
+    "postinstall": "node tools/setup_signing.js"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",

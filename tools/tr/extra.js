@@ -186,7 +186,10 @@ module.exports = {
   "Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel'e döner). Bu işlem geri alınamaz. Emin değilsen İptal'e bas ve projeyi arşivle.": "Permanently delete this project? Deleted: tasks, notes, plans and decisions. Kept: your income and expense records (they return to General). This cannot be undone. If unsure, press Cancel and archive the project instead.",
   "Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.": "Link all records that are not tied to a project to this project? Nothing is deleted; you can change them one by one later.",
   "Paket şu an bu projede:": "The plan is currently on this project:",
-  "Paketi buraya taşı": "Move plan here"
+  "Paketi buraya taşı": "Move plan here",
+  "Dönem neti": "Period net",
+  "Fiyat": "Price",
+  "Başlangıca göre": "Since the start"
  },
  "de": {
   "Dil": "Sprache",
@@ -375,7 +378,10 @@ module.exports = {
   "Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel'e döner). Bu işlem geri alınamaz. Emin değilsen İptal'e bas ve projeyi arşivle.": "Dieses Projekt endgültig löschen? Gelöscht werden: Aufgaben, Notizen, Pläne und Entscheidungen. Erhalten bleiben: deine Einnahmen und Ausgaben (sie kehren zu „Allgemein“ zurück). Das lässt sich nicht rückgängig machen. Wenn du unsicher bist, tippe auf Abbrechen und archiviere das Projekt.",
   "Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.": "Alle Einträge ohne Projekt diesem Projekt zuordnen? Es wird nichts gelöscht; du kannst sie später einzeln ändern.",
   "Paket şu an bu projede:": "Der Tarif liegt derzeit auf diesem Projekt:",
-  "Paketi buraya taşı": "Tarif hierher verschieben"
+  "Paketi buraya taşı": "Tarif hierher verschieben",
+  "Dönem neti": "Netto im Zeitraum",
+  "Fiyat": "Preis",
+  "Başlangıca göre": "Seit Beginn"
  },
  "es": {
   "Dil": "Idioma",
@@ -564,7 +570,10 @@ module.exports = {
   "Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel'e döner). Bu işlem geri alınamaz. Emin değilsen İptal'e bas ve projeyi arşivle.": "¿Eliminar este proyecto de forma permanente? Se borrarán: tareas, notas, planes y decisiones. Se conservarán: tus registros de ingresos y gastos (vuelven a General). No se puede deshacer. Si dudas, pulsa Cancelar y archiva el proyecto.",
   "Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.": "¿Vincular a este proyecto todos los registros que no pertenecen a ningún proyecto? No se borra nada; luego puedes cambiarlos uno a uno.",
   "Paket şu an bu projede:": "El plan está ahora en este proyecto:",
-  "Paketi buraya taşı": "Mover el plan aquí"
+  "Paketi buraya taşı": "Mover el plan aquí",
+  "Dönem neti": "Neto del periodo",
+  "Fiyat": "Precio",
+  "Başlangıca göre": "Desde el inicio"
  },
  "ru": {
   "Dil": "Язык",
@@ -753,7 +762,10 @@ module.exports = {
   "Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel'e döner). Bu işlem geri alınamaz. Emin değilsen İptal'e bas ve projeyi arşivle.": "Удалить этот проект навсегда? Будут удалены: задачи, заметки, планы и решения. Останутся: записи о доходах и расходах (вернутся в «Общее»). Это нельзя отменить. Если сомневаешься, нажми «Отмена» и отправь проект в архив.",
   "Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.": "Привязать к этому проекту все записи, не связанные с проектом? Ничего не удаляется; позже их можно менять по одной.",
   "Paket şu an bu projede:": "Сейчас тариф назначен проекту:",
-  "Paketi buraya taşı": "Перенести тариф сюда"
+  "Paketi buraya taşı": "Перенести тариф сюда",
+  "Dönem neti": "Итог периода",
+  "Fiyat": "Цена",
+  "Başlangıca göre": "С начала периода"
  },
  "ar": {
   "Dil": "اللغة",
@@ -942,6 +954,9 @@ module.exports = {
   "Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel'e döner). Bu işlem geri alınamaz. Emin değilsen İptal'e bas ve projeyi arşivle.": "هل تريد حذف هذا المشروع نهائيًا؟ سيُحذف: المهام والملاحظات والخطط والقرارات. وسيبقى: سجلات دخلك ومصروفاتك (تعود إلى «عام»). لا يمكن التراجع عن ذلك. إذا لم تكن متأكدًا فاضغط إلغاء وأرشف المشروع بدلًا من ذلك.",
   "Projeye bağlı olmayan tüm kayıtların bu projeye bağlansın mı? Kayıtlar silinmez; sonra tek tek değiştirebilirsin.": "هل تريد ربط كل السجلات غير المرتبطة بأي مشروع بهذا المشروع؟ لن يُحذف شيء؛ ويمكنك تعديلها لاحقًا واحدًا واحدًا.",
   "Paket şu an bu projede:": "الباقة معيّنة حاليًا للمشروع:",
-  "Paketi buraya taşı": "نقل الباقة إلى هنا"
+  "Paketi buraya taşı": "نقل الباقة إلى هنا",
+  "Dönem neti": "صافي الفترة",
+  "Fiyat": "السعر",
+  "Başlangıca göre": "منذ البداية"
  }
 };

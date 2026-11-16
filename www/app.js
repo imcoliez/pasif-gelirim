@@ -126,6 +126,9 @@
   const CW = 340, CH = 200, CL = 40, CR = 8, CT = 10, CB = 26;
   const PW = CW - CL - CR, PH = CH - CT - CB;
 
+  // Parmakla gezdirme: her grafik noktası x/y (viewBox), başlık ve satırlarla işaretlenir; main.js çizgi + ipucu gösterir.
+  function scrubAttr(pts) { return ' data-scrub="' + esc(JSON.stringify(pts)) + '"'; }
+
   function barChart(series, sel) {
     const n = series.buckets.length, ymax = niceCeil(series.max), bw = PW / n;
     const barW = Math.max(2, Math.min(14, bw * 0.36));
@@ -136,8 +139,10 @@
       g += '<line class="grid" x1="' + CL + '" x2="' + (CW - CR) + '" y1="' + y + '" y2="' + y + '"/>' +
         '<text class="ax" x="' + (CL - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + compact(ymax * k / 4) + '</text>';
     }
+    const sp = [];
     series.buckets.forEach(function (b, i) {
       const cx = CL + bw * (i + 0.5);
+      sp.push({ x: +cx.toFixed(1), l: b.full, r: [['Gelir', tl(b.in), 'in'], ['Gider', tl(b.out), 'out'], ['Net', signed(b.in - b.out)]] });
       if (i === sel) g += '<rect class="sel" x="' + (CL + bw * i) + '" y="' + CT + '" width="' + bw + '" height="' + PH + '" rx="4"/>';
       [['in', -barW - 0.5], ['out', 0.5]].forEach(function (p) {
         const v = b[p[0]];
@@ -148,7 +153,7 @@
       if (i % step === 0) g += '<text class="ax" x="' + cx + '" y="' + (CH - 8) + '" text-anchor="middle">' + esc(b.label) + '</text>';
       g += '<rect class="hit" data-act="chartPick" data-i="' + i + '" x="' + (CL + bw * i) + '" y="' + CT + '" width="' + bw + '" height="' + PH + '"/>';
     });
-    return '<svg viewBox="0 0 ' + CW + ' ' + CH + '" class="chart" role="img" aria-label="Gelir ve gider sütun grafiği">' + g + '</svg>';
+    return '<svg viewBox="0 0 ' + CW + ' ' + CH + '" class="chart" role="img" aria-label="Gelir ve gider sütun grafiği"' + scrubAttr(sp) + '>' + g + '</svg>';
   }
 
   function lineChart(series, sel) {
@@ -174,13 +179,15 @@
     g += '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1).toFixed(1) + ' ' + base + ' L' + x(0).toFixed(1) + ' ' + base + ' Z" fill="url(#gArea)"/>';
     g += '<path class="line" pathLength="1" d="M' + pts.join(' L') + '" fill="none"/>';
     const step = n <= 12 ? 1 : Math.ceil(n / 6);
+    const sp = [];
     series.buckets.forEach(function (b, i) {
+      sp.push({ x: +x(i).toFixed(1), y: +y(b.cum).toFixed(1), l: b.full, r: [['Birikimli net', tl(b.cum)], ['Dönem neti', signed(b.in - b.out)]] });
       if (i % step === 0) g += '<text class="ax" x="' + x(i) + '" y="' + (CH - 8) + '" text-anchor="middle">' + esc(b.label) + '</text>';
       if (i === sel) g += '<line class="selline" x1="' + x(i) + '" x2="' + x(i) + '" y1="' + CT + '" y2="' + (CT + PH) + '"/>';
       if (i === sel || i === n - 1) g += '<circle class="dot" cx="' + x(i) + '" cy="' + y(b.cum) + '" r="' + (i === sel ? 4.5 : 3) + '"/>';
       g += '<rect class="hit" data-act="chartPick" data-i="' + i + '" x="' + (CL + bw * i) + '" y="' + CT + '" width="' + bw + '" height="' + PH + '"/>';
     });
-    return '<svg viewBox="0 0 ' + CW + ' ' + CH + '" class="chart" role="img" aria-label="Birikimli net çizgi grafiği">' + g + '</svg>';
+    return '<svg viewBox="0 0 ' + CW + ' ' + CH + '" class="chart" role="img" aria-label="Birikimli net çizgi grafiği"' + scrubAttr(sp) + '>' + g + '</svg>';
   }
 
   function donut(items, main, sub) {
@@ -603,7 +610,11 @@
     const pts = v.map(function (val, i) { return x(i).toFixed(1) + ' ' + y(val).toFixed(1); });
     const dfmt = function (t) { const d = new Date(t); return d.getDate() + '.' + (d.getMonth() + 1); };
     const up = it.change >= 0;
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart mkchart ' + (up ? 'up' : 'down') + '" role="img" aria-label="Fiyat grafiği">' +
+    const first = v[0], sp = it.series.map(function (p, i) {
+      const d = new Date(p.t), ch = first > 0 ? Math.round((p.v - first) / first * 10000) / 100 : 0;
+      return { x: +x(i).toFixed(1), y: +y(p.v).toFixed(1), l: d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear(), r: [['Fiyat', Market_fmt(p.v, it.unit)], ['Başlangıca göre', (ch >= 0 ? '+%' : '−%') + String(Math.abs(ch)).replace('.', ',')]] };
+    });
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart mkchart ' + (up ? 'up' : 'down') + '" role="img" aria-label="Fiyat grafiği"' + scrubAttr(sp) + '>' +
       '<defs><linearGradient id="gMk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--mk);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--mk);stop-opacity:0"/></linearGradient></defs>' +
       '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(hi) + '" y2="' + y(hi) + '"/><line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(lo) + '" y2="' + y(lo) + '"/>' +
       '<path class="area" d="M' + pts.join(' L') + ' L' + x(n - 1) + ' ' + (T + ph) + ' L' + x(0) + ' ' + (T + ph) + ' Z" fill="url(#gMk)"/>' +

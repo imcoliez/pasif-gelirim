@@ -185,3 +185,6 @@
 184|¿Vincular a este proyecto todos los registros que no pertenecen a ningún proyecto? No se borra nada; luego puedes cambiarlos uno a uno.
 185|El plan está ahora en este proyecto:
 186|Mover el plan aquí
+187|Neto del periodo
+188|Precio
+189|Desde el inicio

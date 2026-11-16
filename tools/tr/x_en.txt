@@ -185,3 +185,6 @@
 184|Link all records that are not tied to a project to this project? Nothing is deleted; you can change them one by one later.
 185|The plan is currently on this project:
 186|Move plan here
+187|Period net
+188|Price
+189|Since the start

@@ -185,3 +185,6 @@
 184|Alle Einträge ohne Projekt diesem Projekt zuordnen? Es wird nichts gelöscht; du kannst sie später einzeln ändern.
 185|Der Tarif liegt derzeit auf diesem Projekt:
 186|Tarif hierher verschieben
+187|Netto im Zeitraum
+188|Preis
+189|Seit Beginn

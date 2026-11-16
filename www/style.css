@@ -512,3 +512,15 @@ html[data-theme="light"] .chip.soft{background:rgba(0,0,0,.06)}
 .note-in{margin-top:10px;padding-top:10px;border-top:1px dashed var(--bd)}
 .card.danger{border-color:rgba(255,90,90,.35)}
 .card.proj textarea,.card textarea.inp{resize:vertical}
+
+/* ---- Grafikte parmakla gezdirme ---- */
+svg[data-scrub]{touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.scrubg .sl{stroke:var(--g2);stroke-width:1;stroke-dasharray:3 3;opacity:.9}
+.scrubg .sd{fill:var(--bg);stroke:var(--g2);stroke-width:2.5}
+.mkhero:has(.mkchart.down) .scrubg .sl,.mkhero:has(.mkchart.down) .scrubg .sd{stroke:var(--exp)}
+.scrubtip{position:absolute;z-index:5;pointer-events:none;min-width:116px;max-width:70%;padding:8px 10px;border-radius:12px;font-size:12px;line-height:1.35;background:rgba(10,14,16,.92);border:1px solid rgba(var(--gr),.35);box-shadow:0 6px 18px rgba(0,0,0,.4);color:#e8efe9;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html[data-theme="light"] .scrubtip{background:rgba(255,255,255,.95);color:#10201a;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.scrubtip>b{display:block;margin-bottom:3px;color:var(--g2);font-size:12px}
+.scrubtip .sr{display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
+.scrubtip .sr span{opacity:.75}
+.scrubtip .sr.in b{color:var(--inc,#3ddc84)}.scrubtip .sr.out b{color:var(--exp,#ff6b6b)}
