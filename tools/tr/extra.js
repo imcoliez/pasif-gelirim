@@ -189,7 +189,15 @@ module.exports = {
   "Paketi buraya taşı": "Move plan here",
   "Dönem neti": "Period net",
   "Fiyat": "Price",
-  "Başlangıca göre": "Since the start"
+  "Başlangıca göre": "Since the start",
+  "Son güncelleme: # · Fiyatlar:": "Last update: # · Prices in:",
+  "Son güncelleme: #:# · Fiyatlar:": "Last update: #:# · Prices in:",
+  "Son güncelleme: #:# · yenileniyor… · Fiyatlar:": "Last update: #:# · refreshing… · Prices in:",
+  "Fiyatlar:": "Prices in:",
+  "Tutar": "Amount",
+  "Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.": "Enter an amount and I'll show what it buys at the selected market prices.",
+  "kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.": "rate is unavailable right now; prices are shown in USD.",
+  "Türk Lirası": "Turkish Lira"
  },
  "de": {
   "Dil": "Sprache",
@@ -381,7 +389,15 @@ module.exports = {
   "Paketi buraya taşı": "Tarif hierher verschieben",
   "Dönem neti": "Netto im Zeitraum",
   "Fiyat": "Preis",
-  "Başlangıca göre": "Seit Beginn"
+  "Başlangıca göre": "Seit Beginn",
+  "Son güncelleme: # · Fiyatlar:": "Letzte Aktualisierung: # · Preise in:",
+  "Son güncelleme: #:# · Fiyatlar:": "Letzte Aktualisierung: #:# · Preise in:",
+  "Son güncelleme: #:# · yenileniyor… · Fiyatlar:": "Letzte Aktualisierung: #:# · wird aktualisiert… · Preise in:",
+  "Fiyatlar:": "Preise in:",
+  "Tutar": "Betrag",
+  "Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.": "Gib einen Betrag ein, dann zeige ich, was er zu den gewählten Marktpreisen ergibt.",
+  "kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.": "Kurs ist gerade nicht verfügbar; die Preise werden in USD angezeigt.",
+  "Türk Lirası": "Türkische Lira"
  },
  "es": {
   "Dil": "Idioma",
@@ -573,7 +589,15 @@ module.exports = {
   "Paketi buraya taşı": "Mover el plan aquí",
   "Dönem neti": "Neto del periodo",
   "Fiyat": "Precio",
-  "Başlangıca göre": "Desde el inicio"
+  "Başlangıca göre": "Desde el inicio",
+  "Son güncelleme: # · Fiyatlar:": "Última actualización: # · Precios en:",
+  "Son güncelleme: #:# · Fiyatlar:": "Última actualización: #:# · Precios en:",
+  "Son güncelleme: #:# · yenileniyor… · Fiyatlar:": "Última actualización: #:# · actualizando… · Precios en:",
+  "Fiyatlar:": "Precios en:",
+  "Tutar": "Importe",
+  "Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.": "Escribe un importe y te muestro su equivalente con los precios de mercado elegidos.",
+  "kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.": "el tipo de cambio no está disponible ahora; los precios se muestran en USD.",
+  "Türk Lirası": "Lira turca"
  },
  "ru": {
   "Dil": "Язык",
@@ -765,7 +789,15 @@ module.exports = {
   "Paketi buraya taşı": "Перенести тариф сюда",
   "Dönem neti": "Итог периода",
   "Fiyat": "Цена",
-  "Başlangıca göre": "С начала периода"
+  "Başlangıca göre": "С начала периода",
+  "Son güncelleme: # · Fiyatlar:": "Последнее обновление: # · Цены в:",
+  "Son güncelleme: #:# · Fiyatlar:": "Последнее обновление: #:# · Цены в:",
+  "Son güncelleme: #:# · yenileniyor… · Fiyatlar:": "Последнее обновление: #:# · обновляется… · Цены в:",
+  "Fiyatlar:": "Цены в:",
+  "Tutar": "Сумма",
+  "Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.": "Введи сумму, и я покажу её эквивалент по выбранным рыночным ценам.",
+  "kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.": "курс сейчас недоступен; цены показаны в USD.",
+  "Türk Lirası": "Турецкая лира"
  },
  "ar": {
   "Dil": "اللغة",
@@ -957,6 +989,14 @@ module.exports = {
   "Paketi buraya taşı": "نقل الباقة إلى هنا",
   "Dönem neti": "صافي الفترة",
   "Fiyat": "السعر",
-  "Başlangıca göre": "منذ البداية"
+  "Başlangıca göre": "منذ البداية",
+  "Son güncelleme: # · Fiyatlar:": "آخر تحديث: # · الأسعار بـ:",
+  "Son güncelleme: #:# · Fiyatlar:": "آخر تحديث: #:# · الأسعار بـ:",
+  "Son güncelleme: #:# · yenileniyor… · Fiyatlar:": "آخر تحديث: #:# · جارٍ التحديث… · الأسعار بـ:",
+  "Fiyatlar:": "الأسعار بـ:",
+  "Tutar": "المبلغ",
+  "Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.": "اكتب مبلغًا وسأعرض ما يعادله بأسعار السوق المختارة.",
+  "kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.": "سعر الصرف غير متاح الآن؛ تُعرض الأسعار بالدولار الأمريكي.",
+  "Türk Lirası": "الليرة التركية"
  }
 };

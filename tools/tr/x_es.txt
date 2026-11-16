@@ -188,3 +188,11 @@
 187|Neto del periodo
 188|Precio
 189|Desde el inicio
+190|Última actualización: # · Precios en:
+191|Última actualización: #:# · Precios en:
+192|Última actualización: #:# · actualizando… · Precios en:
+193|Precios en:
+194|Importe
+195|Escribe un importe y te muestro su equivalente con los precios de mercado elegidos.
+196|el tipo de cambio no está disponible ahora; los precios se muestran en USD.
+197|Lira turca

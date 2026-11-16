@@ -188,3 +188,11 @@
 187|Period net
 188|Price
 189|Since the start
+190|Last update: # · Prices in:
+191|Last update: #:# · Prices in:
+192|Last update: #:# · refreshing… · Prices in:
+193|Prices in:
+194|Amount
+195|Enter an amount and I'll show what it buys at the selected market prices.
+196|rate is unavailable right now; prices are shown in USD.
+197|Turkish Lira

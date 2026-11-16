@@ -13,6 +13,10 @@ function mockFetch(opts) {
   const f = async url => {
     urls.push(url);
     if (opts.fail && opts.fail(url)) return { ok: false, status: 500, json: async () => ({}) };
+    if (url.includes('frankfurter') && url.includes('symbols=EUR')) {
+      const rates = {}; for (let i = 39; i >= 0; i--) { const d = new Date(NOW - i * DAY); if (d.getUTCDay() === 0 || d.getUTCDay() === 6) continue; rates[d.toISOString().slice(0, 10)] = { EUR: 0.9, GBP: 0.8, CHF: 0.88, TRY: 40 }; }
+      return { ok: true, json: async () => ({ base: 'USD', rates }) };
+    }
     if (url.includes('frankfurter')) { const code = /base=(\w+)/.exec(url)[1]; return { ok: true, json: async () => fxJson(code, 40, code === 'USD' ? 40 : 45, 0.1) }; }
     const sym = /symbol=(\w+)/.exec(url)[1], lim = +/limit=(\d+)/.exec(url)[1];
     const base = { USDTTRY: [40, 0.1], BTCUSDT: [60000, 100], ETHUSDT: [3000, 10], BNBUSDT: [600, 1], XRPUSDT: [0.5, 0.001], SOLUSDT: [150, 1], PAXGUSDT: [2700, 5] }[sym];
@@ -59,5 +63,50 @@ function mockFetch(opts) {
     assert.strictEqual(M.fmtPrice(41.2345, 'TL'), '41,23 TL'); assert.strictEqual(M.fmtPrice(0.4567, 'TL'), '0,4567 TL');
     assert.strictEqual(M.fmtPrice(2700, '$'), '2.700,00 $');
   });
+  await test('seçili para birimi USD: fiyatlar dolar cinsinden, Dolar kalemi yok, TL kalemi var', async () => {
+    const f = mockFetch(); const r = await M.load(f, 30, NOW, 'USD');
+    assert.strictEqual(r.errors.length, 0); assert.strictEqual(r.cur, 'USD'); assert.ok(!r.fallback);
+    const sy = r.items.map(i => i.sym); assert.ok(!sy.includes('USD')); assert.ok(sy.includes('TRY') && sy.includes('EUR') && sy.includes('BTC') && sy.includes('GRAM'));
+    assert.ok(r.items.every(i => i.unit === 'USD'));
+    const btc = r.items.find(i => i.sym === 'BTC'); assert.ok(Math.abs(btc.price - 60000 - 30 * 100) < 1e-6, 'BTC doğrudan USDT fiyatı: ' + btc.price);
+    const eur = r.items.find(i => i.sym === 'EUR'); assert.ok(Math.abs(eur.price - 1 / 0.9) < 1e-6, 'EUR/USD = 1/0,9: ' + eur.price);
+    const trl = r.items.find(i => i.sym === 'TRY'); assert.ok(Math.abs(trl.price - 1 / 40) < 1e-9);
+    const gram = r.items.find(i => i.sym === 'GRAM'); assert.ok(Math.abs(gram.price - (2700 + 30 * 5) / M.OZ_GRAM) < 1e-6);
+  });
+  await test('seçili para birimi EUR: çapraz kur, hafta sonu boşlukları kapanır', async () => {
+    const r = await M.load(mockFetch(), 30, NOW, 'EUR'); assert.strictEqual(r.cur, 'EUR'); assert.ok(r.items.every(i => i.unit === 'EUR'));
+    const usd = r.items.find(i => i.sym === 'USD'); assert.ok(Math.abs(usd.price - 0.9) < 1e-9, 'USD→EUR 0,9: ' + usd.price);
+    const btc = r.items.find(i => i.sym === 'BTC'); assert.ok(Math.abs(btc.price - (60000 + 3000) * 0.9) < 1e-4);
+    assert.ok(btc.series.length >= 28, 'kripto serisinde hafta sonu günleri düşmedi: ' + btc.series.length);
+    assert.ok(!r.items.some(i => i.sym === 'EUR'));
+  });
+  await test('SAR ve AED dolara sabit bağlı: ek istek gerekmez', async () => {
+    for (const [c, k] of [['SAR', 3.75], ['AED', 3.6725]]) {
+      const f = mockFetch(); const r = await M.load(f, 30, NOW, c); assert.strictEqual(r.cur, c);
+      const usd = r.items.find(i => i.sym === 'USD'); assert.ok(Math.abs(usd.price - k) < 1e-9, c + ': ' + usd.price);
+      const btc = r.items.find(i => i.sym === 'BTC'); assert.ok(Math.abs(btc.price - 63000 * k) < 1e-3);
+    }
+  });
+  await test('RUB: Binance USDTRUB varsa kullanılır, yoksa USD\'ye düşer ve bildirir', async () => {
+    const f = async url => { if (url.includes('USDTRUB')) return { ok: true, json: async () => klineRows(40, 90, 0.1) }; return mockFetch()(url); };
+    const r = await M.load(f, 30, NOW, 'RUB'); assert.strictEqual(r.cur, 'RUB'); assert.ok(!r.fallback);
+    const btc = r.items.find(i => i.sym === 'BTC'); assert.ok(btc.price > 60000 * 90);
+    const g = mockFetch({ fail: u => u.includes('USDTRUB') }); const r2 = await M.load(g, 30, NOW, 'RUB');
+    assert.strictEqual(r2.cur, 'USD'); assert.strictEqual(r2.wanted, 'RUB'); assert.ok(r2.fallback); assert.ok(r2.items.length >= 8);
+  });
+  await test('TRY (varsayılan) yolu değişmedi', async () => {
+    const r = await M.load(mockFetch(), 30, NOW, 'TRY'); assert.strictEqual(r.items.length, 11); assert.strictEqual(r.cur, 'TRY');
+    assert.strictEqual(r.items.find(i => i.sym === 'ONS').unit, '$');
+  });
+  await test('kur kaynağı çökerse (EUR) diğer varlıklar USD ile gösterilir, çökmez', async () => {
+    const f = mockFetch({ fail: u => u.includes('frankfurter') }); const r = await M.load(f, 30, NOW, 'EUR');
+    assert.strictEqual(r.cur, 'USD'); assert.ok(r.fallback); assert.ok(r.items.some(i => i.sym === 'BTC'));
+  });
+  await test('uygulama: parçalar (applyRate ileri taşıma, birim etiketi)', async () => {
+    const out = M.applyRate([{ t: 5 * DAY + 1, v: 10 }, { t: 6 * DAY + 1, v: 10 }, { t: 7 * DAY + 1, v: 10 }], [{ t: 5 * DAY + 5, v: 2 }], 1);
+    assert.deepStrictEqual(out.map(p => p.v), [20, 20, 20]);
+    assert.strictEqual(M.unitLabel('EUR'), '€'); assert.strictEqual(M.unitLabel('TL'), 'TL'); assert.strictEqual(M.unitLabel('SAR'), 'SAR'); assert.strictEqual(M.fmtPrice(1.5, 'GBP'), '1,50 £');
+  });
+
   console.log('\n' + passed + ' test geçti');
 })();

@@ -313,7 +313,7 @@
   function mkCacheLoad() {
     try {
       var c = JSON.parse(window.localStorage.getItem(MK_KEY) || 'null');
-      if (c && c.days === ui.mkDays && Array.isArray(c.items) && c.at) return c;
+      if (c && c.days === ui.mkDays && c.wanted === S.settings.currency && Array.isArray(c.items) && c.at) return c;
     } catch (e) { }
     return null;
   }
@@ -321,15 +321,17 @@
     if (!window.Market) return;
     var mk = ui.market || (ui.market = { status: 'idle', items: [], errors: [] });
     if (mk.status === 'loading') return;
-    if (!mk.items.length) { var c = mkCacheLoad(); if (c) { mk.items = c.items; mk.at = c.at; mk.errors = []; } }
-    if (!force && mk.at && mk.days === ui.mkDays && now() - mk.at < 60000) return;
+    if (!mk.items.length) { var c = mkCacheLoad(); if (c) { mk.items = c.items; mk.at = c.at; mk.errors = []; mk.cur = c.cur; mk.wanted = c.wanted; mk.fallback = c.fallback; } }
+    if (!force && mk.at && mk.days === ui.mkDays && mk.wanted === S.settings.currency && now() - mk.at < 60000) return;
     var days = ui.mkDays;
     mk.status = 'loading'; if (ui.route === 'market') render();
-    window.Market.load(window.fetch.bind(window), days, now()).then(function (r) {
+    var wantCur = S.settings.currency || 'TRY';
+    window.Market.load(window.fetch.bind(window), days, now(), wantCur).then(function (r) {
+      if (wantCur !== (S.settings.currency || 'TRY')) return;
       if (days !== ui.mkDays) return;
       if (r.items.length) {
-        mk.items = r.items; mk.at = r.at; mk.days = r.days; mk.errors = r.errors;
-        try { window.localStorage.setItem(MK_KEY, JSON.stringify({ days: days, at: r.at, items: r.items })); } catch (e) { }
+        mk.items = r.items; mk.at = r.at; mk.days = r.days; mk.errors = r.errors; mk.cur = r.cur; mk.wanted = r.wanted; mk.fallback = r.fallback;
+        try { window.localStorage.setItem(MK_KEY, JSON.stringify({ days: days, at: r.at, items: r.items, cur: r.cur, wanted: r.wanted, fallback: r.fallback })); } catch (e) { }
       } else { mk.errors = r.errors; if (!mk.items.length) mk.at = 0; else toast('Güncellenemedi, son veriler gösteriliyor.'); }
       mk.status = 'idle'; if (ui.route === 'market') render();
     }, function () { mk.status = 'idle'; if (ui.route === 'market') render(); });
@@ -622,7 +624,7 @@
       if (!S.user.onboarded) { S.settings.currency = Core.LANG_CURRENCY[I18n.resolve(S.settings.lang)] || 'TRY'; }
       save(); render();
     },
-    setCurrency: function (el) { if (Core.setCurrency(S, el.value)) { save(); render(); } },
+    setCurrency: function (el) { if (Core.setCurrency(S, el.value)) { save(); if (ui.market) { ui.market.items = []; ui.market.at = 0; ui.market.status = 'idle'; } render(); } },
     setTheme: function (el) { Core.setTheme(S, el.getAttribute('data-v')); applyTheme(); save(); render(); },
     quizStart: function () { ui.quiz = { step: 0, answers: {} }; ui.route = 'tasks'; ui.enter = 'fade'; render(); },
     quizCancel: function () { ui.quiz = null; render(); },

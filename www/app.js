@@ -624,7 +624,7 @@
   function pctPill(c) { return '<span class="pc ' + (c >= 0 ? 'up' : 'down') + '"><i class="tri ' + (c >= 0 ? 'up' : 'down') + '"></i>%' + String(Math.abs(c)).replace('.', ',') + '</span>'; }
   function convHtml(items, amount) {
     const a = Number(String(amount).replace(',', '.'));
-    if (!(a > 0) || !items || !items.length) return '<p class="muted small">Bir TL tutarı yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.</p>';
+    if (!(a > 0) || !items || !items.length) return '<p class="muted small">Bir tutar yaz; seçili piyasa fiyatlarıyla karşılığını göstereyim.</p>';
     const rows = [['fx-USD', 'Dolar', 2], ['fx-EUR', 'Euro', 2], ['gold-gram', 'Gram altın', 3], ['cr-BTC', 'Bitcoin', 6]];
     return rows.map(function (r) {
       const it = items.find(function (i) { return i.id === r[0]; }); if (!it) return '';
@@ -637,7 +637,8 @@
     const at = m.at ? new Date(m.at) : null;
     const hm = at ? ('0' + at.getHours()).slice(-2) + ':' + ('0' + at.getMinutes()).slice(-2) : '';
     let html = '<div class="row"><h2>Piyasa</h2><button class="icon ' + (m.status === 'loading' ? 'spin' : '') + '" data-act="mkRefresh" aria-label="Yenile" title="Yenile">' + icon('refresh', 20) + '</button></div>' +
-      '<p class="muted small">' + (m.status === 'loading' && !items.length ? 'Veriler yükleniyor…' : at ? 'Son güncelleme: ' + hm + (m.status === 'loading' ? ' · yenileniyor…' : '') + ' · TL karşılığı' : 'Fiyatlar internetten çekilir.') + '</p>' +
+      '<p class="muted small">' + (m.status === 'loading' && !items.length ? 'Veriler yükleniyor…' : at ? 'Son güncelleme: ' + hm + (m.status === 'loading' ? ' · yenileniyor…' : '') + ' · Fiyatlar: <span data-nt data-fixcur="1">' + esc(mkCode(m)) + '</span>' : 'Fiyatlar internetten çekilir.') + '</p>' +
+      (m.fallback ? '<div class="card note"><b data-nt>' + esc(m.wanted) + '</b> <span>kuru şu an alınamadı; fiyatlar USD ile gösteriliyor.</span></div>' : '') +
       seg([{ v: '7', t: '7 Gün' }, { v: '30', t: '30 Gün' }, { v: '90', t: '90 Gün' }], String(ui.mkDays || 30), 'mkPeriod');
     if (!items.length) {
       return html + (m.status === 'loading'
@@ -657,14 +658,17 @@
       }).join('') + '</div>';
     });
     if (m.errors && m.errors.length) html += '<p class="fine">Alınamayanlar: ' + m.errors.map(function (e) { return '<span>' + esc(e) + '</span>'; }).join(', ') + '. Yenilemeyi dene.</p>';
-    html += '<div class="card"><b>Kendi paranı çevir</b><label class="lbl" for="mkAmount">Tutar (TL)</label><input id="mkAmount" class="inp" inputmode="decimal" placeholder="Örn: 10000">' +
+    html += '<div class="card"><b>Kendi paranı çevir</b><label class="lbl" for="mkAmount"><span>Tutar</span> <span data-nt data-fixcur="1">(' + esc(mkCode(m)) + ')</span></label><input id="mkAmount" class="inp" inputmode="decimal" placeholder="Örn: 10000">' +
       '<div id="mkConv">' + convHtml(items, '') + '</div></div>';
     html += '<p class="fine">Döviz kurları Avrupa Merkez Bankası verisidir (günlük). Altın ve kripto fiyatları Binance üzerindeki piyasadan alınır; gram altın PAXG (ons altına dayalı) üzerinden yaklaşık hesaplanır ve Türkiye\'deki gram altın fiyatından farklı olabilir. Veriler gecikmeli veya hatalı olabilir. Bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>';
     return html;
   };
+  const MK_SYM = { USD: '$', EUR: '€', GBP: '£' };
+  function mkCode(m) { return (m && m.cur) || 'TRY'; }
   function Market_fmt(v, unit) {
     const d = v >= 1 ? 2 : 4;
-    return Number(v).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d }) + (unit === '$' ? ' $' : ' TL');
+    const u = unit === 'TL' || unit === 'TRY' || !unit ? 'TL' : (MK_SYM[unit === '$' ? 'USD' : unit] || unit);
+    return Number(v).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d }) + ' ' + u;
   }
 
   views.calc = function (S, ui) {
@@ -1044,7 +1048,7 @@
       chrome: NO_CHROME.indexOf(route) === -1,
       activeTab: tabOf(route),
       top: topHtml(S, ui),
-      main: activeChip(S, route) + (route === 'market' ? '<div data-fixcur="1">' + views[route](S, ui, now) + '</div>' : views[route](S, ui, now)),
+      main: activeChip(S, route) + views[route](S, ui, now),
       layer: layerHtml(S, ui)
     };
   }

@@ -188,3 +188,11 @@
 187|Netto im Zeitraum
 188|Preis
 189|Seit Beginn
+190|Letzte Aktualisierung: # · Preise in:
+191|Letzte Aktualisierung: #:# · Preise in:
+192|Letzte Aktualisierung: #:# · wird aktualisiert… · Preise in:
+193|Preise in:
+194|Betrag
+195|Gib einen Betrag ein, dann zeige ich, was er zu den gewählten Marktpreisen ergibt.
+196|Kurs ist gerade nicht verfügbar; die Preise werden in USD angezeigt.
+197|Türkische Lira
