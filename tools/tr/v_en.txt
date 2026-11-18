@@ -1,0 +1,62 @@
+0|Demo AI
+1|No real model is connected.
+2|The real model is ready; it will be used once you turn it on.
+3|Turn on the real AI?
+4|If you turn it on, the messages you write are sent to a paid external AI service to generate replies. The service is billed per use and the server applies a daily usage limit. Your income-expense records, PIN and password are never sent. Your project summary is sent only if you allow it on the Memory screen. You can turn it off at any time.
+5|Turn on real AI
+6|Continue with demo
+7|Project Memory
+8|Memory belongs to a project. First pick or start a project.
+9|The server is not configured yet.
+10|The server cannot be reached.
+11|Checking the server...
+12|Real AI connected
+13|Replies come from an AI; it can make mistakes and is not investment, tax or legal advice. Do not write personal information (passwords, card numbers).
+14|Turn off real AI
+15|No reply received.
+16|Your message is still there; you can try again.
+17|Try again
+18|The AI server is not configured yet.
+19|Today's AI capacity is full. Try again tomorrow.
+20|You have used up today's message allowance. Try again tomorrow.
+21|Today's chat capacity is full. Try again tomorrow.
+22|The AI could not reply in time. Try again.
+23|The AI is busy right now. Try again in a little while.
+24|The reply could not be read.
+25|The AI cannot reply right now. Try again in a little while.
+26|An empty reply came back, try again.
+27|The request is too large.
+28|Invalid request.
+29|Unauthorized.
+30|Not found.
+31|The reply took too long. Try again.
+32|No reply received, try again.
+33|Real AI turned off. Demo replies will be used.
+34|Where is memory kept?
+35|What you write here is stored only on this device, inside this project, and is included in the JSON backup. It is not mixed with other projects. The AI does not store every sentence you say: lasting information is added only if you say "Save" or add it yourself.
+36|Sharing with the AI server
+37|Send this project's summary to the server in chat
+38|The real AI is not used because you have not turned it on yet; nothing is sent outside. This setting applies if you turn on the real AI.
+39|Calculated from the project
+40|These are not saved; they are calculated from the project's current state each time, so they never go stale.
+41|Task progress
+42|Next task
+43|Saved information
+44|No saved information yet. You can add some yourself below, or approve the suggestion that appears when you write an important decision in the chat.
+45|Add information
+46|Type
+47|Goal
+48|Decision
+49|Preference
+50|Latest point
+51|Information
+52|Sensitive information such as passwords, PINs, card/IBAN and ID numbers is not saved.
+53|Clear memory
+54|Deletes only this project's saved information and pending suggestions. Tasks, notes, income-expense records and chat history are not deleted. You will be asked to confirm.
+55|Clear this project's memory
+56|Memory is different from "Past Actions": Past Actions is an archive of the work you have done and is not given to the AI as instructions.
+57|E.g. I decided to start with Instagram first
+58|No real AI server is connected right now; nothing is sent outside. This setting applies if a server is connected.
+59|This chat and memory belong only to this project; other projects' information is not mixed in. The information is kept on your device. Your project summary is not sent to the server.
+60|When on, the summary below (excluding your free notes and income-expense records) may be sent to the server while preparing replies in this project's chats. When off, nothing is sent.
+61|This chat and memory belong only to this project; other projects' information is not mixed in. The information is kept on your device. Your project summary is sent to the AI server while a reply is being prepared (you can turn this off on the Memory screen).

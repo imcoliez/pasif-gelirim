@@ -33,7 +33,7 @@
   var ui = {
     route: S.user.onboarded ? 'home' : 'onboarding', onb: 0, pinMode: null, pin: '', pinMsg: '', pinTmp: '', depth: 0, quiz: null, taskId: null, narr: null, narrAnswer: '', toast: '',
     period: '7d', chartSel: null, finType: 'in', finFilter: 'all', typing: false,
-    market: null, mkDays: 30, mkSel: null, exportText: null, exportTitle: '', live: !!(window.APP_CONFIG && window.APP_CONFIG.API_URL), resolvedTheme: 'dark', enter: 'fade', draft: {}
+    market: null, mkDays: 30, mkSel: null, exportText: null, exportTitle: '', live: false, ai: { state: 'demo', model: '', at: 0 }, failed: '', consentHidden: false, resolvedTheme: 'dark', enter: 'fade', draft: {}
   };
   var elApp = document.getElementById('app'), elTop = document.getElementById('top'), elMain = document.getElementById('main'),
       elTabs = document.getElementById('tabs'), elLayer = document.getElementById('layer');
@@ -137,6 +137,7 @@
   }
 
   function render() {
+    ui.live = aiLive();
     applyLocale();
     captureDraft();
     prepare();
@@ -212,6 +213,7 @@
     if (route !== 'money') ui.editId = null;
     if (route !== 'memory') ui.memEdit = null;
     if (route === 'market') setTimeout(function () { loadMarket(false); }, 0);
+    if (route === 'chat' || route === 'memory') setTimeout(function () { checkAi(false); }, 0);
     if (extra) for (var k in extra) ui[k] = extra[k];
     ui.enter = dir;
     pushNav(route, prev);
@@ -342,10 +344,32 @@
   }, 90000);
 
   // ---------- Sohbet ----------
-  function liveUrl() {
-    var c = window.APP_CONFIG;
-    return c && c.API_URL ? String(c.API_URL).replace(/\/+$/, '') + '/chat' : '';
+  // ---- Gerçek yapay zekâ durumu: yalnızca sunucu gerçekten hazırsa VE kullanıcı bilerek açtıysa kullanılır ----
+  function apiBase() { var c = window.APP_CONFIG; return c && c.API_URL ? String(c.API_URL).replace(/\/+$/, '') : ''; }
+  function liveUrl() { var b = apiBase(); return b ? b + '/chat' : ''; }
+  function aiLive() { return ui.ai.state === 'ready' && Core.hasAiConsent(S); }
+  var aiChecking = false;
+  function checkAi(force) {
+    var base = apiBase();
+    if (!base) { ui.ai = { state: 'demo', model: '', at: now() }; return; }
+    if (aiChecking || (!force && ui.ai.at && now() - ui.ai.at < 30000 && ui.ai.state !== 'checking')) return;
+    aiChecking = true;
+    var ctl = null, timer = null;
+    try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 6000); } catch (e) { }
+    function done(state, model) {
+      aiChecking = false; if (timer) clearTimeout(timer);
+      ui.ai = { state: state, model: model || '', at: now() };
+      if (ui.route === 'chat' || ui.route === 'memory') render();
+    }
+    fetch(base + '/health', { method: 'GET', signal: ctl ? ctl.signal : undefined }).then(function (r) {
+      return r.json().then(function (d) { return { ok: r.ok, d: d }; }, function () { return { ok: false, d: null }; });
+    }).then(function (x) {
+      if (x.ok && x.d && x.d.configured === true) done('ready', typeof x.d.model === 'string' ? x.d.model.slice(0, 60) : '');
+      else if (x.ok && x.d && x.d.configured === false) done('unconfigured', '');
+      else done('offline', '');
+    }, function () { done('offline', ''); });
   }
+  setTimeout(function () { checkAi(true); }, 0);
   var memDevice = '';
   function deviceId() {
     var k = 'pasif_device_v1', id = '';
@@ -361,48 +385,56 @@
     }
     return id;
   }
-  function finishChat(replyText, pid) {
+  function finishChat(replyText, pid, src) {
     ui.typing = false; ui.busy = false;
     // Yanıt, sorunun sorulduğu projeye yazılır (arada proje değişse de karışmaz); proje silindiyse atılır.
     if (replyText && (!pid || Core.projectById(S, pid))) {
-      Core.addChat(S, 'ai', replyText, now(), pid || '');
+      Core.addChat(S, 'ai', replyText, now(), pid || '', src || 'demo');
       save();
     }
     if (ui.route === 'chat') { render(); var i3 = document.getElementById('chatInput'); if (i3) i3.focus(); }
   }
-  function askLive(url, pid, memText) {
-    var msgs = S.chat.filter(function (c) { return (c.pid || '') === pid; }).slice(-10).map(function (c) { return { role: c.role === 'user' ? 'user' : 'assistant', text: String(c.text || '').slice(0, 500) }; });
+  // Gerçek model isteği. Önceki mesajlar sınırlı bağlamla (Core.chatContext) gider; hafıza özeti yalnızca izinle ve yalnızca bu projenin.
+  function askLive(url, pid, memText, attempt) {
+    var msgs = Core.chatContext(S, pid, 10, 3000);
     var p = pid ? Core.projectById(S, pid) : null;
     var ctl = null, timer = null;
-    try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 25000); } catch (e) { }
-    var ctx = { project: p ? p.title : '', lang: I18n.resolve(S.settings.lang) };
-    if (memText) ctx.memory = memText;      // yalnızca kullanıcı izin verdiyse ve yalnızca bu projenin özeti
+    try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 35000); } catch (e) { }
+    var ctx = { lang: I18n.resolve(S.settings.lang) };
+    if (memText) { ctx.memory = memText; if (p) ctx.project = p.title; }      // proje adı da yalnızca "özeti gönder" izniyle gider
+    var aborted = false;
     fetch(url, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl ? ctl.signal : undefined,
       body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: ctx })
     }).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
+      return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d, status: r.status }; });
     }).then(function (x) {
       clearTimeout(timer);
-      if (x.ok && x.d && typeof x.d.reply === 'string' && x.d.reply) finishChat(x.d.reply, pid);
-      else { finishChat('', pid); toast((x.d && x.d.error) || 'Yanıt alınamadı, tekrar dene.'); }
+      if (x.ok && x.d && typeof x.d.reply === 'string' && x.d.reply) { ui.failed = ''; finishChat(x.d.reply, pid, 'ai'); return; }
+      if (x.status === 503 && x.d && x.d.code === 'not_configured') ui.ai = { state: 'unconfigured', model: '', at: now() };
+      ui.failed = pid || '*'; finishChat('', pid);
+      toast((x.d && x.d.error) || 'Yanıt alınamadı, tekrar dene.');
     }, function () {
-      clearTimeout(timer); finishChat('', pid);
-      toast('Bağlanamadım. İnternetini kontrol edip tekrar dene.');
+      clearTimeout(timer);
+      // Ağ kesintisinde bir kez kendiliğinden yeniden dene (zaman aşımında değil: sunucu zaten yeniden deniyor)
+      if (!attempt && !(ctl && ctl.signal && ctl.signal.aborted)) { setTimeout(function () { askLive(url, pid, memText, 1); }, 900); return; }
+      ui.failed = pid || '*'; finishChat('', pid);
+      toast(ctl && ctl.signal && ctl.signal.aborted ? 'Yanıt çok gecikti. Tekrar dene.' : 'Bağlanamadım. İnternetini kontrol edip tekrar dene.');
     });
   }
   function sendChat(text) {
     text = String(text || '').trim(); if (!text || ui.busy) return;
     if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
-    var url = liveUrl(), pid = Core.chatPid(S);
+    var live = aiLive(), url = live ? liveUrl() : '', pid = Core.chatPid(S);
     var sug = Core.suggestMemory(S, text, now());          // yalnızca öneri; onay olmadan hiçbir şey kaydedilmez
-    var reply = url ? '' : (sug ? Core.SUGGEST_REPLY : Core.aiReply(S, text, now()));
-    var memText = url ? Core.memoryForServer(S) : '';
+    var reply = live ? '' : (sug ? Core.SUGGEST_REPLY : Core.aiReply(S, text, now()));
+    var memText = live ? Core.memoryForServer(S) : '';
+    ui.failed = '';
     withRewards(function () { Core.addChat(S, 'user', text, now(), pid); });
     ui.typing = true; ui.busy = true; ui.noDraft = true; save(); render();
     var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
-    if (url) { askLive(url, pid, memText); return; }
-    setTimeout(function () { finishChat(reply, pid); }, reduce ? 0 : 650);
+    if (live) { askLive(url, pid, memText, 0); return; }
+    setTimeout(function () { finishChat(reply, pid, 'demo'); }, reduce ? 0 : 650);
   }
 
   // Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar
@@ -773,6 +805,15 @@
     memDismiss: function (el) {
       var p = Core.chatProject(S); if (!p) return;
       Core.dismissMemory(S, p.id, el.getAttribute('data-id')); save(); render();
+    },
+    aiConsentOn: function () { Core.setAiConsent(S, true, now()); save(); render(); },
+    aiConsentOff: function () { Core.setAiConsent(S, false, now()); ui.consentHidden = false; save(); toast('Gerçek yapay zekâ kapatıldı. Demo yanıtlar kullanılacak.'); render(); },
+    aiConsentLater: function () { ui.consentHidden = true; render(); },
+    aiRecheck: function () { checkAi(true); ui.ai.state = 'checking'; render(); },
+    retryChat: function () {
+      if (ui.busy || !aiLive()) { ui.failed = ''; render(); return; }
+      var pid = Core.chatPid(S); ui.failed = ''; ui.typing = true; ui.busy = true; render();
+      askLive(liveUrl(), pid, Core.memoryForServer(S), 0);
     },
     send: function () { sendChat(val('chatInput')); },
     suggest: function (el) { sendChat(el.getAttribute('data-t')); },

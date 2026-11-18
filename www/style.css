@@ -536,3 +536,8 @@ html[data-theme="light"] .scrubtip{background:rgba(255,255,255,.95);color:#10201
 .chip.warn{background:var(--amber);border-color:var(--amberbd)}
 .btn.danger,.btn.ghost.danger{color:#ff6b6b;border-color:#ff6b6b55}
 .btn[disabled]{opacity:.45;pointer-events:none}
+
+/* Aşama 5: yapay zekâ bağlantı durumu ve yanıt kaynağı etiketi */
+.aistat { margin: 6px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip.ok { background: var(--gl); color: var(--g2); border: 1px solid var(--g); }
+.msg .srcl { display: block; margin-top: 4px; font-size: 10.5px; opacity: .6; letter-spacing: .02em; }

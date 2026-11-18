@@ -16,7 +16,9 @@ Bilgisayara program kurmadan, tarayıcıdan yapılır. Yaklaşık 15 dakika.
 1. **Storage & Databases → KV → Create** ile `LIMITS` adında bir alan oluştur.
 2. Worker'ın **Settings → Bindings → Add → KV namespace**: değişken adı `LIMITS`, az önceki alanı seç.
 3. **Settings → Variables and Secrets → Add**: tür **Secret**, ad `ANTHROPIC_API_KEY`, değer: kopyaladığın anahtar.
-4. İsteğe bağlı değişkenler (Text): `DEVICE_DAILY_MAX` (cihaz başına günlük mesaj, varsayılan 150), `GLOBAL_DAILY_MAX` (tüm kullanıcılar için günlük üst sınır, varsayılan 5000), `MODEL` (varsayılan claude-haiku-5-5).
+4. İsteğe bağlı değişkenler (Text): `DEVICE_DAILY_MAX` (cihaz başına günlük mesaj, varsayılan 150), `GLOBAL_DAILY_MAX` (tüm kullanıcılar için günlük üst sınır, varsayılan 5000), `MODEL` (varsayılan claude-haiku-5-5; modeli değiştirmek için yalnızca bu değişkeni güncelle, kod/APK değişmez), `ANTHROPIC_API_URL` (yalnızca https), `MAX_TOKENS` (yanıt üst sınırı, varsayılan 500), `TIMEOUT_MS` (varsayılan 12000), `RETRIES` (geçici hatada yeniden deneme, varsayılan 1), `DAILY_TOKEN_BUDGET` (günlük toplam token üst sınırı, varsayılan 600000; dolunca sunucu istek kabul etmez), `PRICE_IN_PER_MTOK` / `PRICE_OUT_PER_MTOK` (Console'daki güncel fiyatı kendin yaz; yalnızca tahmini maliyet hesabı içindir), `ADMIN_TOKEN` (Secret; kendi belirlediğin uzun rastgele metin).
+5. Kontrol: tarayıcıda `Worker adresi/health` aç. `{"ok":true,"configured":true,"model":"..."}` görmelisin; anahtar hiçbir zaman gösterilmez. Anahtar/KV eksikse `configured:false` döner ve uygulama demo modunda kalır.
+6. Kullanım ve maliyet: `GET /usage` (başlık: `Authorization: Bearer ADMIN_TOKEN`) o günün istek, hata ve token sayılarını verir. Mesaj içeriği, cihaz kimliği ve anahtar hiçbir yerde kaydedilmez; yalnızca sayaçlar tutulur.
 
 ## 4) Uygulamaya bağla
 Worker adresini (`https://pasif-gelirim-ai.....workers.dev`) kopyala ve `www/config.js` içindeki `API_URL` değerine yaz. Dosyayı GitHub'a yükle; APK yeniden derlenir. Boş bırakırsan sohbet demo modunda çalışır.

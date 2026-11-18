@@ -1,0 +1,62 @@
+0|IA de demostración
+1|No hay un modelo real conectado.
+2|El modelo real está listo; se usará cuando lo actives.
+3|¿Activar la IA real?
+4|Si la activas, los mensajes que escribas se envían a un servicio de IA externo de pago para generar respuestas. El servicio se cobra por uso y el servidor aplica un límite diario de uso. Tus registros de ingresos y gastos, tu PIN y tu contraseña nunca se envían. El resumen de tu proyecto solo se envía si lo permites en la pantalla Memoria. Puedes desactivarla en cualquier momento.
+5|Activar IA real
+6|Continuar con la demo
+7|Memoria del proyecto
+8|La memoria pertenece a un proyecto. Primero elige o inicia un proyecto.
+9|El servidor aún no está configurado.
+10|No se puede acceder al servidor.
+11|Comprobando el servidor...
+12|IA real conectada
+13|Las respuestas vienen de una IA; puede cometer errores y no es asesoramiento de inversión, fiscal ni jurídico. No escribas información personal (contraseñas, números de tarjeta).
+14|Desactivar IA real
+15|No se recibió respuesta.
+16|Tu mensaje sigue ahí; puedes intentarlo de nuevo.
+17|Reintentar
+18|El servidor de IA aún no está configurado.
+19|La capacidad de IA de hoy está agotada. Inténtalo mañana.
+20|Has agotado el límite de mensajes de hoy. Inténtalo mañana.
+21|La capacidad de chat de hoy está agotada. Inténtalo mañana.
+22|La IA no pudo responder a tiempo. Inténtalo de nuevo.
+23|La IA está ocupada ahora mismo. Inténtalo en un rato.
+24|No se pudo leer la respuesta.
+25|La IA no puede responder ahora. Inténtalo en un rato.
+26|Llegó una respuesta vacía, inténtalo de nuevo.
+27|La solicitud es demasiado grande.
+28|Solicitud no válida.
+29|No autorizado.
+30|No encontrado.
+31|La respuesta tardó demasiado. Inténtalo de nuevo.
+32|No se recibió respuesta, inténtalo de nuevo.
+33|IA real desactivada. Se usarán respuestas de demostración.
+34|¿Dónde se guarda la memoria?
+35|Lo que escribes aquí se guarda solo en este dispositivo, dentro de este proyecto, y se incluye en la copia JSON. No se mezcla con otros proyectos. La IA no guarda cada frase que dices: la información duradera solo entra si dices «Guardar» o la añades tú.
+36|Compartir con el servidor de IA
+37|Enviar el resumen de este proyecto al servidor en el chat
+38|La IA real no se usa porque aún no la has activado; no se envía nada al exterior. Este ajuste se aplica si activas la IA real.
+39|Calculado a partir del proyecto
+40|Esto no se guarda; se calcula cada vez a partir del estado actual del proyecto, así que nunca se queda obsoleto.
+41|Avance de tareas
+42|Siguiente tarea
+43|Información guardada
+44|Todavía no hay información guardada. Puedes añadir tú mismo más abajo, o aprobar la sugerencia que aparece cuando escribes una decisión importante en el chat.
+45|Añadir información
+46|Tipo
+47|Objetivo
+48|Decisión
+49|Preferencia
+50|Último punto
+51|Información
+52|No se guarda información sensible como contraseñas, PIN, números de tarjeta/IBAN o de identidad.
+53|Borrar la memoria
+54|Elimina solo la información guardada y las sugerencias pendientes de este proyecto. No se borran las tareas, notas, registros de ingresos y gastos ni el historial del chat. Se te pedirá confirmación.
+55|Borrar la memoria de este proyecto
+56|La memoria es distinta de «Acciones pasadas»: Acciones pasadas es un archivo del trabajo que has hecho y no se entrega a la IA como instrucciones.
+57|Ej.: Decidí empezar primero con Instagram
+58|Ahora mismo no hay un servidor de IA real conectado; no se envía nada al exterior. Este ajuste se aplica si se conecta un servidor.
+59|Este chat y esta memoria pertenecen solo a este proyecto; no se mezcla información de otros proyectos. La información se guarda en tu dispositivo. El resumen de tu proyecto no se envía al servidor.
+60|Si está activado, el resumen de abajo (sin tus notas libres ni tus registros de ingresos y gastos) puede enviarse al servidor al preparar respuestas en los chats de este proyecto. Si está desactivado, no se envía nada.
+61|Este chat y esta memoria pertenecen solo a este proyecto; no se mezcla información de otros proyectos. La información se guarda en tu dispositivo. El resumen de tu proyecto se envía al servidor de IA mientras se prepara una respuesta (puedes desactivarlo en la pantalla Memoria).

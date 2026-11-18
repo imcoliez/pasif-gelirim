@@ -27,7 +27,7 @@ function states() {
     Core.addRecurring(s, { type: 'in', amount: 30, freq: 'weekly', note: 'Zzrec2', date: '2026-10-01' }, T);
     Core.applyRecurring(s, T); s.recurring[1].active = false;
     Core.setTaxPct(s, 15);
-    s.chat.push({ role: 'user', text: 'zzq', at: T }, { role: 'ai', text: Core.aiReply(s, 'Hedef kitle ne demek?', T), at: T });
+    s.chat.push({ role: 'user', text: 'zzq', at: T }, { role: 'ai', text: Core.aiReply(s, 'Hedef kitle ne demek?', T), at: T, src: 'demo' }, { role: 'ai', text: 'zzreal', at: T, src: 'ai' });
     if (Core.entitlements(s).automation) { Core.generatePlan(s, p, 7, T); }
     if (Core.entitlements(s).ceo) { Core.ensureDecisions(s, p, T); }
     return s;
@@ -38,7 +38,7 @@ function states() {
   const full = mk('ceo'); full.addonNarration = true;
   Core.decide(full, full.decisions[0].id, 'onaylandı', T);
   full.settings.look.accent = 'custom'; full.settings.look.custom = '#ff8800'; full.settings.reminder.enabled = true; full.lock = { enabled: true, salt: 'a', hash: 'b' };
-  full.user.avatar = 'data:image/jpeg;base64,AAAA';
+  full.user.avatar = 'data:image/jpeg;base64,AAAA'; full.settings.aiShareMemory = true;
   out.push(['full', full, T]);
   const pm = mk('semi'); Core.startProject(pm, 'freelance', T); Core.startProject(pm, 'blog-affiliate', T + 1); Core.startProject(pm, 'yerel-hizmet', T + 2);
   Core.updateProject(pm, pm.projects[0].id, { desc: 'zzdesc', goal: 100, note: 'zznote' }, T); Core.addFinance(pm, { type: 'in', amount: 30, src: pm.projects[0].id, note: 'zzrec' }, T); Core.addFinance(pm, { type: 'in', amount: 5, note: 'legacy' }, T);
@@ -66,6 +66,10 @@ function uiStates(S, T) {
   list.push(ui({ route: 'settings', exportText: 'x', exportTitle: 'Tanılama bilgisi' }));
   list.push(ui({ route: 'calc', calcRes: Core.calcSales({ price: 100, cost: 20, fee: 10, target: 1000 }) }), ui({ route: 'calc', calcRes: Core.calcSales({ price: 10, cost: 30, fee: 0, target: 100 }) }));
   list.push(ui({ route: 'plans', recType: 'in' }));
+  // Aşama 5: yapay zekâ bağlantı durumları (sunucu hazır/yapılandırılmamış/çevrimdışı/denetleniyor, onay, bağlı, hata)
+  const fp = p ? p.id : '*';
+  [{ state: 'ready', model: 'claude-test' }, { state: 'unconfigured', model: '' }, { state: 'offline', model: '' }, { state: 'checking', model: '' }].forEach(ai => list.push(ui({ route: 'chat', ai }), ui({ route: 'memory', ai })));
+  list.push(ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, live: true, failed: fp }), ui({ route: 'memory', ai: { state: 'ready', model: 'claude-test' }, live: true }), ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, consentHidden: true }));
   const ser = []; for (let i = 0; i < 12; i++) ser.push({ t: T - (12 - i) * DAY, v: 40 + i / 10 });
   const Mk = require('../www/market.js');
   const names = Mk.FX.map(f => ['fx', f[1], f[0]]).concat([['gold', 'Gram altın (yaklaşık)', 'GRAM'], ['gold', 'Ons altın', 'ONS']], Mk.CRYPTO.map(c => ['crypto', c[1], c[0]]));
@@ -86,6 +90,8 @@ function collect() {
     // Core metinleri
     Core.badges(S, T).forEach(b => { add(b.title, 'badge'); add(b.desc, 'badge'); });
     Core.chatSuggestions(S).forEach(x => add(x, 'suggest'));
+    // Sunucudan gelen hata metinleri ve istemci bildirimleri (ekrana çizilmez, toast olarak çıkar)
+    ['Yapay zekâ sunucusu henüz yapılandırılmamış.', 'Bugünlük yapay zekâ kapasitesi doldu. Yarın tekrar dene.', 'Bugünkü mesaj hakkın doldu. Yarın tekrar dene.', 'Bugünlük sohbet kapasitesi doldu. Yarın tekrar dene.', 'Yapay zekâ zamanında yanıt veremedi. Tekrar dene.', 'Yapay zekâ şu an yoğun. Biraz sonra tekrar dene.', 'Yanıt okunamadı.', 'Yapay zekâ şu an yanıt veremiyor. Biraz sonra tekrar dene.', 'Boş yanıt geldi, tekrar dene.', 'İstek çok büyük.', 'Geçersiz istek.', 'Yetkisiz.', 'Bulunamadı.', 'Yanıt çok gecikti. Tekrar dene.', 'Bağlanamadım. İnternetini kontrol edip tekrar dene.', 'Yanıt alınamadı, tekrar dene.', 'Gerçek yapay zekâ kapatıldı. Demo yanıtlar kullanılacak.'].forEach(x => add(x, 'ai-msg'));
     Data.MODELS.forEach(m => { add(m.title, 'model'); add(m.summary, 'model'); if (m.facts) { add(m.facts.cost, 'facts'); add(m.facts.difficulty, 'facts'); m.facts.skills.forEach(x => add(x, 'facts')); add(m.facts.risk, 'facts'); } add(m.honest, 'model'); m.tasks.forEach(t => { add(t.title, 'task'); add(t.body || t.text || '', 'task'); }); m.planIdeas.forEach(x => add('Gün 1 (01.01.2026): ' + x, 'plan')); m.decisions.forEach(x => add(x, 'dec')); add('# günlük ' + m.title + ' planı', 'plan'); add('# günlük ' + m.title + ' planı · #', 'plan'); });
     ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara', '— Hafta değerlendirmesi: Ne işe yaradı? Gelecek hafta neyi değiştireceksin?'].forEach(x => add(x, 'misc'));
     Data.QUESTIONS.forEach(q => { add(q.text, 'quiz'); q.options.forEach(o => add(o.t, 'quiz')); });

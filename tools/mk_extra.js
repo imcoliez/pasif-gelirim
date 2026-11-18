@@ -1,7 +1,7 @@
 // tools/tr/x_<dil>.txt + new_keys.json -> tools/tr/extra.js
 const fs = require('fs'), path = require('path');
 // Sürümler: [anahtar dosyası, çeviri öneki]. Yeni metinler için yeni bir satır ekle.
-const SETS = [['new_keys.json', 'x'], ['new3.json', 'z'], ['new4.json', 'w']];
+const SETS = [['new_keys.json', 'x'], ['new3.json', 'z'], ['new4.json', 'w'], ['new5.json', 'v']];
 const out = {};
 ['en', 'de', 'es', 'ru', 'ar'].forEach(c => {
   out[c] = {};

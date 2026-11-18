@@ -495,13 +495,31 @@
         '<p class="fine">Bu sohbet ve hafıza yalnızca bu projeye aittir; başka projelerin bilgisi karışmaz. Bilgiler cihazında tutulur.' +
         (ui.live ? (S.settings.aiShareMemory ? ' Proje özetin, yanıt hazırlanırken yapay zekâ sunucusuna gönderilir (Hafıza ekranından kapatabilirsin).' : ' Proje özetin sunucuya gönderilmez.') : '') + '</p>'
       : '<b>Genel sohbet</b><p class="fine">' + (live ? 'Hiçbir projenin hafızası veya verisi kullanılmıyor. Bir projenin bağlamıyla konuşmak için "Proje sohbeti"ni seç.' : 'Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.') + '</p>') + '</div>';
-    html += (ui.live ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma.</p>' : '<p class="fine">Şu an demo yapay zekâ çalışıyor: kurallara göre terimleri açıklar, projenin özetini ve ilerlemeni söyler. Gerçek bir yapay zekâ modeli henüz bağlı değil.</p>') + '<div class="chat" id="chatBox">';
+    // Modelin gerçekten bağlı olup olmadığı her zaman açıkça yazılır
+    const ai = ui.ai || { state: 'demo', model: '' };
+    html += '<div class="aistat">' + (ui.live
+      ? '<span class="chip ok">Gerçek yapay zekâ bağlı</span>' + (ai.model ? ' <span class="muted small" data-nt>' + esc(ai.model) + '</span>' : '')
+      : ai.state === 'ready' ? '<span class="chip warn">Demo yapay zekâ</span> <span class="muted small">Gerçek model hazır; sen açınca kullanılır.</span>'
+      : ai.state === 'unconfigured' ? '<span class="chip warn">Demo yapay zekâ</span> <span class="muted small">Sunucu henüz yapılandırılmamış.</span>'
+      : ai.state === 'offline' ? '<span class="chip warn">Demo yapay zekâ</span> <span class="muted small">Sunucuya ulaşılamıyor.</span> <button class="link" data-act="aiRecheck">Tekrar dene</button>'
+      : ai.state === 'checking' ? '<span class="chip">Sunucu denetleniyor...</span>'
+      : '<span class="chip warn">Demo yapay zekâ</span> <span class="muted small">Gerçek model bağlı değil.</span>') + '</div>';
+    if (ai.state === 'ready' && !ui.live && !ui.consentHidden) {
+      html += '<div class="card note"><b>Gerçek yapay zekâyı açmak ister misin?</b>' +
+        '<p class="small">Açarsan yazdığın mesajlar, yanıt üretmesi için ücretli bir dış yapay zekâ servisine gönderilir. Servis kullanım başına ücretlidir ve sunucuda günlük kullanım sınırı vardır. Gelir-gider kayıtların, PIN ve şifren hiçbir zaman gönderilmez. Proje özetin yalnızca Hafıza ekranında izin verirsen gider. İstediğin an kapatabilirsin.</p>' +
+        '<div class="row wrap"><button class="btn slim" data-act="aiConsentOn">Gerçek yapay zekâyı aç</button><button class="btn slim ghost" data-act="aiConsentLater">Demo ile devam</button></div></div>';
+    }
+    html += (ui.live
+      ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma. <button class="link" data-act="aiConsentOff">Gerçek yapay zekâyı kapat</button></p>'
+      : '<p class="fine">Şu an demo yapay zekâ çalışıyor: kurallara göre terimleri açıklar, projenin özetini ve ilerlemeni söyler. Gerçek bir yapay zekâ modeli henüz bağlı değil.</p>') + '<div class="chat" id="chatBox">';
     if (!msgs.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
     msgs.slice(-40).forEach(function (m) {
-      html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) + '</div>';
+      html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) +
+        (m.role !== 'user' && m.src === 'demo' ? '<small class="srcl">Demo yanıt</small>' : '') + (m.role !== 'user' && m.src === 'ai' ? '<small class="srcl">Yapay zekâ yanıtı</small>' : '') + '</div>';
     });
     if (ui.typing) html += '<div class="msg ai typing" aria-label="Yazıyor"><i></i><i></i><i></i></div>';
     html += '</div>';
+    if (ui.failed && !ui.busy && (ui.failed === '*' ? !cp : (cp && cp.id === ui.failed))) html += '<div class="card note"><b>Yanıt alınamadı.</b><p class="small">Mesajın duruyor; tekrar deneyebilirsin.</p><button class="btn slim" data-act="retryChat">Yeniden dene</button></div>';
     if (cp) Core.memOf(cp).pending.forEach(function (pe) { html += pendCard(cp, pe); });
     if (left <= 0) {
       html += '<div class="card note">Bugünkü 1 saatlik ücretsiz sohbet hakkın doldu. Yarın yenilenir.</div>';
@@ -522,7 +540,7 @@
       '<div class="card note"><b>Hafıza nerede tutulur?</b><p class="small">Burada yazanlar yalnızca bu cihazda, bu projenin içinde saklanır ve JSON yedeğine girer. Başka projelerle karışmaz. Yapay zekâ konuştuğun her cümleyi saklamaz: kalıcı bilgi ancak sen "Kaydet" dersen veya kendin eklersen girer.</p></div>';
     h += '<div class="card"><b>Yapay zekâ sunucusuyla paylaşım</b>' +
       toggleRow('Sohbette bu projenin özetini sunucuya gönder', 'aiShare', S.settings.aiShareMemory) +
-      '<p class="fine">' + (ui.live ? 'Açıkken, bu projedeki sohbetlerde aşağıdaki özet (serbest notların ve gelir-gider kayıtların hariç) yanıt hazırlanırken sunucuya gidebilir. Kapalıyken hiçbir şey gitmez.' : 'Şu an gerçek bir yapay zekâ sunucusu bağlı değil; hiçbir şey dışarı gönderilmiyor. Bu ayar, sunucu bağlanırsa geçerli olur.') + '</p></div>';
+      '<p class="fine">' + (ui.live ? 'Açıkken, bu projedeki sohbetlerde aşağıdaki özet (serbest notların ve gelir-gider kayıtların hariç) yanıt hazırlanırken sunucuya gidebilir. Kapalıyken hiçbir şey gitmez.' : (ui.ai && ui.ai.state === 'ready' ? 'Gerçek yapay zekâyı henüz sen açmadığın için kullanılmıyor; hiçbir şey dışarı gönderilmiyor. Bu ayar, gerçek yapay zekâyı açarsan geçerli olur.' : 'Şu an gerçek bir yapay zekâ sunucusu bağlı değil; hiçbir şey dışarı gönderilmiyor. Bu ayar, sunucu bağlanırsa geçerli olur.')) + '</p></div>';
     h += '<div class="card"><b>Projeden hesaplananlar</b><p class="fine">Bunlar kaydedilmez; her seferinde projenin güncel durumundan hesaplanır, bu yüzden eskimez.</p>' +
       '<div class="irow"><span>Görev ilerlemesi</span><b>' + ctx.progress.done + ' / ' + ctx.progress.total + '</b></div>' +
       (ctx.model ? '<div class="irow"><span>Gelir modeli</span><b>' + esc(ctx.model) + '</b></div>' : '') +

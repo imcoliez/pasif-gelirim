@@ -1,0 +1,62 @@
+0|Demo-KI
+1|Es ist kein echtes Modell verbunden.
+2|Das echte Modell ist bereit; es wird genutzt, sobald du es einschaltest.
+3|Echte KI einschalten?
+4|Wenn du sie einschaltest, werden deine Nachrichten zur Antworterstellung an einen kostenpflichtigen externen KI-Dienst gesendet. Der Dienst wird pro Nutzung abgerechnet und der Server wendet ein tägliches Nutzungslimit an. Deine Einnahmen-Ausgaben, PIN und Passwort werden nie gesendet. Deine Projektzusammenfassung wird nur gesendet, wenn du es im Gedächtnis-Bildschirm erlaubst. Du kannst sie jederzeit ausschalten.
+5|Echte KI einschalten
+6|Mit Demo fortfahren
+7|Projektgedächtnis
+8|Das Gedächtnis gehört zu einem Projekt. Wähle oder starte zuerst ein Projekt.
+9|Der Server ist noch nicht eingerichtet.
+10|Der Server ist nicht erreichbar.
+11|Server wird geprüft...
+12|Echte KI verbunden
+13|Die Antworten kommen von einer KI; sie kann Fehler machen und ist keine Anlage-, Steuer- oder Rechtsberatung. Schreibe keine persönlichen Daten (Passwörter, Kartennummern).
+14|Echte KI ausschalten
+15|Keine Antwort erhalten.
+16|Deine Nachricht bleibt erhalten; du kannst es erneut versuchen.
+17|Erneut versuchen
+18|Der KI-Server ist noch nicht eingerichtet.
+19|Die KI-Kapazität für heute ist erschöpft. Versuche es morgen erneut.
+20|Dein heutiges Nachrichtenkontingent ist aufgebraucht. Versuche es morgen erneut.
+21|Die Chat-Kapazität für heute ist erschöpft. Versuche es morgen erneut.
+22|Die KI konnte nicht rechtzeitig antworten. Versuche es erneut.
+23|Die KI ist gerade ausgelastet. Versuche es in Kürze erneut.
+24|Die Antwort konnte nicht gelesen werden.
+25|Die KI kann gerade nicht antworten. Versuche es in Kürze erneut.
+26|Es kam eine leere Antwort, versuche es erneut.
+27|Die Anfrage ist zu groß.
+28|Ungültige Anfrage.
+29|Nicht autorisiert.
+30|Nicht gefunden.
+31|Die Antwort hat zu lange gedauert. Versuche es erneut.
+32|Keine Antwort erhalten, versuche es erneut.
+33|Echte KI ausgeschaltet. Es werden Demo-Antworten verwendet.
+34|Wo wird das Gedächtnis gespeichert?
+35|Was du hier schreibst, wird nur auf diesem Gerät in diesem Projekt gespeichert und ist in der JSON-Sicherung enthalten. Es wird nicht mit anderen Projekten vermischt. Die KI speichert nicht jeden Satz: Dauerhafte Informationen kommen nur hinein, wenn du „Speichern“ sagst oder sie selbst hinzufügst.
+36|Weitergabe an den KI-Server
+37|Zusammenfassung dieses Projekts im Chat an den Server senden
+38|Die echte KI wird nicht genutzt, weil du sie noch nicht eingeschaltet hast; es wird nichts nach außen gesendet. Diese Einstellung gilt, wenn du die echte KI einschaltest.
+39|Aus dem Projekt berechnet
+40|Diese werden nicht gespeichert; sie werden jedes Mal aus dem aktuellen Projektstand berechnet und veralten daher nie.
+41|Aufgabenfortschritt
+42|Nächste Aufgabe
+43|Gespeicherte Informationen
+44|Noch keine gespeicherten Informationen. Du kannst unten selbst welche hinzufügen oder den Vorschlag bestätigen, der erscheint, wenn du im Chat eine wichtige Entscheidung schreibst.
+45|Information hinzufügen
+46|Typ
+47|Ziel
+48|Entscheidung
+49|Präferenz
+50|Letzter Stand
+51|Information
+52|Sensible Informationen wie Passwörter, PINs, Karten-/IBAN- und Ausweisnummern werden nicht gespeichert.
+53|Gedächtnis leeren
+54|Löscht nur die gespeicherten Informationen und wartenden Vorschläge dieses Projekts. Aufgaben, Notizen, Einnahmen-Ausgaben und der Chatverlauf werden nicht gelöscht. Du wirst um Bestätigung gebeten.
+55|Gedächtnis dieses Projekts leeren
+56|Das Gedächtnis ist etwas anderes als „Vergangene Aktionen“: Vergangene Aktionen sind ein Archiv deiner erledigten Arbeit und werden der KI nicht als Anweisung gegeben.
+57|Z. B. Ich habe beschlossen, zuerst mit Instagram zu beginnen
+58|Derzeit ist kein echter KI-Server verbunden; es wird nichts nach außen gesendet. Diese Einstellung gilt, wenn ein Server verbunden wird.
+59|Dieser Chat und das Gedächtnis gehören nur zu diesem Projekt; Informationen anderer Projekte werden nicht vermischt. Die Informationen bleiben auf deinem Gerät. Deine Projektzusammenfassung wird nicht an den Server gesendet.
+60|Wenn aktiviert, kann die folgende Zusammenfassung (ohne deine freien Notizen und Einnahmen-Ausgaben) bei der Antworterstellung in den Chats dieses Projekts an den Server gesendet werden. Wenn deaktiviert, wird nichts gesendet.
+61|Dieser Chat und das Gedächtnis gehören nur zu diesem Projekt; Informationen anderer Projekte werden nicht vermischt. Die Informationen bleiben auf deinem Gerät. Deine Projektzusammenfassung wird bei der Antworterstellung an den KI-Server gesendet (du kannst das im Gedächtnis-Bildschirm ausschalten).

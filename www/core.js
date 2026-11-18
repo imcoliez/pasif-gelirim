@@ -139,7 +139,8 @@
     });
     out.chatGeneral = !!out.chatGeneral;
     out.settings.aiShareMemory = out.settings.aiShareMemory === true;
-    out.chat.forEach(function (m) { m.pid = typeof m.pid === 'string' ? m.pid : ''; });
+    out.settings.aiConsent = +out.settings.aiConsent > 0 ? +out.settings.aiConsent : 0;      // ücretli gerçek AI kullanımını bilerek açma zamanı (0 = açmadı)
+    out.chat.forEach(function (m) { m.pid = typeof m.pid === 'string' ? m.pid : ''; m.src = m.src === 'demo' || m.src === 'ai' ? m.src : ''; });
     if (out.projects.length) { const cur = out.projects.find(function (q) { return q.id === out.activeProjectId; }); if (!cur || cur.status === 'archived') { const live = out.projects.filter(function (q) { return q.status !== 'archived'; }); out.activeProjectId = live.length ? live[live.length - 1].id : null; } }
     return out;
   }
@@ -1103,7 +1104,7 @@
     return m.pending.length < n;
   }
   // Tek projenin bağlamı: yalnızca o projenin kendi verisinden hesaplanır (başka proje karışmaz).
-  function projectContext(state, projectId) {
+  function projectContext(state, projectId, forServer) {
     const p = projectById(state, projectId); if (!p) return null;
     const m = modelById(p.modelId), pr = progress(p), items = memOf(p).items;
     const done = [], doing = [];
@@ -1121,9 +1122,9 @@
       archived: isArchived(p)
     };
     const L = ['Proje: ' + ctx.title + (ctx.model ? ' (gelir modeli: ' + ctx.model + ')' : '')];
-    if (ctx.desc) L.push('Açıklama: ' + ctx.desc);
+    if (ctx.desc && !forServer) L.push('Açıklama: ' + ctx.desc);   // serbest metin: onaylı hafıza değil, sunucuya gitmez
     L.push('Görev ilerlemesi: ' + pr.done + '/' + pr.total + (done.length ? '. Tamamlanan: ' + done.join(', ') : '') + (doing.length ? '. Devam eden: ' + doing.join(', ') : '') + (ctx.nextTask ? '. Sıradaki: ' + ctx.nextTask : ''));
-    if (ctx.goalIncome > 0) L.push('Proje gelir hedefi: ' + ctx.goalIncome);
+    if (ctx.goalIncome > 0 && !forServer) L.push('Proje gelir hedefi: ' + ctx.goalIncome);   // para tutarı sunucuya gitmez
     if (ctx.status) L.push('Son nokta: ' + ctx.status);
     if (ctx.goals.length) L.push('Hedefler: ' + ctx.goals.join(' | '));
     if (ctx.decisions.length) L.push('Kararlar: ' + ctx.decisions.join(' | '));
@@ -1136,8 +1137,24 @@
   function memoryForServer(state) {
     if (!state.settings.aiShareMemory) return '';
     const p = chatProject(state); if (!p) return '';
-    return projectContext(state, p.id).text.slice(0, MEMORY_LIMITS.server);
+    return projectContext(state, p.id, true).text.slice(0, MEMORY_LIMITS.server);
   }
+  // Modele giden önceki mesajlar: yalnızca bu sohbetin (proje/genel) mesajları, demo yanıtları hariç,
+  // en fazla maxMsgs mesaj ve toplam maxChars karakter (en yeniler korunur). Token tüketimini sınırlar.
+  function chatContext(state, pid, maxMsgs, maxChars) {
+    maxMsgs = maxMsgs || 10; maxChars = maxChars || 3000;
+    const list = state.chat.filter(function (c) { return (c.pid || '') === (pid || '') && !(c.role !== 'user' && c.src === 'demo'); }).slice(-maxMsgs);
+    const out = []; let total = 0;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const t = String(list[i].text || '').slice(0, 500);
+      if (total + t.length > maxChars && out.length) break;
+      total += t.length; out.unshift({ role: list[i].role === 'user' ? 'user' : 'assistant', text: t });
+    }
+    return out;
+  }
+  // Ücretli gerçek yapay zekâ ancak kullanıcı bilerek açtıysa kullanılır.
+  function setAiConsent(state, on, now) { state.settings.aiConsent = on ? (now || Date.now()) : 0; return true; }
+  function hasAiConsent(state) { return +state.settings.aiConsent > 0; }
 
   // ---- Sohbet: her mesaj bir projeye (pid) ya da "genel"e ('') bağlıdır ----
   function chatPid(state) { const p = chatProject(state); return p ? p.id : ''; }
@@ -1151,8 +1168,9 @@
     }
     state.chat = state.chat.filter(Boolean);
   }
-  function addChat(state, role, text, now, pid) {
-    state.chat.push({ role: role === 'user' ? 'user' : 'ai', text: String(text || ''), at: now, pid: typeof pid === 'string' ? pid : chatPid(state) });
+  // src: 'ai' = gerçek model yanıtı, 'demo' = yerel kural tabanlı yanıt (gerçek model gibi gösterilmez)
+  function addChat(state, role, text, now, pid, src) {
+    state.chat.push({ role: role === 'user' ? 'user' : 'ai', text: String(text || ''), at: now, pid: typeof pid === 'string' ? pid : chatPid(state), src: role === 'user' ? '' : (src === 'ai' ? 'ai' : src === 'demo' ? 'demo' : '') });
     trimChat(state);
   }
   function setChatScope(state, general) { state.chatGeneral = !!general; return true; }
@@ -1257,7 +1275,7 @@
     THEMES: THEMES, setTheme: setTheme, LANG_CODES: LANG_CODES, CURRENCIES: CURRENCIES, LANG_CURRENCY: LANG_CURRENCY, setLanguage: setLanguage, setCurrency: setCurrency, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
     importData: importData, APP_VERSION: APP_VERSION,
-    MEMORY_KINDS: MEMORY_KINDS, MEMORY_LIMITS: MEMORY_LIMITS, isSensitive: isSensitive, addMemory: addMemory, updateMemory: updateMemory, removeMemory: removeMemory, clearMemory: clearMemory, suggestMemory: suggestMemory, confirmMemory: confirmMemory, dismissMemory: dismissMemory, projectContext: projectContext, memoryForServer: memoryForServer, chatProject: chatProject, chatPid: chatPid, chatFor: chatFor, addChat: addChat, setChatScope: setChatScope, memOf: memOf, SUGGEST_REPLY: 'Bunu önemli bir bilgi gibi gördüm. Aşağıdaki kartta "Kaydet"e basarsan bu projenin hafızasına eklerim; basmazsan hiçbir şey saklanmaz.',
+    MEMORY_KINDS: MEMORY_KINDS, MEMORY_LIMITS: MEMORY_LIMITS, isSensitive: isSensitive, addMemory: addMemory, updateMemory: updateMemory, removeMemory: removeMemory, clearMemory: clearMemory, suggestMemory: suggestMemory, confirmMemory: confirmMemory, dismissMemory: dismissMemory, projectContext: projectContext, memoryForServer: memoryForServer, chatProject: chatProject, chatPid: chatPid, chatFor: chatFor, chatContext: chatContext, setAiConsent: setAiConsent, hasAiConsent: hasAiConsent, addChat: addChat, setChatScope: setChatScope, memOf: memOf, SUGGEST_REPLY: 'Bunu önemli bir bilgi gibi gördüm. Aşağıdaki kartta "Kaydet"e basarsan bu projenin hafızasına eklerim; basmazsan hiçbir şey saklanmaz.',
     addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
     addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
     MAX_PROJECTS: MAX_PROJECTS, canStartProject: canStartProject, setActiveProject: setActiveProject, projectSummary: projectSummary, exportProject: exportProject, setTaskStage: setTaskStage,

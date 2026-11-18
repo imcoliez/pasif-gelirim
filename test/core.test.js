@@ -903,4 +903,32 @@ test('hafıza: bağlam hesaplanır (görev durumu saklanmaz); sunucuya yalnızca
   assert.ok(C.aiReply(s, 'projemi özetle', T0).includes('Demo yapay zekâ'), 'özet yanıtı demo olduğunu söyler');
 });
 
+// ---------- Aşama 5: gerçek yapay zekâ için istemci tarafı kurallar ----------
+test('gerçek AI: ücretli kullanım varsayılan kapalı; yalnızca kullanıcı bilerek açınca; kapatılabilir; yedekte korunur', () => {
+  const s = mk(); assert.strictEqual(C.hasAiConsent(s), false); assert.strictEqual(C.migrate({}).settings.aiConsent, 0);
+  C.setAiConsent(s, true, T0); assert.strictEqual(C.hasAiConsent(s), true); assert.strictEqual(C.importData(C.exportData(s)).state.settings.aiConsent, T0);
+  C.setAiConsent(s, false, T0 + 1); assert.strictEqual(C.hasAiConsent(s), false);
+  assert.strictEqual(C.migrate({ settings: { aiConsent: 'x' } }).settings.aiConsent, 0, 'bozuk değer kapalı sayılır');
+});
+test('gerçek AI: modele giden önceki mesajlar yalnızca o sohbetin, demo yanıtsız, sınırlı ve en yeniler korunur', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addChat(s, 'user', 'A soru 1', T0, a.id); C.addChat(s, 'ai', 'DEMO cevap', T0, a.id); s.chat[1].src = 'demo'; C.addChat(s, 'ai', 'GERÇEK cevap', T0, a.id); s.chat[2].src = 'ai';
+  C.addChat(s, 'user', 'B soru', T0, b.id); C.addChat(s, 'user', 'genel soru', T0, '');
+  const ca = C.chatContext(s, a.id, 10, 3000); assert.deepStrictEqual(ca.map(m => m.text), ['A soru 1', 'GERÇEK cevap']); assert.deepStrictEqual(ca.map(m => m.role), ['user', 'assistant']);
+  assert.deepStrictEqual(C.chatContext(s, b.id).map(m => m.text), ['B soru']); assert.deepStrictEqual(C.chatContext(s, '').map(m => m.text), ['genel soru']);
+  const t = mk(); for (let i = 0; i < 30; i++) C.addChat(t, 'user', 'mesaj ' + i + ' ' + 'x'.repeat(480), T0 + i, '');
+  const c = C.chatContext(t, '', 10, 3000); assert.ok(c.length <= 10); assert.ok(c.reduce((n, m) => n + m.text.length, 0) <= 3000 + 500); assert.ok(c[c.length - 1].text.startsWith('mesaj 29'), 'en yeni mesaj korunur');
+  assert.ok(c.every(m => m.text.length <= 500));
+});
+test('gerçek AI: sunucuya giden özet onaysız öneri, açıklama, finans, gelir hedefi ve başka proje içermez; izin/genel sohbette boş', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.updateProject(s, a.id, { desc: 'SERBEST-ACIKLAMA', goal: 55555, note: 'SERBEST-NOT' }, T0); C.addFinance(s, { type: 'in', amount: 98765, src: a.id }, T0);
+  C.addMemory(s, a.id, 'decision', 'ONAYLI-KARAR', T0); C.addMemory(s, b.id, 'decision', 'BASKA-PROJE', T0);
+  s.activeProjectId = a.id; C.suggestMemory(s, 'Fiyatı 999 yapmaya karar verdim', T0); C.addMemory(s, a.id, 'note', 'ESKI-BILGI', T0); C.updateMemory(s, a.id, C.memOf(a).items.find(i => i.text === 'ESKI-BILGI').id, { old: true }, T0);
+  assert.strictEqual(C.memoryForServer(s), '', 'izin yokken boş'); s.settings.aiShareMemory = true;
+  const sv = C.memoryForServer(s); assert.ok(sv.includes('ONAYLI-KARAR'));
+  ['SERBEST-ACIKLAMA', 'SERBEST-NOT', '98765', '55555', 'BASKA-PROJE', 'ESKI-BILGI', 'Fiyatı 999'].forEach(x => assert.ok(!sv.includes(x), x + ' gitmemeli'));
+  C.setChatScope(s, true); assert.strictEqual(C.memoryForServer(s), '');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

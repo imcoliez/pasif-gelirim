@@ -52,7 +52,7 @@ Sürüm 1.0 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 ## Henüz yok (Google Play'den önce)
 
 1. **Gerçek ödeme:** Google Play Faturalandırma (aylık abonelik). Fiyatlar belirlenmedi.
-2. **Gerçek yapay zekâ:** Kod hazır (`server/worker.mjs`, Cloudflare Worker; kurulum `server/README.md`). Sunucu yayınlanıp adresi `www/config.js` içine yazılana kadar sohbet demo modunda kalır. Süre sınırı şimdilik cihazda; sunucu mesaj sayısını sınırlar.
+2. **Gerçek yapay zekâ (Aşama 5):** Kod ve testler hazır ama **canlıya alınmadı**: anahtar, Cloudflare hesabı ve Worker kurulumu sende (`server/README.md`). `www/config.js` içindeki `API_URL` boşken sohbet demo modundadır. Sunucu hazır olsa bile kullanıcı "Gerçek yapay zekâyı aç" demeden ücretli istek gitmez. Sohbet ekranı gerçek/demo durumunu ve her yanıtın kaynağını (Demo yanıt / Yapay zekâ yanıtı) gösterir. Süre sınırı cihazda, mesaj ve token sınırı sunucuda.
 3. **Hesap/giriş ve bulut kaydı:** Veriler şimdilik yalnızca cihazda.
 4. **Play Store simgesi:** `branding/logo.png` 1024 px; mağaza 512×512 PNG ister (buradan üretilebilir).
 5. Gizlilik politikası ve kullanım şartlarının hukuki olarak tamamlanması, Play mağaza kaydı.
