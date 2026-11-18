@@ -104,7 +104,7 @@
   }
 
   // ---------- Çizim ----------
-  var DRAFT_IDS = ['nameInput', 'finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
+  var DRAFT_IDS = ['nameInput', 'finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'memText', 'memKind', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
   function captureDraft() {
     if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
     if (lastRoute !== ui.route) { ui.draft = {}; return; }
@@ -210,6 +210,7 @@
     if (route !== 'tasks') ui.quiz = null;
     if (route === 'charts') ui.chartSel = null;
     if (route !== 'money') ui.editId = null;
+    if (route !== 'memory') ui.memEdit = null;
     if (route === 'market') setTimeout(function () { loadMarket(false); }, 0);
     if (extra) for (var k in extra) ui[k] = extra[k];
     ui.enter = dir;
@@ -360,44 +361,48 @@
     }
     return id;
   }
-  function finishChat(replyText) {
+  function finishChat(replyText, pid) {
     ui.typing = false; ui.busy = false;
-    if (replyText) {
-      S.chat.push({ role: 'ai', text: replyText, at: now() });
-      if (S.chat.length > 200) S.chat = S.chat.slice(-200);
+    // Yanıt, sorunun sorulduğu projeye yazılır (arada proje değişse de karışmaz); proje silindiyse atılır.
+    if (replyText && (!pid || Core.projectById(S, pid))) {
+      Core.addChat(S, 'ai', replyText, now(), pid || '');
       save();
     }
     if (ui.route === 'chat') { render(); var i3 = document.getElementById('chatInput'); if (i3) i3.focus(); }
   }
-  function askLive(url) {
-    var msgs = S.chat.slice(-10).map(function (c) { return { role: c.role === 'user' ? 'user' : 'assistant', text: String(c.text || '').slice(0, 500) }; });
-    var p = Core.activeProject(S);
+  function askLive(url, pid, memText) {
+    var msgs = S.chat.filter(function (c) { return (c.pid || '') === pid; }).slice(-10).map(function (c) { return { role: c.role === 'user' ? 'user' : 'assistant', text: String(c.text || '').slice(0, 500) }; });
+    var p = pid ? Core.projectById(S, pid) : null;
     var ctl = null, timer = null;
     try { ctl = new AbortController(); timer = setTimeout(function () { ctl.abort(); }, 25000); } catch (e) { }
+    var ctx = { project: p ? p.title : '', lang: I18n.resolve(S.settings.lang) };
+    if (memText) ctx.memory = memText;      // yalnızca kullanıcı izin verdiyse ve yalnızca bu projenin özeti
     fetch(url, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl ? ctl.signal : undefined,
-      body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: { project: p ? p.title : '', lang: I18n.resolve(S.settings.lang) } })
+      body: JSON.stringify({ device: deviceId(), messages: msgs, ctx: ctx })
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
     }).then(function (x) {
       clearTimeout(timer);
-      if (x.ok && x.d && typeof x.d.reply === 'string' && x.d.reply) finishChat(x.d.reply);
-      else { finishChat(''); toast((x.d && x.d.error) || 'Yanıt alınamadı, tekrar dene.'); }
+      if (x.ok && x.d && typeof x.d.reply === 'string' && x.d.reply) finishChat(x.d.reply, pid);
+      else { finishChat('', pid); toast((x.d && x.d.error) || 'Yanıt alınamadı, tekrar dene.'); }
     }, function () {
-      clearTimeout(timer); finishChat('');
+      clearTimeout(timer); finishChat('', pid);
       toast('Bağlanamadım. İnternetini kontrol edip tekrar dene.');
     });
   }
   function sendChat(text) {
     text = String(text || '').trim(); if (!text || ui.busy) return;
     if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
-    var url = liveUrl();
-    var reply = url ? '' : Core.aiReply(S, text, now());
-    withRewards(function () { S.chat.push({ role: 'user', text: text, at: now() }); });
+    var url = liveUrl(), pid = Core.chatPid(S);
+    var sug = Core.suggestMemory(S, text, now());          // yalnızca öneri; onay olmadan hiçbir şey kaydedilmez
+    var reply = url ? '' : (sug ? Core.SUGGEST_REPLY : Core.aiReply(S, text, now()));
+    var memText = url ? Core.memoryForServer(S) : '';
+    withRewards(function () { Core.addChat(S, 'user', text, now(), pid); });
     ui.typing = true; ui.busy = true; ui.noDraft = true; save(); render();
     var i2 = document.getElementById('chatInput'); if (i2) i2.focus();
-    if (url) { askLive(url); return; }
-    setTimeout(function () { finishChat(reply); }, reduce ? 0 : 650);
+    if (url) { askLive(url, pid, memText); return; }
+    setTimeout(function () { finishChat(reply, pid); }, reduce ? 0 : 650);
   }
 
   // Sohbet süre sayacı: yalnızca sohbet ekranı açıkken ve sayfa görünürken akar
@@ -727,6 +732,48 @@
       ui.narrAnswer = terms.length ? terms.join('\n\n') : Core.aiReply(S, q, now());
       render(); speak(ui.narrAnswer);
     },
+    chatScope: function (el) { Core.setChatScope(S, el.getAttribute('data-v') === 'general'); save(); render(); },
+    aiShare: function (el) { S.settings.aiShareMemory = el.getAttribute('data-v') === 'on'; save(); render(); },
+    memAdd: function () {
+      var p = Core.activeProject(S); if (!p) return;
+      var r = Core.addMemory(S, p.id, val('memKind'), val('memText'), now(), 'user');
+      if (!r.ok) { toast(r.error); return; }
+      ui.noDraft = true; save(); toast(r.dup ? 'Bu bilgi zaten kayıtlı.' : 'Hafızaya eklendi.'); render();
+    },
+    memEdit: function (el) { ui.memEdit = el.getAttribute('data-id'); render(); var i = document.getElementById('memEditText'); if (i) i.focus(); },
+    memEditCancel: function () { ui.memEdit = null; render(); },
+    memEditSave: function (el) {
+      var p = Core.activeProject(S); if (!p) return;
+      var r = Core.updateMemory(S, p.id, el.getAttribute('data-id'), { text: val('memEditText') }, now());
+      if (!r.ok) { toast(r.error); return; }
+      ui.memEdit = null; save(); toast('Bilgi güncellendi.'); render();
+    },
+    memOld: function (el) {
+      var p = Core.activeProject(S); if (!p) return;
+      var it = Core.memOf(p).items.find(function (x) { return x.id === el.getAttribute('data-id'); }); if (!it) return;
+      Core.updateMemory(S, p.id, it.id, { old: !it.old }, now()); save(); render();
+    },
+    memDel: function (el) {
+      var p = Core.activeProject(S); if (!p) return;
+      if (!window.confirm(I18n.t('Bu bilgi hafızadan silinsin mi?'))) return;
+      Core.removeMemory(S, p.id, el.getAttribute('data-id')); save(); toast('Bilgi silindi.'); render();
+    },
+    memClear: function () {
+      var p = Core.activeProject(S); if (!p) return;
+      var n = Core.memOf(p).items.length + Core.memOf(p).pending.length; if (!n) return;
+      if (!window.confirm(I18n.t('Bu projenin tüm hafızası silinsin mi? Görevlerin, notların, gelir-gider kayıtların ve sohbet geçmişin silinmez; yalnızca yapay zekâ için saklanan bilgiler gider. Bu işlem geri alınamaz.') + '\n\n' + p.title + ' · ' + n)) return;
+      Core.clearMemory(S, p.id); save(); toast('Proje hafızası temizlendi.'); render();
+    },
+    memConfirm: function (el) {
+      var p = Core.chatProject(S); if (!p) return;
+      var r = Core.confirmMemory(S, p.id, el.getAttribute('data-id'), now());
+      if (!r.ok) { toast(r.error); return; }
+      save(); toast('Hafızaya kaydedildi.'); render();
+    },
+    memDismiss: function (el) {
+      var p = Core.chatProject(S); if (!p) return;
+      Core.dismissMemory(S, p.id, el.getAttribute('data-id')); save(); render();
+    },
     send: function () { sendChat(val('chatInput')); },
     suggest: function (el) { sendChat(el.getAttribute('data-t')); },
     finType: function (el) {
@@ -976,6 +1023,7 @@
     else if (id === 'nameInput') actions.start();
     else if (id === 'goalInput') actions.saveGoal();
     else if (id === 'finNote' || id === 'finAmount') actions.addFin();
+    else if (id === 'memText') actions.memAdd();
   });
   document.addEventListener('change', function (e) {
     var t = e.target;

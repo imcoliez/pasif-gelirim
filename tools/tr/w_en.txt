@@ -1,0 +1,13 @@
+0|The memory of an archived or non-existent project cannot be changed.
+1|Invalid item type.
+2|The item cannot be empty.
+3|Sensitive information such as passwords, PINs, card/IBAN or ID numbers is not saved to memory.
+4|Memory is full (# items). Delete an old item and try again.
+5|Item not found.
+6|Project not found.
+7|Suggestion not found.
+8|Delete this item from memory?
+9|Delete all memory of this project? Your tasks, notes, income-expense records and chat history are not deleted; only the information stored for the AI is removed. This cannot be undone.
+10|This item is already saved.
+11|Added to memory.
+12|I noticed this looks like important information. If you press "Save" on the card below, I will add it to this project's memory; if you don't, nothing is stored.

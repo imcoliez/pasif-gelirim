@@ -1,0 +1,15 @@
+0|Allgemeiner Chat
+1|Du hast noch kein Projekt, daher ist der Chat allgemein. Sobald du ein Projekt startest, bekommt es einen eigenen Speicher und Chat.
+2|Derzeit läuft eine Demo-KI: Sie erklärt Begriffe nach festen Regeln und nennt die Zusammenfassung und den Fortschritt deines Projekts. Ein echtes KI-Modell ist noch nicht angebunden.
+3|Projekt-Chat
+4|Projekt, über das du sprichst
+5|Gedächtnis (#)
+6|Dieser Chat und das Gedächtnis gehören nur zu diesem Projekt; Informationen anderer Projekte werden nicht vermischt. Die Informationen bleiben auf deinem Gerät.
+7|KI-Gedächtnis
+8|# Einträge
+9|Projektspezifische Informationen, auf deinem Gerät gespeichert. Die KI nutzt sie nur, solange du in diesem Projekt bist.
+10|Gedächtnis verwalten
+11|Eintrag aktualisiert.
+12|Eintrag gelöscht.
+13|Projektgedächtnis geleert.
+14|Im Gedächtnis gespeichert.

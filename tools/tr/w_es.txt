@@ -1,0 +1,13 @@
+0|No se puede cambiar la memoria de un proyecto archivado o inexistente.
+1|Tipo de dato no válido.
+2|El dato no puede estar vacío.
+3|No se guardan en la memoria datos sensibles como contraseñas, PIN, números de tarjeta/IBAN o de identidad.
+4|La memoria está llena (# datos). Elimina un dato antiguo e inténtalo de nuevo.
+5|Dato no encontrado.
+6|Proyecto no encontrado.
+7|Sugerencia no encontrada.
+8|¿Eliminar este dato de la memoria?
+9|¿Borrar toda la memoria de este proyecto? Tus tareas, notas, registros de ingresos y gastos y el historial del chat no se borran; solo se elimina la información guardada para la IA. Esta acción no se puede deshacer.
+10|Este dato ya está guardado.
+11|Añadido a la memoria.
+12|Esto parece información importante. Si pulsas «Guardar» en la tarjeta de abajo, lo añadiré a la memoria de este proyecto; si no, no se guarda nada.

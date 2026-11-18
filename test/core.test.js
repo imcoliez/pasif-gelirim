@@ -775,4 +775,132 @@ test('proje dışa aktarımı yeni alanları içerir', () => {
   const j = JSON.parse(C.exportProject(s, a.id, T0)); assert.strictEqual(j.project.desc, 'd'); assert.strictEqual(j.project.note, 'n');
 });
 
+// ---------- Aşama 4: proje bazlı hafıza ----------
+test('hafıza: her proje kendi boş hafızasıyla başlar; bilgi yalnızca eklenen projede görünür', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  assert.deepStrictEqual(C.memOf(a), { items: [], pending: [] }); assert.deepStrictEqual(C.memOf(b), { items: [], pending: [] });
+  assert.ok(C.addMemory(s, a.id, 'decision', 'Yalnızca Instagram ile başlayacağım', T0).ok);
+  assert.strictEqual(C.memOf(a).items.length, 1); assert.strictEqual(C.memOf(b).items.length, 0);
+  assert.ok(C.projectContext(s, a.id).text.includes('Instagram')); assert.ok(!C.projectContext(s, b.id).text.includes('Instagram'), 'B bağlamına A karışmaz');
+  assert.notStrictEqual(C.memOf(a), C.memOf(b));
+});
+test('hafıza: proje değişince sohbet bağlamı ve sohbet geçmişi doğru projeye gelir', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addMemory(s, a.id, 'goal', 'Ayda 3000 hedefim A', T0); C.addMemory(s, b.id, 'goal', 'B için portfolyo hazırlamak', T0);
+  s.activeProjectId = a.id; C.addChat(s, 'user', 'merhaba A', T0); C.addChat(s, 'ai', 'cevap A', T0);
+  s.activeProjectId = b.id; C.addChat(s, 'user', 'merhaba B', T0);
+  assert.deepStrictEqual(C.chatFor(s).map(m => m.text), ['merhaba B']);
+  s.activeProjectId = a.id; assert.deepStrictEqual(C.chatFor(s).map(m => m.text), ['merhaba A', 'cevap A']);
+  s.settings.aiShareMemory = true;
+  assert.ok(C.memoryForServer(s).includes('3000')); assert.ok(!C.memoryForServer(s).includes('portfolyo'));
+  s.activeProjectId = b.id; assert.ok(C.memoryForServer(s).includes('portfolyo')); assert.ok(!C.memoryForServer(s).includes('3000'));
+  C.setChatScope(s, true); assert.strictEqual(C.memoryForServer(s), ''); assert.deepStrictEqual(C.chatFor(s), []);
+  assert.ok(C.aiReply(s, 'bu projemle ilgili ne biliyorsun', T0).includes('genel sohbet'));
+});
+test('hafıza: ekleme, aynı bilgiyi tekrar eklememe, tek "son nokta", sınırlar', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0);
+  assert.ok(!C.addMemory(s, a.id, 'xx', 'metin', T0).ok); assert.ok(!C.addMemory(s, a.id, 'note', '   ', T0).ok);
+  C.addMemory(s, a.id, 'note', 'Hedef kitle: öğrenciler', T0); const d = C.addMemory(s, a.id, 'note', 'hedef kitle öğrenciler!', T0 + 1);
+  assert.ok(d.dup); assert.strictEqual(C.memOf(a).items.length, 1);
+  C.addMemory(s, a.id, 'status', 'Logo hazır', T0); C.addMemory(s, a.id, 'status', 'İlk video çekiliyor', T0 + 1);
+  assert.deepStrictEqual(C.memOf(a).items.filter(x => x.kind === 'status').map(x => x.text), ['İlk video çekiliyor']);
+  assert.ok(C.addMemory(s, a.id, 'note', 'x'.repeat(500), T0).item.text.length <= C.MEMORY_LIMITS.text);
+  for (let i = 0; i < 60; i++) C.addMemory(s, a.id, 'note', 'bilgi numarası ' + 'abcdefghij'[i % 10] + i, T0);
+  assert.strictEqual(C.memOf(a).items.length, C.MEMORY_LIMITS.items);
+  assert.ok(!C.addMemory(s, a.id, 'note', 'bir tane daha farklı', T0).ok);
+});
+test('hafıza: düzenleme, "eski" işaretleme (bağlamdan çıkar) ve silme', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0);
+  const it = C.addMemory(s, a.id, 'decision', 'Fiyat 100 olacak', T0).item;
+  assert.ok(C.updateMemory(s, a.id, it.id, { text: 'Fiyat 150 olacak' }, T0 + 5).ok); assert.strictEqual(C.memOf(a).items[0].text, 'Fiyat 150 olacak');
+  assert.ok(C.projectContext(s, a.id).text.includes('150'));
+  C.updateMemory(s, a.id, it.id, { old: true }, T0 + 6); assert.ok(!C.projectContext(s, a.id).text.includes('150'), 'eski bilgi bağlama girmez');
+  assert.strictEqual(C.memOf(a).items.length, 1, 'ama silinmez');
+  assert.ok(!C.updateMemory(s, a.id, 'yok', { text: 'x' }, T0).ok); assert.ok(!C.updateMemory(s, a.id, it.id, { text: '' }, T0).ok);
+  assert.ok(C.removeMemory(s, a.id, it.id)); assert.ok(!C.removeMemory(s, a.id, it.id)); assert.strictEqual(C.memOf(a).items.length, 0);
+});
+test('hafıza: sohbetten öneri otomatik kaydedilmez; onaylanırsa kaydolur, reddedilirse hiç saklanmaz', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0);
+  assert.strictEqual(C.suggestMemory(s, 'Bugün hava çok güzel ve dışarı çıktım', T0), null);
+  assert.strictEqual(C.suggestMemory(s, 'Ne karar vermeliyim bilmiyorum?', T0), null, 'soru öneri üretmez');
+  const pe = C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0);
+  assert.ok(pe && pe.kind === 'decision'); assert.strictEqual(C.memOf(a).items.length, 0, 'onaydan önce kalıcı hafıza boş'); assert.strictEqual(C.memOf(a).pending.length, 1);
+  assert.strictEqual(C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0 + 1), null, 'aynı öneri tekrarlanmaz');
+  const r = C.confirmMemory(s, a.id, pe.id, T0 + 2); assert.ok(r.ok); assert.strictEqual(r.item.by, 'chat'); assert.strictEqual(C.memOf(a).items.length, 1); assert.strictEqual(C.memOf(a).pending.length, 0);
+  const p2 = C.suggestMemory(s, 'Hedefim ayda 5000 kazanmak olacak', T0 + 3); assert.ok(C.dismissMemory(s, a.id, p2.id));
+  assert.strictEqual(C.memOf(a).items.length, 1); assert.strictEqual(C.memOf(a).pending.length, 0);
+  for (let i = 0; i < 6; i++) C.suggestMemory(s, 'Şunu seçtim numara ' + 'abcdef'[i] + ' yaparım', T0 + 10 + i);
+  assert.ok(C.memOf(a).pending.length <= C.MEMORY_LIMITS.pending);
+});
+test('hafıza: öneri yalnızca etkin projeye gider; arşiv/genel sohbette hiçbir yere yazılmaz', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  s.activeProjectId = a.id; const pe = C.suggestMemory(s, 'Bu işte her zaman sade tasarım kullanacağım', T0);
+  s.activeProjectId = b.id; assert.ok(!C.confirmMemory(s, b.id, pe.id, T0).ok, 'B, A\'nın önerisini onaylayamaz'); assert.strictEqual(C.memOf(b).items.length, 0);
+  C.setChatScope(s, true); assert.strictEqual(C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0), null);
+  C.setChatScope(s, false); C.archiveProject(s, b.id, T0); s.activeProjectId = b.id;
+  assert.strictEqual(C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0), null);
+});
+test('hafıza: şifre, PIN, kart/IBAN, kimlik numarası saklanmaz (ekleme, düzenleme, öneri, yedekten yükleme)', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0);
+  ['Şifrem 12345', 'IBAN TR33 0006 1005 1978 6457 8413 26', 'kart numarası 4111 1111 1111 1111', 'TC kimlik no 12345678901', 'api key sk-abc'].forEach(t => {
+    assert.ok(C.isSensitive(t), t); assert.ok(!C.addMemory(s, a.id, 'note', t, T0).ok, t);
+  });
+  assert.ok(!C.isSensitive('Ayda 3000 TL gelir hedefliyorum'), 'normal rakam engellenmez');
+  const it = C.addMemory(s, a.id, 'note', 'normal not', T0).item; assert.ok(!C.updateMemory(s, a.id, it.id, { text: 'parolam abc' }, T0).ok);
+  assert.strictEqual(C.suggestMemory(s, 'Hedefim şifre: abc123 olarak kaydet', T0), null);
+  const bad = JSON.parse(C.exportData(s)); bad.projects[0].memory.items.push({ id: 'z', kind: 'note', text: 'şifre 999', at: 1 });
+  assert.deepStrictEqual(C.importData(JSON.stringify(bad)).state.projects[0].memory.items.map(x => x.text), ['normal not']);
+});
+test('hafıza: tamamen temizleme yalnızca o projenin hafızasını ve önerilerini siler', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addMemory(s, a.id, 'note', 'A bilgisi', T0); C.addMemory(s, b.id, 'note', 'B bilgisi', T0);
+  s.activeProjectId = a.id; C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0); C.updateProject(s, a.id, { note: 'proje notu' }, T0);
+  C.addChat(s, 'user', 'sohbet A', T0); C.addFinance(s, { type: 'in', amount: 10, src: a.id }, T0);
+  assert.strictEqual(C.clearMemory(s, a.id), 2);
+  assert.deepStrictEqual(C.memOf(a), { items: [], pending: [] }); assert.strictEqual(C.memOf(b).items.length, 1);
+  assert.strictEqual(a.note, 'proje notu'); assert.strictEqual(s.chat.length, 1); assert.strictEqual(s.finance.length, 1);
+});
+test('hafıza: yedek → içe aktar hafızayı ve onay bekleyenleri korur; her proje kendi hafızasında kalır', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addMemory(s, a.id, 'goal', 'A hedefi', T0); C.addMemory(s, b.id, 'pref', 'B tercihi', T0); C.addMemory(s, b.id, 'note', 'eski not', T0);
+  C.updateMemory(s, b.id, C.memOf(b).items[1].id, { old: true }, T0); s.activeProjectId = a.id; C.suggestMemory(s, 'Fiyatı 200 yapmaya karar verdim', T0); s.settings.aiShareMemory = true;
+  const r = C.importData(C.exportData(s)); assert.ok(r.ok);
+  const x = r.state.projects.find(p => p.id === a.id), y = r.state.projects.find(p => p.id === b.id);
+  assert.deepStrictEqual(x.memory.items.map(i => i.text), ['A hedefi']); assert.strictEqual(x.memory.pending.length, 1);
+  assert.deepStrictEqual(y.memory.items.map(i => i.text), ['B tercihi', 'eski not']); assert.strictEqual(y.memory.items[1].old, true);
+  assert.strictEqual(r.state.settings.aiShareMemory, true);
+  const j = JSON.parse(C.exportProject(s, a.id, T0)); assert.strictEqual(j.project.memory.items[0].text, 'A hedefi');
+});
+test('hafıza: eski kayıtlarda (hafızasız proje) güvenle açılır; bozuk hafıza ayıklanır', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0); delete a.memory;
+  const m = C.migrate(JSON.parse(JSON.stringify(s))); assert.deepStrictEqual(m.projects[0].memory, { items: [], pending: [] });
+  a.memory = { items: 'x', pending: null }; assert.deepStrictEqual(C.migrate(JSON.parse(JSON.stringify(s))).projects[0].memory, { items: [], pending: [] });
+  a.memory = { items: [{ id: 'a', kind: 'note', text: 'iyi' }, { id: 'a', kind: 'note', text: 'iki' }, { kind: 'bilinmeyen', text: 'x' }, null, { kind: 'note', text: '' }], pending: [{ kind: 'goal', text: 'öneri' }] };
+  const c = C.migrate(JSON.parse(JSON.stringify(s))).projects[0].memory; assert.deepStrictEqual(c.items.map(i => i.text), ['iyi', 'iki']); assert.notStrictEqual(c.items[0].id, c.items[1].id); assert.strictEqual(c.pending.length, 1);
+  assert.strictEqual(C.migrate({}).settings.aiShareMemory, false, 'sunucuya gönderme varsayılan kapalı');
+});
+test('hafıza: arşivlenen projenin hafızası saklanır ama değiştirilemez; geri alınca düzenlenir; silinince yalnızca o gider', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0), b = C.startProject(s, MODELS[1], T0 + 1);
+  C.addMemory(s, a.id, 'note', 'A notu', T0); C.addMemory(s, b.id, 'note', 'B notu', T0); s.activeProjectId = a.id; C.addChat(s, 'user', 'A sohbeti', T0); s.activeProjectId = b.id; C.addChat(s, 'user', 'B sohbeti', T0);
+  assert.ok(C.archiveProject(s, a.id, T0)); assert.strictEqual(C.memOf(a).items.length, 1);
+  assert.ok(!C.addMemory(s, a.id, 'note', 'yeni', T0).ok); assert.ok(!C.removeMemory(s, a.id, C.memOf(a).items[0].id)); assert.strictEqual(C.clearMemory(s, a.id), 0);
+  assert.strictEqual(C.chatProject(Object.assign({}, s, { activeProjectId: a.id })) , null, 'arşiv projesiyle sohbet bağlamı kurulmaz');
+  assert.ok(C.restoreProject(s, a.id, T0)); assert.ok(C.addMemory(s, a.id, 'note', 'geri gelince', T0).ok);
+  const info = C.deleteProject(s, a.id); assert.strictEqual(info.memory, 2); assert.strictEqual(info.chats, 1);
+  assert.strictEqual(s.projects.length, 1); assert.deepStrictEqual(C.memOf(s.projects[0]).items.map(i => i.text), ['B notu']); assert.deepStrictEqual(s.chat.map(m => m.text), ['B sohbeti']);
+});
+test('hafıza: bağlam hesaplanır (görev durumu saklanmaz); sunucuya yalnızca izinle ve sınırlı metin gider', () => {
+  const s = mk(); const a = C.startProject(s, MODELS[0], T0); const m = D.MODELS.find(x => x.id === a.modelId);
+  assert.ok(C.projectContext(s, a.id).text.includes('0/' + m.tasks.length));
+  C.setTaskDone(s, a.id, m.tasks[0].id, true, T0); const t = C.projectContext(s, a.id).text;
+  assert.ok(t.includes('1/' + m.tasks.length) && t.includes(m.tasks[0].title), 'ilerleme güncel görevlerden gelir');
+  assert.strictEqual(C.memOf(a).items.length, 0, 'görev ilerlemesi hafızaya kopyalanmadı');
+  C.updateProject(s, a.id, { note: 'GİZLİ SERBEST NOT' }, T0); C.addFinance(s, { type: 'in', amount: 98765, src: a.id }, T0);
+  assert.strictEqual(C.memoryForServer(s), '', 'izin yokken boş'); s.settings.aiShareMemory = true;
+  const sv = C.memoryForServer(s); assert.ok(sv.includes(m.title)); assert.ok(!sv.includes('98765'), 'finans sunucuya gitmez');
+  for (let i = 0; i < 30; i++) C.addMemory(s, a.id, 'note', 'uzun bilgi ' + 'q'.repeat(200) + i, T0 + i);
+  assert.ok(C.memoryForServer(s).length <= C.MEMORY_LIMITS.server);
+  assert.ok(C.aiReply(s, 'projemi özetle', T0).includes('Demo yapay zekâ'), 'özet yanıtı demo olduğunu söyler');
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

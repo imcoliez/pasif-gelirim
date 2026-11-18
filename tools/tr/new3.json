@@ -1,0 +1,17 @@
+[
+"Genel sohbet",
+"Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.",
+"Şu an demo yapay zekâ çalışıyor: kurallara göre terimleri açıklar, projenin özetini ve ilerlemeni söyler. Gerçek bir yapay zekâ modeli henüz bağlı değil.",
+"Proje sohbeti",
+"Konuştuğun proje",
+"Hafıza (#)",
+"Bu sohbet ve hafıza yalnızca bu projeye aittir; başka projelerin bilgisi karışmaz. Bilgiler cihazında tutulur.",
+"Yapay zekâ hafızası",
+"# bilgi",
+"Bu projeye özel, cihazında tutulan bilgiler. Yapay zekâ yalnızca bu projedeyken bunları kullanır.",
+"Hafızayı yönet",
+"Bilgi güncellendi.",
+"Bilgi silindi.",
+"Proje hafızası temizlendi.",
+"Hafızaya kaydedildi."
+]

@@ -71,6 +71,7 @@
       savings: [],
       usage: { date: '', seconds: 0 },
       chat: [],
+      chatGeneral: false,
       plans: [],
       decisions: [],
       createdAt: Date.now()
@@ -129,12 +130,16 @@
       p.title = (typeof p.title === 'string' && p.title.trim() ? p.title.trim() : (mm ? mm.title : 'Proje')).slice(0, 40);
       p.pkg = typeof p.pkg === 'string' && PACKAGES[p.pkg] && p.pkg !== 'free' && !pkgSeen && p.status === 'active' ? p.pkg : '';
       if (p.pkg) pkgSeen = true;
+      p.memory = cleanMemory(p.memory);
       if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {};
       Object.keys(p.tasks).forEach(function (k) {
         const t = p.tasks[k]; if (!t || typeof t !== 'object') { delete p.tasks[k]; return; }
         t.read = !!(t.read || t.understood || t.done); t.understood = !!(t.understood || t.done);
       });
     });
+    out.chatGeneral = !!out.chatGeneral;
+    out.settings.aiShareMemory = out.settings.aiShareMemory === true;
+    out.chat.forEach(function (m) { m.pid = typeof m.pid === 'string' ? m.pid : ''; });
     if (out.projects.length) { const cur = out.projects.find(function (q) { return q.id === out.activeProjectId; }); if (!cur || cur.status === 'archived') { const live = out.projects.filter(function (q) { return q.status !== 'archived'; }); out.activeProjectId = live.length ? live[live.length - 1].id : null; } }
     return out;
   }
@@ -215,7 +220,7 @@
     if (!canStartProject(state)) return null;
     const p = {
       id: uid('proj'), modelId: m.id, title: m.title, desc: '', status: 'active', goal: 0, note: '', pkg: '', createdAt: now, updatedAt: now,
-      tasks: {}, lastNote: 'Proje başlatıldı.'
+      memory: { items: [], pending: [] }, tasks: {}, lastNote: 'Proje başlatıldı.'
     };
     state.projects.push(p);
     state.activeProjectId = p.id;
@@ -268,11 +273,13 @@
     state.finance.forEach(function (f) { if (f.src === id) { delete f.src; keptFinance++; } });
     const plans = state.plans.filter(function (x) { return x.projectId === id; }).length;
     const decisions = state.decisions.filter(function (x) { return x.projectId === id; }).length;
+    const memory = memOf(p).items.length, chats = state.chat.filter(function (m) { return m.pid === id; }).length;
     state.plans = state.plans.filter(function (x) { return x.projectId !== id; });
     state.decisions = state.decisions.filter(function (x) { return x.projectId !== id; });
+    state.chat = state.chat.filter(function (m) { return m.pid !== id; });      // yalnızca bu projenin sohbeti gider
     state.projects = state.projects.filter(function (x) { return x.id !== id; });
     fallbackActive(state);
-    return { keptFinance: keptFinance, plans: plans, decisions: decisions, tasks: Object.keys(p.tasks).length };
+    return { keptFinance: keptFinance, plans: plans, decisions: decisions, tasks: Object.keys(p.tasks).length, memory: memory, chats: chats };
   }
   // Eski, hiçbir projeye bağlı olmayan kayıtlar
   function unlinkedFinance(state) {
@@ -329,7 +336,8 @@
       app: 'Pasif Gelirim', kind: 'project', version: APP_VERSION, exportedAt: now || Date.now(), project: p,
       finance: state.finance.filter(function (f) { return f.src === p.id; }),
       plans: state.plans.filter(function (x) { return x.projectId === p.id; }),
-      decisions: state.decisions.filter(function (x) { return x.projectId === p.id; })
+      decisions: state.decisions.filter(function (x) { return x.projectId === p.id; }),
+      chat: state.chat.filter(function (m) { return m.pid === p.id; })
     }, null, 2);
   }
 
@@ -828,7 +836,7 @@
       return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date, src: f.src && st.projects.some(function (p) { return p.id === f.src; }) ? f.src : undefined, auto: f.auto ? true : undefined };
     });
     st.projects = st.projects.filter(function (p) { return p && modelById(p.modelId) && p.tasks && typeof p.tasks === 'object'; }).slice(0, 200);
-    st.chat = st.chat.slice(-200);
+    trimChat(st);
     st.plans = st.plans.slice(-200);
     st.decisions = st.decisions.slice(-200);
     if (!projectById(st, st.activeProjectId)) st.activeProjectId = st.projects.length ? st.projects[st.projects.length - 1].id : null;
@@ -977,6 +985,178 @@
     return found;
   }
 
+  // ---------- Proje bazlı yapay zekâ hafızası (Aşama 4) ----------
+  // İlke: hafıza proje nesnesinin İÇİNDE durur (p.memory); başka projeye yazılabilecek ortak bir alan yoktur.
+  // Kalıcı bilgi yalnızca kullanıcı onayıyla (veya kendi elle yazmasıyla) girer. Görev ilerlemesi gibi
+  // değişen veriler saklanmaz, her seferinde projeden hesaplanır; böylece eski bilgi çelişki yaratmaz.
+  const MEMORY_KINDS = { goal: 'Hedef', decision: 'Karar', pref: 'Tercih', note: 'Not', status: 'Son nokta' };
+  const MEMORY_LIMITS = { items: 40, text: 240, pending: 3, chat: 100, server: 1200 };
+  const SENSITIVE_RE = /şifre|sifre|parola|password|\bpin\b|\bcvv\b|\bcvc\b|\biban\b|kart\s*(no|numar)|kimlik\s*(no|numar)|\btc\s*kimlik|api.?key|(?:\d[\s-]?){11,}|\b[a-z]{2}\d{2}(?:\s?[a-z0-9]{4}){4,}\b/i;
+  function isSensitive(text) { return SENSITIVE_RE.test(String(text || '')); }
+  function cleanMemText(t) { return String(t || '').replace(/\s+/g, ' ').trim().slice(0, MEMORY_LIMITS.text); }
+  function cleanMemory(m) {
+    const out = { items: [], pending: [] };
+    if (!m || typeof m !== 'object') return out;
+    const seen = {};
+    (Array.isArray(m.items) ? m.items : []).forEach(function (x) {
+      if (!x || typeof x !== 'object' || !MEMORY_KINDS[x.kind]) return;
+      const text = cleanMemText(x.text);
+      if (!text || isSensitive(text) || out.items.length >= MEMORY_LIMITS.items) return;
+      let id = String(x.id || uid('mem')); if (seen[id]) id = uid('mem'); seen[id] = 1;
+      out.items.push({ id: id, kind: x.kind, text: text, at: +x.at || 0, old: x.old === true, by: x.by === 'chat' ? 'chat' : 'user' });
+    });
+    (Array.isArray(m.pending) ? m.pending : []).forEach(function (x) {
+      if (!x || typeof x !== 'object' || !MEMORY_KINDS[x.kind]) return;
+      const text = cleanMemText(x.text);
+      if (!text || isSensitive(text) || out.pending.length >= MEMORY_LIMITS.pending) return;
+      out.pending.push({ id: String(x.id || uid('pend')), kind: x.kind, text: text, at: +x.at || 0 });
+    });
+    return out;
+  }
+  function memOf(p) { if (!p.memory || !Array.isArray(p.memory.items) || !Array.isArray(p.memory.pending)) p.memory = cleanMemory(p.memory); return p.memory; }
+  function memKey(t) { return String(t || '').toLocaleLowerCase('tr').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); }
+  function memTarget(state, id) { const p = projectById(state, id); return p && !isArchived(p) ? p : null; }
+
+  function addMemory(state, projectId, kind, text, now, by) {
+    const p = memTarget(state, projectId);
+    if (!p) return { ok: false, error: 'Arşivdeki veya olmayan projenin hafızası değiştirilemez.' };
+    if (!MEMORY_KINDS[kind]) return { ok: false, error: 'Geçersiz bilgi türü.' };
+    const t = cleanMemText(text);
+    if (!t) return { ok: false, error: 'Bilgi boş olamaz.' };
+    if (isSensitive(t)) return { ok: false, error: 'Şifre, PIN, kart/IBAN veya kimlik numarası gibi hassas bilgiler hafızaya kaydedilmez.' };
+    const m = memOf(p);
+    if (kind === 'status') m.items = m.items.filter(function (x) { return x.kind !== 'status'; });   // "son nokta" tek olur: eskisi çelişmesin
+    const dup = m.items.find(function (x) { return x.kind === kind && memKey(x.text) === memKey(t); });
+    if (dup) { dup.at = now; dup.old = false; p.updatedAt = now; return { ok: true, item: dup, dup: true }; }
+    if (m.items.length >= MEMORY_LIMITS.items) return { ok: false, error: 'Hafıza dolu (' + MEMORY_LIMITS.items + ' bilgi). Eski bir bilgiyi silip tekrar dene.' };
+    const item = { id: uid('mem'), kind: kind, text: t, at: now, old: false, by: by === 'chat' ? 'chat' : 'user' };
+    m.items.push(item); p.updatedAt = now;
+    return { ok: true, item: item };
+  }
+  function updateMemory(state, projectId, itemId, fields, now) {
+    const p = memTarget(state, projectId); if (!p) return { ok: false, error: 'Arşivdeki veya olmayan projenin hafızası değiştirilemez.' };
+    const it = memOf(p).items.find(function (x) { return x.id === itemId; }); if (!it) return { ok: false, error: 'Bilgi bulunamadı.' };
+    const f = fields || {};
+    if ('text' in f) {
+      const t = cleanMemText(f.text);
+      if (!t) return { ok: false, error: 'Bilgi boş olamaz.' };
+      if (isSensitive(t)) return { ok: false, error: 'Şifre, PIN, kart/IBAN veya kimlik numarası gibi hassas bilgiler hafızaya kaydedilmez.' };
+      it.text = t;
+    }
+    if ('kind' in f && MEMORY_KINDS[f.kind]) it.kind = f.kind;
+    if ('old' in f) it.old = !!f.old;
+    it.at = now; p.updatedAt = now;
+    return { ok: true, item: it };
+  }
+  function removeMemory(state, projectId, itemId) {
+    const p = memTarget(state, projectId); if (!p) return false;
+    const m = memOf(p), n = m.items.length;
+    m.items = m.items.filter(function (x) { return x.id !== itemId; });
+    return m.items.length < n;
+  }
+  function clearMemory(state, projectId) {
+    const p = memTarget(state, projectId); if (!p) return 0;
+    const m = memOf(p), n = m.items.length + m.pending.length;
+    m.items = []; m.pending = [];
+    return n;
+  }
+  // Sohbette yazılan cümleden "kaydedeyim mi?" önerisi çıkarır. Hiçbir şey kendiliğinden kaydedilmez.
+  function guessKind(t) {
+    if (/karar verdim|karar verdik|karar aldım|ile devam edece|ile devam ediyorum|yapmaya karar|seçtim|vazgeçtim/.test(t)) return 'decision';
+    if (/hedefim|amacım|hedef olarak|hedefimiz/.test(t)) return 'goal';
+    if (/tercihim|istemiyorum|unutma|hatırla|asla |her zaman |özellikle/.test(t)) return 'pref';
+    if (/bitirdim|tamamladım|şu an .*(yapıyorum|çalışıyorum)|şimdi .*(yapıyorum|çalışıyorum)|sırada .* var|son olarak/.test(t)) return 'status';
+    return '';
+  }
+  function chatProject(state) {
+    if (state.chatGeneral) return null;
+    const p = activeProject(state);
+    return p && !isArchived(p) ? p : null;
+  }
+  function suggestMemory(state, text, now) {
+    const p = chatProject(state); if (!p) return null;
+    const raw = String(text || '').trim();
+    if (raw.length < 12 || /\?\s*$/.test(raw)) return null;
+    const kind = guessKind(norm(raw)); if (!kind) return null;
+    const t = cleanMemText(raw);
+    if (isSensitive(t)) return null;
+    const m = memOf(p);
+    if (m.items.some(function (x) { return x.kind === kind && memKey(x.text) === memKey(t); })) return null;
+    if (m.pending.some(function (x) { return memKey(x.text) === memKey(t); })) return null;
+    const pend = { id: uid('pend'), kind: kind, text: t, at: now };
+    m.pending.push(pend);
+    while (m.pending.length > MEMORY_LIMITS.pending) m.pending.shift();
+    return pend;
+  }
+  function confirmMemory(state, projectId, pendId, now) {
+    const p = memTarget(state, projectId); if (!p) return { ok: false, error: 'Proje bulunamadı.' };
+    const m = memOf(p), pe = m.pending.find(function (x) { return x.id === pendId; });
+    if (!pe) return { ok: false, error: 'Öneri bulunamadı.' };
+    const r = addMemory(state, projectId, pe.kind, pe.text, now, 'chat');
+    if (r.ok) m.pending = m.pending.filter(function (x) { return x.id !== pendId; });
+    return r;
+  }
+  function dismissMemory(state, projectId, pendId) {
+    const p = projectById(state, projectId); if (!p) return false;
+    const m = memOf(p), n = m.pending.length;
+    m.pending = m.pending.filter(function (x) { return x.id !== pendId; });
+    return m.pending.length < n;
+  }
+  // Tek projenin bağlamı: yalnızca o projenin kendi verisinden hesaplanır (başka proje karışmaz).
+  function projectContext(state, projectId) {
+    const p = projectById(state, projectId); if (!p) return null;
+    const m = modelById(p.modelId), pr = progress(p), items = memOf(p).items;
+    const done = [], doing = [];
+    if (m) m.tasks.forEach(function (t) {
+      const st = p.tasks[t.id];
+      if (st && st.done) done.push(t.title); else if (st && (st.read || st.understood)) doing.push(t.title);
+    });
+    const nt = nextTask(p);
+    const cur = items.filter(function (x) { return !x.old; }).sort(function (a, b) { return b.at - a.at; });
+    const byKind = function (k) { return cur.filter(function (x) { return x.kind === k; }).map(function (x) { return x.text; }); };
+    const ctx = {
+      id: p.id, title: p.title, desc: p.desc || '', model: m ? m.title : '', goalIncome: p.goal || 0,
+      progress: { done: pr.done, total: pr.total, pct: pr.pct }, doneTasks: done, doingTasks: doing, nextTask: nt ? nt.title : '',
+      note: p.note || '', goals: byKind('goal'), decisions: byKind('decision'), prefs: byKind('pref'), notes: byKind('note'), status: byKind('status')[0] || '',
+      archived: isArchived(p)
+    };
+    const L = ['Proje: ' + ctx.title + (ctx.model ? ' (gelir modeli: ' + ctx.model + ')' : '')];
+    if (ctx.desc) L.push('Açıklama: ' + ctx.desc);
+    L.push('Görev ilerlemesi: ' + pr.done + '/' + pr.total + (done.length ? '. Tamamlanan: ' + done.join(', ') : '') + (doing.length ? '. Devam eden: ' + doing.join(', ') : '') + (ctx.nextTask ? '. Sıradaki: ' + ctx.nextTask : ''));
+    if (ctx.goalIncome > 0) L.push('Proje gelir hedefi: ' + ctx.goalIncome);
+    if (ctx.status) L.push('Son nokta: ' + ctx.status);
+    if (ctx.goals.length) L.push('Hedefler: ' + ctx.goals.join(' | '));
+    if (ctx.decisions.length) L.push('Kararlar: ' + ctx.decisions.join(' | '));
+    if (ctx.prefs.length) L.push('Tercihler: ' + ctx.prefs.join(' | '));
+    if (ctx.notes.length) L.push('Notlar: ' + ctx.notes.join(' | '));
+    ctx.text = L.join('\n');
+    return ctx;
+  }
+  // Sunucuya gidebilecek metin: yalnızca kullanıcı izin verdiyse, yalnızca aktif projenin özeti; serbest not ve finans hariç.
+  function memoryForServer(state) {
+    if (!state.settings.aiShareMemory) return '';
+    const p = chatProject(state); if (!p) return '';
+    return projectContext(state, p.id).text.slice(0, MEMORY_LIMITS.server);
+  }
+
+  // ---- Sohbet: her mesaj bir projeye (pid) ya da "genel"e ('') bağlıdır ----
+  function chatPid(state) { const p = chatProject(state); return p ? p.id : ''; }
+  function chatFor(state) { const pid = chatPid(state); return state.chat.filter(function (m) { return (m.pid || '') === pid; }); }
+  function trimChat(state) {
+    const count = {};
+    for (let i = state.chat.length - 1; i >= 0; i--) {
+      const k = state.chat[i].pid || '';
+      count[k] = (count[k] || 0) + 1;
+      if (count[k] > MEMORY_LIMITS.chat) state.chat[i] = null;
+    }
+    state.chat = state.chat.filter(Boolean);
+  }
+  function addChat(state, role, text, now, pid) {
+    state.chat.push({ role: role === 'user' ? 'user' : 'ai', text: String(text || ''), at: now, pid: typeof pid === 'string' ? pid : chatPid(state) });
+    trimChat(state);
+  }
+  function setChatScope(state, general) { state.chatGeneral = !!general; return true; }
+
   function aiReply(state, text, now) {
     const t = norm(text);
     const ent = entitlements(state);
@@ -985,6 +1165,18 @@
     if (/otomatik|benim yerime|benim için .*(hazırla|üret|yayımla|yayinla|yap)|\b\d+\s*(video|içerik|gönderi)/.test(t)) {
       if (ent.automation) return 'Bu tür hazırlıkları "Otomasyon" bölümünden yapabilirsin. Orada günlük planı senin için hazırlıyorum.';
       return 'Bu işlemleri senin adına otomatik yapmak ücretli paketlerin (Yarı Otomasyon / CEO Modu) bir özelliği. Ama bunu kendin yapabilmen için yöntemi anlatabilirim: hedefini, haftalık sıklığını ve formatını seç, sonra her içeriği adım adım hazırla. İstersen ilk adımı birlikte netleştirelim.';
+    }
+    if (/hafıza|hafiza|ne biliyorsun|bu proje(m)? (hakkında|ile ilgili)|projemi özetle|özetle|neler karar|ne karar/.test(t)) {
+      const cp = chatProject(state);
+      if (!cp) return 'Şu an genel sohbettesin; hiçbir projenin hafızasını kullanmıyorum. Bir proje seçersen o projeye kaydettiğin bilgileri ve görev durumunu söyleyebilirim.';
+      const c = projectContext(state, cp.id);
+      return '"' + c.title + '" projesi için cihazındaki kayıtlardan bildiklerim:\n' + c.text + '\n\nHafızayı Yapay Zekâ > Hafıza ekranından görüp düzenleyebilir veya silebilirsin. (Demo yapay zekâ: bu özeti kurallara göre hazırlıyorum, gerçek bir model yazmıyor.)';
+    }
+    if (/ilerleme|kaç görev|ne kadar (yaptım|bitirdim)|ne durumda/.test(t)) {
+      const cp = chatProject(state);
+      if (!cp) return 'Genel sohbettesin. Bir proje seçersen görev ilerlemeni söyleyebilirim.';
+      const pr = progress(cp), nt = nextTask(cp);
+      return '"' + cp.title + '" projesinde ' + pr.total + ' görevin ' + pr.done + '\'i tamamlandı (%' + pr.pct + ').' + (nt ? ' Sıradaki görev: "' + nt.title + '".' : ' Tüm görevler tamam.');
     }
     // Dürüstlük sorusu her zaman öncelikli (içinde "kazanç" geçse bile)
     if (/garanti|ne kadar kazan|kaç para|zengin|milyon|hemen para/.test(t)) {
@@ -1002,7 +1194,7 @@
     const terms = explainTerm(t);
     if (terms.length) return terms.join('\n\n');
 
-    const p = activeProject(state);
+    const p = chatProject(state);
     if (/nereden başla|ne yapmalıyım|sıradaki|başla/.test(t)) {
       if (p) {
         const nt = nextTask(p);
@@ -1065,6 +1257,7 @@
     THEMES: THEMES, setTheme: setTheme, LANG_CODES: LANG_CODES, CURRENCIES: CURRENCIES, LANG_CURRENCY: LANG_CURRENCY, setLanguage: setLanguage, setCurrency: setCurrency, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
     importData: importData, APP_VERSION: APP_VERSION,
+    MEMORY_KINDS: MEMORY_KINDS, MEMORY_LIMITS: MEMORY_LIMITS, isSensitive: isSensitive, addMemory: addMemory, updateMemory: updateMemory, removeMemory: removeMemory, clearMemory: clearMemory, suggestMemory: suggestMemory, confirmMemory: confirmMemory, dismissMemory: dismissMemory, projectContext: projectContext, memoryForServer: memoryForServer, chatProject: chatProject, chatPid: chatPid, chatFor: chatFor, addChat: addChat, setChatScope: setChatScope, memOf: memOf, SUGGEST_REPLY: 'Bunu önemli bir bilgi gibi gördüm. Aşağıdaki kartta "Kaydet"e basarsan bu projenin hafızasına eklerim; basmazsan hiçbir şey saklanmaz.',
     addRecurring: addRecurring, removeRecurring: removeRecurring, toggleRecurring: toggleRecurring, applyRecurring: applyRecurring,
     addSaving: addSaving, contributeSaving: contributeSaving, removeSaving: removeSaving, savingProgress: savingProgress,
     MAX_PROJECTS: MAX_PROJECTS, canStartProject: canStartProject, setActiveProject: setActiveProject, projectSummary: projectSummary, exportProject: exportProject, setTaskStage: setTaskStage,

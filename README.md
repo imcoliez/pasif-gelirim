@@ -39,6 +39,7 @@ Sürüm 1.0 (test). Kendi dijital işini adım adım kurmaya yardım eden Androi
 | **Piyasa para birimi:** fiyatlar seçili para birimine göre gösterilir (TRY, USD, EUR, GBP, CHF, SAR, AED, RUB); kur alınamazsa USD ile gösterilir ve söylenir. Grafiklerde parmakla gezdirince tarih/değer ipucu | ✅ |
 | **Sabit imza (APK güncelleme):** derlemeler artık sabit debug anahtarıyla imzalanır ve sürüm numarası her derlemede artar; böylece yeni APK eskisinin üstüne kurulur (`signing/`, `tools/setup_signing.js`) | ✅ |
 | **Proje yönetimi (Aşama 3):** projeler ekranı (durum, gelir-gider, görev ilerlemesi, paket), proje ayrıntısı, ad/açıklama/hedef/not düzenleme, arşiv ve onaylı silme, en fazla 4 aktif proje, paketi projeye atama/taşıma (test modu), eski kayıtları açık onayla projeye bağlama | ✅ |
+| **Proje bazlı yapay zekâ hafızası (Aşama 4):** her projenin kendi hafızası (hedef, karar, tercih, not, son nokta) proje kaydının içinde ve yalnızca cihazda tutulur; görüntüle / ekle / düzenle / "eski say" / sil / tümünü temizle (onaylı); sohbette önemli görünen cümle için "Kaydedeyim mi?" kartı (onay olmadan hiçbir şey saklanmaz); şifre, PIN, kart/IBAN, kimlik no saklanmaz; proje sohbeti ve genel sohbet ayrı; JSON yedeği hafızayı korur; arşiv/silme yalnızca o projenin hafızasını etkiler. **Sohbet hâlâ demo yapay zekâdır** (gerçek model bağlı değil); sunucuya özet gönderme ayarı varsayılan kapalıdır ve yalnızca sunucu bağlanırsa işler | ✅ (hafıza gerçek; AI demo) |
 | **Alt menü (Aşama 2):** yüzen kapsül, 5 sekme (Ana Sayfa, Projeler, Yapay Zekâ, Araçlar, Hesabım); aktif sekme simge + adla genişler. Araçlar ve Hesabım giriş ekranlarıyla mevcut ekranlara erişim korunur | ✅ |
 | 💚 Sesli anlatım (+150 TL, cihazın kendi sesiyle) | ✅ (ödeme test) |
 | Günlük 1 saatlik ücretsiz AI sohbet, öneri düğmeleri, "yazıyor" animasyonu | ✅ (**demo yapay zekâ**) |
@@ -77,7 +78,7 @@ npm run serve     # http://localhost:5173
 
 ## Test
 ```
-npm test          # iş mantığı testleri (41)
+npm test          # iş mantığı testleri (73 çekirdek + sunucu, piyasa, çeviri)
 npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 ```
 
@@ -90,4 +91,4 @@ npm run test:e2e  # gerçek tarayıcıda uçtan uca (Playwright gerekir)
 
 
 ## Çeviriler nasıl çalışır
-Kaynak metinler Türkçedir. `tools/tr/<dil>.txt` (numara|çeviri) ve `tools/tr/x_<dil>.txt` (sonradan eklenenler; `node tools/mk_extra.js`) dosyalarından `node tools/build_lang.js` ile `www/lang/*.js` üretilir. Ekrana çizilen metinler sözlükle çevrilir; sözlükte olmayan metin (ör. kullanıcının kendi yazdıkları) olduğu gibi kalır. `npm test` her ekranın tüm dillerde eksiksiz çevrildiğini denetler. Yeni bir metin eklenince `node tools/extract_strings.js` ile listeyi yenileyip çevirisini eklemek gerekir; eksikse test başarısız olur. Bilinen sınır: demo yapay zekânın bazı cevapları ve sunucudan gelen hata metinleri Türkçe kalabilir.
+Kaynak metinler Türkçedir. `tools/tr/<dil>.txt` (numara|çeviri) ve `tools/tr/{x,z,w}_<dil>.txt` (sonradan eklenenler; anahtarlar `new_keys/new3/new4.json`, `tools/mk_extra.js` içindeki SETS listesi; `node tools/mk_extra.js`) dosyalarından `node tools/build_lang.js` ile `www/lang/*.js` üretilir. Ekrana çizilen metinler sözlükle çevrilir; sözlükte olmayan metin (ör. kullanıcının kendi yazdıkları) olduğu gibi kalır. `npm test` her ekranın tüm dillerde eksiksiz çevrildiğini denetler. Yeni bir metin eklenince `node tools/extract_strings.js` ile listeyi yenileyip çevirisini eklemek gerekir; eksikse test başarısız olur. Bilinen sınır: demo yapay zekânın bazı cevapları ve sunucudan gelen hata metinleri Türkçe kalabilir.

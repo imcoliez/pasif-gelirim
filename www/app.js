@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'projects', 'chat', 'tools', 'account'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', project: 'Proje', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', project: 'Proje', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', memory: 'Proje Hafızası', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -475,17 +475,34 @@
       '<button class="link" data-act="narrClose">Kapat</button></div></div>';
   }
 
+  function memKindLabel(k) { return Core.MEMORY_KINDS[k] || k; }
+  function pendCard(p, pe) {
+    return '<div class="card memsug"><p class="small"><b>Hafızaya kaydedeyim mi?</b> <span class="chip">' + esc(memKindLabel(pe.kind)) + '</span></p>' +
+      '<p data-nt>' + esc(pe.text) + '</p>' +
+      '<div class="row wrap"><button class="btn slim" data-act="memConfirm" data-id="' + esc(pe.id) + '">Kaydet</button>' +
+      '<button class="btn slim ghost" data-act="memDismiss" data-id="' + esc(pe.id) + '">Kaydetme</button></div></div>';
+  }
   views.chat = function (S, ui, now) {
     const left = Core.remainingSeconds(S, now);
+    const cp = Core.chatProject(S), live = Core.liveProjects(S).length > 0;
+    const msgs = Core.chatFor(S);
     let html = '<h2>AI Sohbet</h2>' +
-      '<div class="row"><span class="chip">Bugün kalan: <b id="timeLeft">' + Core.formatDuration(left) + '</b></span></div>' +
-      (ui.live ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma.</p>' : '<p class="fine">Şu an demo yapay zekâ çalışıyor: terimleri açıklar ve yönlendirir. Gerçek yapay zekâ sunucusu sonra bağlanacak.</p>') + '<div class="chat" id="chatBox">';
-    if (!S.chat.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
-    S.chat.slice(-40).forEach(function (m) {
+      '<div class="row"><span class="chip">Bugün kalan: <b id="timeLeft">' + Core.formatDuration(left) + '</b></span></div>';
+    // Hangi projenin sohbetinde olduğun her zaman görünür
+    if (live) html += seg([{ v: 'project', t: 'Proje sohbeti' }, { v: 'general', t: 'Genel sohbet' }], cp ? 'project' : 'general', 'chatScope');
+    html += '<div class="card memhead">' + (cp
+      ? '<div class="row"><span><span class="muted small">Konuştuğun proje</span><br><b class="ptitle">' + esc(cp.title) + '</b></span><button class="btn slim ghost" data-act="go" data-route="memory">Hafıza (' + Core.memOf(cp).items.length + ')</button></div>' +
+        '<p class="fine">Bu sohbet ve hafıza yalnızca bu projeye aittir; başka projelerin bilgisi karışmaz. Bilgiler cihazında tutulur.' +
+        (ui.live ? (S.settings.aiShareMemory ? ' Proje özetin, yanıt hazırlanırken yapay zekâ sunucusuna gönderilir (Hafıza ekranından kapatabilirsin).' : ' Proje özetin sunucuya gönderilmez.') : '') + '</p>'
+      : '<b>Genel sohbet</b><p class="fine">' + (live ? 'Hiçbir projenin hafızası veya verisi kullanılmıyor. Bir projenin bağlamıyla konuşmak için "Proje sohbeti"ni seç.' : 'Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.') + '</p>') + '</div>';
+    html += (ui.live ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma.</p>' : '<p class="fine">Şu an demo yapay zekâ çalışıyor: kurallara göre terimleri açıklar, projenin özetini ve ilerlemeni söyler. Gerçek bir yapay zekâ modeli henüz bağlı değil.</p>') + '<div class="chat" id="chatBox">';
+    if (!msgs.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
+    msgs.slice(-40).forEach(function (m) {
       html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) + '</div>';
     });
     if (ui.typing) html += '<div class="msg ai typing" aria-label="Yazıyor"><i></i><i></i><i></i></div>';
     html += '</div>';
+    if (cp) Core.memOf(cp).pending.forEach(function (pe) { html += pendCard(cp, pe); });
     if (left <= 0) {
       html += '<div class="card note">Bugünkü 1 saatlik ücretsiz sohbet hakkın doldu. Yarın yenilenir.</div>';
     } else {
@@ -495,6 +512,55 @@
       html += '<div class="send"><input id="chatInput" class="inp" placeholder="Sorunu yaz..." maxlength="500"><button class="btn" data-act="send">Gönder</button></div>';
     }
     return html;
+  };
+
+  views.memory = function (S, ui, now) {
+    const p = Core.activeProject(S);
+    if (!p || Core.isArchived(p)) return lock('Hafıza bir projeye aittir. Önce bir proje seç veya başlat.', 'Projelere git', 'projects');
+    const m = Core.memOf(p), ctx = Core.projectContext(S, p.id), id = esc(p.id);
+    let h = '<div class="row"><h2 class="ptitle">' + esc(p.title) + '</h2><span class="chip">Aktif proje</span></div>' +
+      '<div class="card note"><b>Hafıza nerede tutulur?</b><p class="small">Burada yazanlar yalnızca bu cihazda, bu projenin içinde saklanır ve JSON yedeğine girer. Başka projelerle karışmaz. Yapay zekâ konuştuğun her cümleyi saklamaz: kalıcı bilgi ancak sen "Kaydet" dersen veya kendin eklersen girer.</p></div>';
+    h += '<div class="card"><b>Yapay zekâ sunucusuyla paylaşım</b>' +
+      toggleRow('Sohbette bu projenin özetini sunucuya gönder', 'aiShare', S.settings.aiShareMemory) +
+      '<p class="fine">' + (ui.live ? 'Açıkken, bu projedeki sohbetlerde aşağıdaki özet (serbest notların ve gelir-gider kayıtların hariç) yanıt hazırlanırken sunucuya gidebilir. Kapalıyken hiçbir şey gitmez.' : 'Şu an gerçek bir yapay zekâ sunucusu bağlı değil; hiçbir şey dışarı gönderilmiyor. Bu ayar, sunucu bağlanırsa geçerli olur.') + '</p></div>';
+    h += '<div class="card"><b>Projeden hesaplananlar</b><p class="fine">Bunlar kaydedilmez; her seferinde projenin güncel durumundan hesaplanır, bu yüzden eskimez.</p>' +
+      '<div class="irow"><span>Görev ilerlemesi</span><b>' + ctx.progress.done + ' / ' + ctx.progress.total + '</b></div>' +
+      (ctx.model ? '<div class="irow"><span>Gelir modeli</span><b>' + esc(ctx.model) + '</b></div>' : '') +
+      (ctx.nextTask ? '<div class="irow"><span>Sıradaki görev</span><b>' + esc(ctx.nextTask) + '</b></div>' : '') + '</div>';
+    if (m.pending.length) {
+      h += '<div class="card"><b>Onay bekleyen öneriler</b><p class="fine">Sohbette yazdıkların önemli görünüyordu. Sen onaylamazsan saklanmaz.</p></div>';
+      m.pending.forEach(function (pe) { h += pendCard(p, pe); });
+    }
+    h += '<div class="card"><div class="row"><b>Kayıtlı bilgiler</b><span class="muted small">' + m.items.length + ' / ' + Core.MEMORY_LIMITS.items + '</span></div>';
+    if (!m.items.length) h += '<p class="muted small">Henüz kayıtlı bilgi yok. Aşağıdan kendin ekleyebilir ya da sohbette önemli bir kararını yazınca çıkan öneriyi onaylayabilirsin.</p>';
+    else {
+      h += '<ul class="list memlist">';
+      m.items.slice().sort(function (a, b) { return (a.old - b.old) || (b.at - a.at); }).forEach(function (it) {
+        const iid = esc(it.id);
+        h += '<li class="mem' + (it.old ? ' old' : '') + '">';
+        if (ui.memEdit === it.id) {
+          h += '<input id="memEditText" class="inp" maxlength="' + Core.MEMORY_LIMITS.text + '" value="' + esc(it.text) + '">' +
+            '<div class="row wrap"><button class="btn slim" data-act="memEditSave" data-id="' + iid + '">Kaydet</button><button class="btn slim ghost" data-act="memEditCancel">Vazgeç</button></div>';
+        } else {
+          h += '<div class="row"><span class="chip">' + esc(memKindLabel(it.kind)) + '</span>' + (it.old ? '<span class="chip warn">Eski</span>' : '') + '<span class="muted small">' + (it.by === 'chat' ? 'sohbetten onaylandı' : 'sen ekledin') + '</span></div>' +
+            '<p data-nt>' + esc(it.text) + '</p>' +
+            '<div class="row wrap"><button class="btn slim ghost" data-act="memEdit" data-id="' + iid + '">Düzenle</button>' +
+            '<button class="btn slim ghost" data-act="memOld" data-id="' + iid + '">' + (it.old ? 'Güncel yap' : 'Eski say') + '</button>' +
+            '<button class="btn slim ghost danger" data-act="memDel" data-id="' + iid + '">Sil</button></div>';
+        }
+        h += '</li>';
+      });
+      h += '</ul><p class="fine">"Eski" saydığın bilgi silinmez ama yapay zekâ bağlamında kullanılmaz; çelişen bilgileri böyle ayırabilirsin. "Son nokta" türünden tek bilgi tutulur; yenisini ekleyince eskisi yerini bırakır.</p>';
+    }
+    h += '</div>';
+    h += '<div class="card"><b>Bilgi ekle</b>' +
+      '<label class="lbl" for="memKind">Tür</label><select id="memKind" class="inp">' + Object.keys(Core.MEMORY_KINDS).map(function (k) { return '<option value="' + k + '">' + esc(Core.MEMORY_KINDS[k]) + '</option>'; }).join('') + '</select>' +
+      '<label class="lbl" for="memText">Bilgi</label><div class="send"><input id="memText" class="inp" maxlength="' + Core.MEMORY_LIMITS.text + '" placeholder="Örn: Önce Instagram ile başlamaya karar verdim"><button class="btn" data-act="memAdd">Ekle</button></div>' +
+      '<p class="fine">Şifre, PIN, kart/IBAN ve kimlik numarası gibi hassas bilgiler kaydedilmez.</p></div>';
+    h += '<div class="card"><b>Hafızayı temizle</b><p class="fine">Yalnızca bu projenin kayıtlı bilgilerini ve onay bekleyen önerilerini siler. Görevler, notlar, gelir-gider kayıtları ve sohbet geçmişi silinmez. Onay istenir.</p>' +
+      '<button class="btn ghost danger" data-act="memClear"' + (m.items.length + m.pending.length ? '' : ' disabled') + '>Bu projenin hafızasını temizle</button></div>';
+    h += '<p class="fine">Hafıza, "Geçmiş İşlemler"den farklıdır: Geçmiş İşlemler yaptığın çalışmaların arşividir ve yapay zekâya talimat olarak verilmez.</p>';
+    return h;
   };
 
   views.money = function (S, ui, now) {
@@ -746,6 +812,7 @@
       (x.next && !x.archived ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
       (x.archived ? '' : '<button class="btn slim" data-act="go" data-route="tasks">Görevlere git</button>') + '</div>';
     h += '<div class="card"><b>Proje notları</b><textarea id="pjNote" class="inp" rows="4" maxlength="2000" data-change="projNote" placeholder="Bu projeyle ilgili notların burada saklanır"' + (x.archived ? ' readonly' : '') + '>' + esc(p.note || '') + '</textarea></div>';
+    h += '<div class="card"><div class="row"><b>Yapay zekâ hafızası</b><span class="muted small">' + Core.memOf(p).items.length + ' bilgi</span></div><p class="muted small">Bu projeye özel, cihazında tutulan bilgiler. Yapay zekâ yalnızca bu projedeyken bunları kullanır.</p>' + (x.archived ? '' : '<button class="btn slim ghost" data-act="go" data-route="memory">Hafızayı yönet</button>') + '</div>';
     h += '<div class="card"><div class="row"><b>Gelir ve giderler</b><button class="link" data-act="go" data-route="money">Kayıt ekle ›</button></div>';
     if (!recs.length) h += '<p class="muted small">Bu projeye bağlı kayıt yok. Kayıt eklerken “Hangi iş için?” alanından bu projeyi seçebilirsin.</p>';
     else h += '<ul class="list">' + recs.slice(0, 6).map(function (r) { return '<li class="fin ' + r.type + '"><span>' + Core.formatDate(r.date) + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.note ? '<br><small class="muted">' + nt(r.note) + '</small>' : '') + '</span><b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b></li>'; }).join('') + '</ul>' + (recs.length > 6 ? '<p class="muted small">Son 6 kayıt gösteriliyor (' + recs.length + ' kayıt).</p>' : '');
@@ -1030,10 +1097,10 @@
     return html;
   }
 
-  const TAB_OF = { project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
+  const TAB_OF = { memory: 'chat', project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
   function tabOf(route) { return TAB_OF[route] || (TOP.indexOf(route) !== -1 ? route : 'home'); }
 
-  const NO_CHIP = ['welcome', 'onboarding', 'lock', 'projects', 'project', 'chat', 'settings', 'account'];
+  const NO_CHIP = ['welcome', 'onboarding', 'lock', 'projects', 'project', 'chat', 'memory', 'settings', 'account'];
   // Hangi projede çalıştığını her ekranda gösteren küçük gösterge
   function activeChip(S, route) {
     const p = Core.activeProject(S);

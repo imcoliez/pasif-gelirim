@@ -1,0 +1,15 @@
+0|General chat
+1|You have no project yet, so the chat is general. Once you start a project, it gets its own memory and chat.
+2|A demo AI is running right now: it explains terms by rules and tells you your project's summary and progress. A real AI model is not connected yet.
+3|Project chat
+4|Project you are talking about
+5|Memory (#)
+6|This chat and memory belong only to this project; other projects' information is not mixed in. The information is kept on your device.
+7|AI memory
+8|# items
+9|Information specific to this project, kept on your device. The AI uses it only while you are in this project.
+10|Manage memory
+11|Item updated.
+12|Item deleted.
+13|Project memory cleared.
+14|Saved to memory.

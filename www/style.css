@@ -524,3 +524,15 @@ html[data-theme="light"] .scrubtip{background:rgba(255,255,255,.95);color:#10201
 .scrubtip .sr{display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
 .scrubtip .sr span{opacity:.75}
 .scrubtip .sr.in b{color:var(--inc,#3ddc84)}.scrubtip .sr.out b{color:var(--exp,#ff6b6b)}
+
+/* Proje hafızası (Aşama 4) */
+.memhead .row{align-items:center}
+.memsug{border-color:var(--g)}
+.memlist{list-style:none;padding:0;margin:8px 0 0}
+.mem{padding:10px 0;border-top:1px solid var(--bd)}
+.mem:first-child{border-top:0}
+.mem p{margin:6px 0;overflow-wrap:anywhere}
+.mem.old p{opacity:.55;text-decoration:line-through}
+.chip.warn{background:var(--amber);border-color:var(--amberbd)}
+.btn.danger,.btn.ghost.danger{color:#ff6b6b;border-color:#ff6b6b55}
+.btn[disabled]{opacity:.45;pointer-events:none}

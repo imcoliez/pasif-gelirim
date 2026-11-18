@@ -1,0 +1,13 @@
+0|Das Gedächtnis eines archivierten oder nicht vorhandenen Projekts kann nicht geändert werden.
+1|Ungültiger Eintragstyp.
+2|Der Eintrag darf nicht leer sein.
+3|Sensible Informationen wie Passwörter, PINs, Karten-/IBAN- oder Ausweisnummern werden nicht im Gedächtnis gespeichert.
+4|Das Gedächtnis ist voll (# Einträge). Lösche einen alten Eintrag und versuche es erneut.
+5|Eintrag nicht gefunden.
+6|Projekt nicht gefunden.
+7|Vorschlag nicht gefunden.
+8|Diesen Eintrag aus dem Gedächtnis löschen?
+9|Das gesamte Gedächtnis dieses Projekts löschen? Deine Aufgaben, Notizen, Einnahmen-Ausgaben und der Chatverlauf bleiben erhalten; nur die für die KI gespeicherten Informationen werden entfernt. Das kann nicht rückgängig gemacht werden.
+10|Dieser Eintrag ist bereits gespeichert.
+11|Zum Gedächtnis hinzugefügt.
+12|Das scheint eine wichtige Information zu sein. Wenn du unten auf der Karte „Speichern“ drückst, füge ich sie dem Gedächtnis dieses Projekts hinzu; sonst wird nichts gespeichert.

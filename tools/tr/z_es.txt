@@ -1,0 +1,15 @@
+0|Chat general
+1|Aún no tienes ningún proyecto, así que el chat es general. Cuando inicies un proyecto, tendrá su propia memoria y chat.
+2|Ahora funciona una IA de demostración: explica términos con reglas y te da el resumen y el avance de tu proyecto. Todavía no hay un modelo de IA real conectado.
+3|Chat del proyecto
+4|Proyecto del que hablas
+5|Memoria (#)
+6|Este chat y esta memoria pertenecen solo a este proyecto; no se mezcla información de otros proyectos. La información se guarda en tu dispositivo.
+7|Memoria de la IA
+8|# datos
+9|Información propia de este proyecto, guardada en tu dispositivo. La IA solo la usa mientras estás en este proyecto.
+10|Gestionar memoria
+11|Dato actualizado.
+12|Dato eliminado.
+13|Memoria del proyecto borrada.
+14|Guardado en la memoria.

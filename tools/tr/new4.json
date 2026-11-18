@@ -1,0 +1,15 @@
+[
+"Arşivdeki veya olmayan projenin hafızası değiştirilemez.",
+"Geçersiz bilgi türü.",
+"Bilgi boş olamaz.",
+"Şifre, PIN, kart/IBAN veya kimlik numarası gibi hassas bilgiler hafızaya kaydedilmez.",
+"Hafıza dolu (# bilgi). Eski bir bilgiyi silip tekrar dene.",
+"Bilgi bulunamadı.",
+"Proje bulunamadı.",
+"Öneri bulunamadı.",
+"Bu bilgi hafızadan silinsin mi?",
+"Bu projenin tüm hafızası silinsin mi? Görevlerin, notların, gelir-gider kayıtların ve sohbet geçmişin silinmez; yalnızca yapay zekâ için saklanan bilgiler gider. Bu işlem geri alınamaz.",
+"Bu bilgi zaten kayıtlı.",
+"Hafızaya eklendi.",
+"Bunu önemli bir bilgi gibi gördüm. Aşağıdaki kartta \"Kaydet\"e basarsan bu projenin hafızasına eklerim; basmazsan hiçbir şey saklanmaz."
+]
