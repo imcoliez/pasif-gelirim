@@ -1,0 +1,17 @@
+0|Plan aprobado. Tú inicias las tareas una a una.
+1|Plan rechazado; no se ejecutó ninguna tarea.
+2|Preparación hecha.
+3|Tu aprobación quedó registrada, pero esta acción no es compatible en esta versión: no se hizo nada.
+4|Aprobada e informada.
+5|No aprobada; no se hizo ninguna acción y la tarea se canceló.
+6|Marcada como fallida.
+7|¿Cancelar esta tarea?
+8|Tarea cancelada.
+9|Tarea replanificada.
+10|Tarea aplazada.
+11|Aplazamiento quitado.
+12|¿Eliminar esta tarea y su historial de acciones? No se puede deshacer.
+13|Tarea eliminada.
+14|Tarea actualizada.
+15|Tarea añadida.
+16|No se pudo realizar la acción.

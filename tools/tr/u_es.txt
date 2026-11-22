@@ -1,0 +1,149 @@
+0|Planificada
+1|En preparación
+2|Esperando tu aprobación
+3|Completada
+4|Fallida
+5|Cancelada
+6|Alta
+7|Preparación de borrador y resultado
+8|Se hace en este dispositivo con plantillas locales.
+9|Gastar dinero o pagar
+10|No hay integración de pagos.
+11|Publicar contenido
+12|No hay cuenta conectada; no se publica nada.
+13|Enviar mensajes o correos
+14|No hay cuenta conectada; no se envía nada.
+15|Cambiar ajustes de la cuenta
+16|No hay cuenta conectada.
+17|Compartir tus datos
+18|Tus datos no se comparten.
+19|Borrar tus datos (por parte de la IA)
+20|Solo tú puedes borrar tus datos.
+21|Cambios en una cuenta externa
+22|No hay integración OAuth/API.
+23|Dividí tu objetivo en un plan de tareas (IA de demostración: plantilla basada en reglas, ningún modelo real lo escribió). Por ahora el plan es solo un BORRADOR; si lo apruebas en la tarjeta de abajo, las tareas se podrán iniciar; si no, ninguna se ejecuta. Para pasos como gastar dinero, publicar o enviar mensajes te pediré aprobación aparte; en esta versión no estoy conectado a ninguna cuenta externa, así que no puedo hacerlos.
+24|Un plan de tareas debe pertenecer a un proyecto. En el chat general no creo planes; cambia a «Chat del proyecto» (o inicia un proyecto) y escribe tu objetivo de nuevo.
+25|Capacidad desconocida.
+26|En esta versión no hay conexión para esta acción; no se puede dar el permiso.
+27|Proyecto no encontrado o archivado; sus tareas no se pueden cambiar.
+28|Escribe el objetivo con algo más de claridad (mínimo # caracteres).
+29|No se deben escribir en el objetivo datos como contraseñas, PIN, tarjeta/IBAN o números de identidad.
+30|Tarea creada (borrador del plan).
+31|Plan no encontrado.
+32|Ya se tomó una decisión sobre este plan.
+33|El usuario aprobó el plan.
+34|El usuario rechazó el plan; la tarea se canceló.
+35|El nombre de la tarea no puede estar vacío.
+36|Tarea creada.
+37|Tarea no encontrada.
+38|Solo se puede iniciar una tarea en estado «Planificada».
+39|Primero debes aprobar el plan.
+40|Preparación iniciada.
+41|Borrador del resultado preparado.
+42|El borrador está listo; puedes revisarlo y completar la tarea.
+43|Esta tarea no tiene ninguna acción esperando aprobación.
+44|Elige una opción.
+45|Se está realizando la acción aprobada.
+46|El usuario no aprobó; no se hizo ninguna acción.
+47|Cancelada (sin aprobación).
+48|Esta tarea requiere tu aprobación; no se puede completar sin ella.
+49|Una tarea en este estado no se puede completar.
+50|Una tarea en este estado no se puede marcar como fallida.
+51|El usuario canceló la tarea.
+52|Esta tarea no se puede cancelar.
+53|El usuario volvió a planificar la tarea.
+54|Esta tarea no se puede volver a planificar.
+55|No se pueden cambiar las dependencias de una tarea completada.
+56|Prioridad no válida.
+57|Una tarea no puede depender de sí misma.
+58|La tarea de la que depende no está en este proyecto.
+59|Esta dependencia crearía un bucle.
+60|Tarea editada.
+61|Solo se puede aplazar una tarea que aún no ha empezado (Planificada).
+62|Solo se puede eliminar una tarea completada, fallida o cancelada.
+63|Centro de tareas
+64|# abiertas · # esperando aprobación
+65|Plan de tareas asistido por IA. Cada paso avanza solo con tu aprobación.
+66|Ir al centro de tareas
+67|Centro de tareas
+68|# abiertas
+69|Flujo: planificar → preparar → ofrecer opciones → pedir aprobación → hacer la acción compatible → informar. Aquí la IA no hace nada por su cuenta; tú apruebas cada paso. Las tareas pertenecen solo a este proyecto.
+70|Esperando aprobación
+71|Ahora mismo no hay ninguna acción esperando tu aprobación.
+72|Aún no hay tareas. Escribe en el chat un objetivo como «Quiero hacer crecer mi proyecto de productos digitales» y se preparará un borrador de plan; o añade tú mismo una tarea abajo.
+73|Ir al chat
+74|Nueva tarea
+75|Nombre de la tarea
+76|Prioridad
+77|Acciones externas y permisos
+78|En esta versión no estoy conectado a ninguna cuenta externa (redes sociales, correo, pagos, sitio web) y nunca pido contraseñas/OAuth. Las acciones de abajo no se realizan; solo se preparan borradores. Si más adelante se añade una conexión, cada una funcionará con un permiso aparte y con tu aprobación cada vez.
+79|En este dispositivo
+80|No conectado
+81|Paquete:
+82|por ahora todos los paquetes usan el mismo motor básico de tareas.
+83|Ej. Esbozar el primer borrador del producto
+84|Respuesta de demostración
+85|Plan de tareas
+86|Borrador: esperando tu aprobación
+87|Revisar el estado actual del proyecto
+88|Preparar la investigación del público objetivo
+89|Crear las ideas
+90|Preparar el plan de desarrollo
+91|Crear borradores de contenido promocional
+92|Evaluar los resultados
+93|Si no lo apruebas, no se ejecuta ninguna tarea. Aun si lo apruebas, tú inicias cada tarea.
+94|Aprobar el plan
+95|Aprobado
+96|Ir al centro de tareas ›
+97|¿Lo guardo en la memoria?
+98|No guardar
+99|aplazada
+100|‹ Lista de tareas
+101|Prioridad:
+102|Creada:
+103|Resume el estado del proyecto en el dispositivo, el avance de las tareas y la memoria aprobada.
+104|Resultado
+105|(demostración, plantilla local)
+106|Volver a planificar
+107|Historial de acciones
+108|Completada.
+109|Tú
+110|El usuario aceptó el resultado.
+111|La IA (demostración, basada en reglas) preparó el plan. Esperando tu aprobación.
+112|Descripción
+113|Resultado / salida (tu propia nota)
+114|Prepara un borrador de lista de preguntas de investigación para aclarar a quién vas a servir.
+115|Depende de estas tareas:
+116|Esboza ideas de producto/contenido acordes con el modelo de ingresos del proyecto.
+117|Prepara un esquema de desarrollo de cuatro semanas. El enfoque lo eliges tú.
+118|¿Con qué enfoque seguimos?
+119|Hay dos enfoques; ninguno garantiza un resultado.
+120|A: Bajo coste, progreso lento
+121|Completada. Informe: esquema del plan de cuatro semanas preparado (se eligió A).
+122|Acción realizada: tu elección se aplicó al plan (A).
+123|El usuario aprobó: A: Bajo coste, progreso lento
+124|Esperando tu aprobación: ¿Con qué enfoque seguimos?
+125|Prepara borradores para publicaciones promocionales. Publicar requiere una aprobación aparte y ahora no se puede hacer.
+126|Publicación de los borradores
+127|¿Quieres publicar los borradores preparados?
+128|Apruebo la publicación
+129|Esta acción no se realizó:
+130|No hay cuenta conectada; no se publica nada. El borrador está listo; puedes hacer la acción tú mismo.
+131|Lo hice yo, completar
+132|Editar
+133|Marcar como fallida
+134|Cancelar
+135|Aprobación registrada, pero «Publicar contenido» no es compatible en esta versión: NO SE HIZO NADA. El borrador se mantiene en preparación.
+136|El usuario aprobó: Apruebo la publicación
+137|Esperando tu aprobación: Publicación de los borradores
+138|Revisa los resultados y las cifras reales de los pasos anteriores; tú decides qué cambiar.
+139|Iniciar preparación
+140|Aplazar # días
+141|Antes hay que completar estas:
+142|Aplazada:
+143|Quitar el aplazamiento
+144|El usuario aplazó la tarea al #.
+145|Fallida: no se indicó el motivo
+146|Se somete a tu aprobación cuando empiece la preparación.
+147|Sugerencias esperando aprobación
+148|Lo que escribiste en el chat parecía importante. No se guarda si no lo apruebas.

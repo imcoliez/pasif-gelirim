@@ -1,0 +1,17 @@
+0|Plan genehmigt. Du startest die Aufgaben einzeln.
+1|Plan abgelehnt; keine Aufgabe wurde ausgeführt.
+2|Vorbereitung erledigt.
+3|Deine Zustimmung wurde gespeichert, aber diese Aktion wird in dieser Version nicht unterstützt: Es wurde nichts getan.
+4|Genehmigt und berichtet.
+5|Nicht genehmigt; es wurde nichts unternommen, die Aufgabe wurde abgebrochen.
+6|Als fehlgeschlagen markiert.
+7|Diese Aufgabe abbrechen?
+8|Aufgabe abgebrochen.
+9|Aufgabe neu geplant.
+10|Aufgabe verschoben.
+11|Verschiebung aufgehoben.
+12|Diese Aufgabe und ihren Aktionsverlauf löschen? Das kann nicht rückgängig gemacht werden.
+13|Aufgabe gelöscht.
+14|Aufgabe aktualisiert.
+15|Aufgabe hinzugefügt.
+16|Die Aktion konnte nicht ausgeführt werden.

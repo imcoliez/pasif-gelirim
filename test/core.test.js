@@ -931,4 +931,181 @@ test('gerçek AI: sunucuya giden özet onaysız öneri, açıklama, finans, geli
   C.setChatScope(s, true); assert.strictEqual(C.memoryForServer(s), '');
 });
 
+// ---------- Aşama 6: görev ve iş akışı motoru ----------
+function wkState() {
+  const s = C.defaultState(); s.user.onboarded = true; C.setPackage(s, 'ceo', T0);
+  const a = C.startProject(s, 'freelance', T0), b = C.startProject(s, 'sosyal-medya', T0 + 1);
+  C.setActiveProject(s, a.id); return { s, a, b };
+}
+function approvedPlan(s, pid, now) { const r = C.proposePlan(s, pid, 'Dijital ürün projemi geliştirmek istiyorum', now); C.decidePlan(s, pid, r.plan.id, true, now + 1); return r; }
+
+test('görev: hedef cümlesi algılanır, soru ve kısa metin algılanmaz', () => {
+  assert.ok(C.detectGoal('Dijital ürün satışı projemi geliştirmek istiyorum.'));
+  assert.ok(C.detectGoal('Bunu görevlere böl lütfen, plan hazırla'));
+  assert.strictEqual(C.detectGoal('Hedef kitle ne demek?'), '');
+  assert.strictEqual(C.detectGoal('Nereden başlayayım?'), '');
+  assert.strictEqual(C.detectGoal('merhaba'), '');
+});
+test('görev: plan taslağı altı göreve bölünür, aktif projeye bağlanır, bağımlılıklar kurulur, hiçbiri onaysız çalışmaz', () => {
+  const { s, a, b } = wkState();
+  const r = C.proposePlan(s, a.id, 'Dijital ürün projemi geliştirmek istiyorum', T0);
+  assert.ok(r.ok); assert.strictEqual(r.tasks.length, 6); assert.strictEqual(r.plan.state, 'proposed');
+  assert.strictEqual(C.tasksOf(s, a.id).length, 6); assert.strictEqual(C.tasksOf(s, b.id).length, 0, 'başka projeye karışmaz');
+  assert.ok(r.tasks.every(t => t.status === 'planned' && t.createdAt === T0 && t.log.length >= 2));
+  assert.strictEqual(r.tasks[1].deps[0], r.tasks[0].id);
+  // plan onaylanmadan hazırlık başlatılamaz
+  const x = C.prepareTask(s, a.id, r.tasks[0].id, T0 + 5); assert.ok(!x.ok); assert.ok(/planı onayla/i.test(x.error));
+  assert.strictEqual(C.tasksOf(s, a.id)[0].status, 'planned');
+});
+test('görev: sensitif hedef ve çok kısa hedef reddedilir; arşivdeki projeye plan yazılmaz', () => {
+  const { s, a } = wkState();
+  assert.ok(!C.proposePlan(s, a.id, 'IBAN TR330006100519786457841326 ile projemi büyütmek istiyorum', T0).ok);
+  assert.ok(!C.proposePlan(s, a.id, 'ab', T0).ok);
+  C.archiveProject(s, a.id, T0);
+  assert.ok(!C.proposePlan(s, a.id, 'Projemi büyütmek istiyorum', T0).ok);
+  assert.ok(!C.addTask(s, a.id, { title: 'x' }, T0).ok);
+});
+test('görev: plan reddedilirse görevler iptal olur ve hiçbiri çalışmaz', () => {
+  const { s, a } = wkState(); const r = C.proposePlan(s, a.id, 'Ürünlerimi büyütmek istiyorum', T0);
+  assert.ok(C.decidePlan(s, a.id, r.plan.id, false, T0 + 1).ok);
+  assert.ok(C.tasksOf(s, a.id).every(t => t.status === 'cancelled'));
+  assert.ok(!C.decidePlan(s, a.id, r.plan.id, true, T0 + 2).ok, 'karar tekrar verilemez');
+  assert.ok(!C.prepareTask(s, a.id, r.tasks[0].id, T0 + 3).ok);
+});
+test('görev: bağımlılık sırası zorunlu; hazırlık → tamamlama; durum geçişleri ve geçmiş', () => {
+  const { s, a } = wkState(); const r = approvedPlan(s, a.id, T0); const [t0, t1] = r.tasks;
+  const blocked = C.prepareTask(s, a.id, t1.id, T0 + 10); assert.ok(!blocked.ok); assert.ok(/tamamlanmalı/.test(blocked.error));
+  assert.ok(C.prepareTask(s, a.id, t0.id, T0 + 11).ok); assert.strictEqual(t0.status, 'active'); assert.ok(t0.result.length > 20 && t0.summary);
+  assert.ok(C.completeTask(s, a.id, t0.id, undefined, T0 + 12).ok); assert.strictEqual(t0.status, 'done');
+  assert.ok(C.prepareTask(s, a.id, t1.id, T0 + 13).ok, 'bağımlılık bitince başlar');
+  const texts = t0.log.map(l => l.text).join('|');
+  ['Görev oluşturuldu', 'Kullanıcı planı onayladı', 'Hazırlık başladı', 'Çıktı taslağı hazırlandı', 'Tamamlandı'].forEach(x => assert.ok(texts.includes(x), x));
+  assert.ok(t0.log.every(l => l.at > 0 && C.TASK_STATUS[l.status] && (l.by === 'user' || l.by === 'system')));
+  assert.ok(!C.completeTask(s, a.id, t0.id, undefined, T0 + 20).ok, 'tamamlanan tekrar tamamlanamaz');
+});
+test('onay: seçenekli karar onaylanmadan görev tamamlanamaz; onayla seçim işlenir ve rapor yazılır', () => {
+  const { s, a } = wkState(); const r = approvedPlan(s, a.id, T0); const T = r.tasks; let n = 10;
+  for (let i = 0; i < 3; i++) { C.prepareTask(s, a.id, T[i].id, T0 + n++); C.completeTask(s, a.id, T[i].id, undefined, T0 + n++); }
+  C.prepareTask(s, a.id, T[3].id, T0 + n++);
+  assert.strictEqual(T[3].status, 'awaiting'); assert.strictEqual(C.pendingApprovals(s, a.id).length, 1);
+  assert.strictEqual(T[3].approval.options.length, 2);
+  assert.ok(!C.completeTask(s, a.id, T[3].id, undefined, T0 + n++).ok, 'onaysız tamamlanamaz');
+  assert.ok(!C.approveTask(s, a.id, T[3].id, 'zzz', T0 + n++).ok, 'geçersiz seçenek');
+  assert.ok(C.approveTask(s, a.id, T[3].id, 'b', T0 + n++).ok);
+  assert.strictEqual(T[3].status, 'done'); assert.strictEqual(T[3].approval.chosen, 'b'); assert.ok(/B/.test(T[3].result));
+  assert.strictEqual(C.pendingApprovals(s, a.id).length, 0);
+  assert.ok(!C.approveTask(s, a.id, T[3].id, 'a', T0 + n++).ok, 'ikinci onay yok');
+  assert.ok(T[3].log.some(l => l.by === 'user' && /onayladı/.test(l.text)));
+});
+test('onay: reddedilen işlem çalıştırılmaz, görev iptal olur', () => {
+  const { s, a } = wkState(); const r = approvedPlan(s, a.id, T0); const T = r.tasks; let n = 10;
+  for (let i = 0; i < 3; i++) { C.prepareTask(s, a.id, T[i].id, T0 + n++); C.completeTask(s, a.id, T[i].id, undefined, T0 + n++); }
+  C.prepareTask(s, a.id, T[3].id, T0 + n++); const before = T[3].result;
+  assert.ok(C.rejectApproval(s, a.id, T[3].id, T0 + n++).ok);
+  assert.strictEqual(T[3].status, 'cancelled'); assert.strictEqual(T[3].approval.state, 'rejected'); assert.strictEqual(T[3].approval.chosen, '');
+  assert.strictEqual(T[3].result, before, 'sonuç yeni işlemle değişmedi'); assert.ok(!T[3].external);
+  assert.ok(!C.approveTask(s, a.id, T[3].id, 'a', T0 + n++).ok, 'reddedilen sonradan onaylanamaz');
+  assert.ok(T[3].log.some(l => /işlem yapılmadı/.test(l.text)));
+});
+test('onay: yayımlama gibi desteklenmeyen işlem onaylansa bile YAPILMAZ; taslakta kalır, tamamlandı sayılmaz', () => {
+  const { s, a } = wkState(); const r = approvedPlan(s, a.id, T0); const T = r.tasks; let n = 10;
+  for (let i = 0; i < 3; i++) { C.prepareTask(s, a.id, T[i].id, T0 + n++); C.completeTask(s, a.id, T[i].id, undefined, T0 + n++); }
+  C.prepareTask(s, a.id, T[3].id, T0 + n++); C.approveTask(s, a.id, T[3].id, 'a', T0 + n++);
+  assert.ok(C.prepareTask(s, a.id, T[4].id, T0 + n++).ok); assert.strictEqual(T[4].status, 'awaiting'); assert.strictEqual(T[4].approval.cap, 'publish');
+  const ap = C.approveTask(s, a.id, T[4].id, 'publish', T0 + n++);
+  assert.ok(ap.ok); assert.strictEqual(ap.executed, false);
+  assert.notStrictEqual(T[4].status, 'done'); assert.deepStrictEqual(T[4].external, { cap: 'publish', state: 'draft_only' });
+  assert.ok(T[4].log.some(l => /HİÇBİR İŞLEM YAPILMADI/.test(l.text)));
+  assert.ok(!T[4].log.some(l => /yayımlandı/i.test(l.text)));
+  // kullanıcı kendi yaptığını söylerse bile uygulama dış işlem yapmadığını yazar
+  assert.ok(C.completeTask(s, a.id, T[4].id, undefined, T0 + n++).ok);
+  assert.ok(T[4].log.some(l => /uygulama harici işlem yapmadı/i.test(l.text)));
+});
+test('yetenek: desteklenmeyen izin verilemez; paketlerde mevcut yetkiler değişmedi', () => {
+  const s = C.defaultState();
+  ['spend', 'publish', 'message', 'account', 'share', 'erase', 'external'].forEach(k => { assert.ok(!C.setPermission(s, k, true).ok, k); const st = C.capabilityStatus(s, k); assert.strictEqual(st.supported, false); assert.strictEqual(st.granted, false); assert.strictEqual(st.connected, false); assert.strictEqual(st.approval, true); });
+  assert.ok(!C.setPermission(s, 'bilinmeyen', true).ok);
+  ['free', 'manual', 'semi', 'ceo'].forEach(k => { C.setPackage(s, k, T0); assert.deepStrictEqual(C.workEntitlements(s).caps, ['draft']); });
+  C.setPackage(s, 'free', T0); assert.strictEqual(C.entitlements(s).automation, false);
+  C.setPackage(s, 'ceo', T0); assert.strictEqual(C.entitlements(s).ceo, true);
+  // sahte izinli yedek yüklense bile desteklenmeyen izin sıfırlanır
+  const m = C.migrate({ permissions: { publish: true, draft: true } }); assert.strictEqual(m.permissions.publish, false);
+});
+test('görev: düzenleme, erteleme, iptal, yeniden planlama, silme', () => {
+  const { s, a } = wkState(); const r = C.proposePlan(s, a.id, 'Projemi büyütmek istiyorum', T0); C.decidePlan(s, a.id, r.plan.id, true, T0 + 1); const t = r.tasks[0];
+  assert.ok(C.editTask(s, a.id, t.id, { title: 'Yeni ad', desc: 'Yeni açıklama', priority: 'low' }, T0 + 2).ok);
+  assert.strictEqual(t.title, 'Yeni ad'); assert.strictEqual(t.priority, 'low');
+  assert.ok(!C.editTask(s, a.id, t.id, { title: '  ' }, T0 + 3).ok); assert.ok(!C.editTask(s, a.id, t.id, { priority: 'x' }, T0 + 3).ok);
+  assert.ok(!C.editTask(s, a.id, r.tasks[1].id, { deps: [r.tasks[1].id] }, T0 + 3).ok, 'kendine bağımlı olamaz');
+  assert.ok(!C.editTask(s, a.id, r.tasks[0].id, { deps: [r.tasks[5].id] }, T0 + 3).ok, 'döngü kurulamaz');
+  assert.ok(!C.snoozeTask(s, a.id, t.id, T0 - 1, T0 + 4).ok, 'geçmişe ertelenemez');
+  assert.ok(C.snoozeTask(s, a.id, t.id, T0 + 3 * DAY, T0 + 4).ok);
+  const sn = C.prepareTask(s, a.id, t.id, T0 + 5); assert.ok(!sn.ok); assert.ok(/ertelendi/.test(sn.error));
+  assert.ok(C.prepareTask(s, a.id, t.id, T0 + 4 * DAY).ok, 'erteleme süresi dolunca başlar');
+  assert.ok(C.cancelTask(s, a.id, t.id, T0 + 4 * DAY + 1).ok); assert.strictEqual(t.status, 'cancelled');
+  assert.ok(!C.cancelTask(s, a.id, t.id, T0 + 4 * DAY + 2).ok, 'iptal edilen tekrar iptal edilemez');
+  assert.ok(C.reopenTask(s, a.id, t.id, T0 + 4 * DAY + 3).ok); assert.strictEqual(t.status, 'planned');
+  assert.ok(t.log.length >= 8, 'geçmiş korunur');
+  assert.ok(!C.deleteTask(s, a.id, t.id, T0).ok, 'açık görev silinemez'); C.cancelTask(s, a.id, t.id, T0 + 5 * DAY);
+  const before = C.tasksOf(s, a.id).length; assert.ok(C.deleteTask(s, a.id, t.id, T0 + 5 * DAY).ok); assert.strictEqual(C.tasksOf(s, a.id).length, before - 1);
+  assert.ok(C.tasksOf(s, a.id).every(x => x.deps.indexOf(t.id) === -1), 'silinen göreve bağımlılık kalmaz');
+});
+test('görev: elle görev ekleme; başarısız ve yeniden planlama', () => {
+  const { s, a } = wkState(); const r = C.addTask(s, a.id, { title: 'Logo çiz', priority: 'high' }, T0); assert.ok(r.ok);
+  assert.ok(!C.addTask(s, a.id, { title: ' ' }, T0).ok);
+  assert.ok(C.prepareTask(s, a.id, r.task.id, T0 + 1).ok); assert.ok(C.failTask(s, a.id, r.task.id, 'vakit yok', T0 + 2).ok);
+  assert.strictEqual(r.task.status, 'failed'); assert.ok(r.task.log.some(l => /vakit yok/.test(l.text)));
+  assert.ok(C.reopenTask(s, a.id, r.task.id, T0 + 3).ok);
+});
+test('hafıza: görev sonucu yalnızca ÖNERİ olarak bekler; onaylanmadan kalıcı hafızaya girmez; başka projeye geçmez', () => {
+  const { s, a, b } = wkState(); const r = approvedPlan(s, a.id, T0); const T = r.tasks;
+  C.prepareTask(s, a.id, T[0].id, T0 + 10); C.completeTask(s, a.id, T[0].id, undefined, T0 + 11);
+  C.prepareTask(s, a.id, T[1].id, T0 + 12); C.completeTask(s, a.id, T[1].id, undefined, T0 + 13);   // yüksek öncelikli → öneri
+  assert.strictEqual(C.memOf(a).items.length, 0, 'kalıcı hafıza değişmedi'); assert.ok(C.memOf(a).pending.length >= 1);
+  assert.strictEqual(C.memOf(b).pending.length + C.memOf(b).items.length, 0, 'diğer proje etkilenmez');
+  s.settings.aiShareMemory = true; assert.ok(!C.memoryForServer(s).includes('Tamamlandı:'), 'onaysız öneri sunucuya gitmez'); assert.ok(!C.memoryForServer(s).includes(C.memOf(a).pending[0].text));
+  const pe = C.memOf(a).pending[0]; assert.ok(C.confirmMemory(s, a.id, pe.id, T0 + 20).ok); assert.strictEqual(C.memOf(a).items.length, 1);
+});
+test('hafıza: görev çıktısı yalnızca aktif projenin onaylı hafızasını kullanır', () => {
+  const { s, a, b } = wkState();
+  C.addMemory(s, a.id, 'goal', 'ALFA-ONAYLI-HEDEF', T0, 'user'); C.addMemory(s, b.id, 'goal', 'BETA-GIZLI-HEDEF', T0, 'user');
+  C.suggestMemory(s, 'Fiyatı 999 yapmaya karar verdim', T0);
+  const ra = approvedPlan(s, a.id, T0); C.prepareTask(s, a.id, ra.tasks[0].id, T0 + 10); C.prepareTask(s, a.id, ra.tasks[0].id, T0 + 10);
+  const t = ra.tasks[0]; assert.ok(t.result.includes('ALFA-ONAYLI-HEDEF')); assert.ok(!t.result.includes('BETA-GIZLI-HEDEF'));
+  assert.ok(!t.result.includes('Fiyatı 999'), 'onaysız öneri kullanılmaz');
+});
+test('görev: görev sınırı ve plan sınırı korunur', () => {
+  const { s, a } = wkState(); for (let i = 0; i < C.WORK_LIMITS.tasks; i++) assert.ok(C.addTask(s, a.id, { title: 'g' + i }, T0).ok);
+  assert.ok(!C.addTask(s, a.id, { title: 'fazla' }, T0).ok); assert.ok(!C.proposePlan(s, a.id, 'Projemi büyütmek istiyorum', T0).ok);
+});
+test('kalıcılık: görevler yedek/geri yükleme ve migrate sonrası korunur, bozuk görev ayıklanır, eski yedek açılır', () => {
+  const { s, a, b } = wkState(); const r = approvedPlan(s, a.id, T0); C.prepareTask(s, a.id, r.tasks[0].id, T0 + 10); C.completeTask(s, a.id, r.tasks[0].id, undefined, T0 + 11);
+  C.addTask(s, b.id, { title: 'Beta görevi' }, T0);
+  const back = C.importData(C.exportData(s)); assert.ok(back.ok, back.error);
+  const s2 = back.state; assert.strictEqual(C.tasksOf(s2, a.id).length, 6); assert.strictEqual(C.tasksOf(s2, b.id).length, 1);
+  assert.strictEqual(C.tasksOf(s2, a.id)[0].status, 'done'); assert.strictEqual(C.tasksOf(s2, a.id)[0].log.length, C.tasksOf(s, a.id)[0].log.length);
+  assert.strictEqual(C.plansOf(s2, a.id)[0].state, 'approved'); assert.deepStrictEqual(C.tasksOf(s2, a.id).map(t => t.title), C.tasksOf(s, a.id).map(t => t.title));
+  // migrate idempotent
+  assert.deepStrictEqual(C.migrate(JSON.parse(JSON.stringify(s2))).projects.map(p => p.work), s2.projects.map(p => p.work));
+  // bozuk veri
+  const bad = JSON.parse(C.exportData(s)); bad.projects[0].work = { tasks: [null, 5, { title: '' }, { title: 'Sağlam', status: 'uçuk', priority: 'x', deps: ['yok', 'yok'], log: [1, { text: 'x', status: 'zzz' }] }], plans: [{ goal: '' }, null] };
+  const bm = C.migrate(bad); const w = bm.projects[0].work; assert.strictEqual(w.tasks.length, 1); assert.strictEqual(w.tasks[0].status, 'planned'); assert.strictEqual(w.tasks[0].priority, 'normal'); assert.deepStrictEqual(w.tasks[0].deps, []); assert.strictEqual(w.plans.length, 0);
+  // Aşama 5 öncesi: work alanı yok
+  const old = JSON.parse(C.exportData(s)); old.projects.forEach(p => delete p.work); delete old.permissions; const om = C.migrate(old);
+  assert.ok(om.projects.every(p => p.work && Array.isArray(p.work.tasks))); assert.ok(om.permissions && om.permissions.publish === false);
+});
+test('izolasyon: bir projenin görevleri başka projeden yönetilemez; arşivdeki projede değiştirilemez; proje silinince görevleri gider, kayıtlar kalır', () => {
+  const { s, a, b } = wkState(); const r = approvedPlan(s, a.id, T0);
+  assert.ok(!C.prepareTask(s, b.id, r.tasks[0].id, T0 + 10).ok, 'görev başka projenin kimliğiyle açılmaz');
+  assert.ok(!C.cancelTask(s, b.id, r.tasks[0].id, T0 + 10).ok);
+  C.archiveProject(s, a.id, T0 + 20); assert.ok(!C.prepareTask(s, a.id, r.tasks[0].id, T0 + 21).ok); assert.strictEqual(C.tasksOf(s, a.id).length, 6, 'arşivde görevler korunur');
+  C.restoreProject(s, a.id, T0 + 22); assert.ok(C.prepareTask(s, a.id, r.tasks[0].id, T0 + 23).ok);
+  C.addFinance(s, { type: 'in', amount: 10, cat: 'satis', src: a.id }, T0); C.deleteProject(s, a.id, T0 + 30);
+  assert.strictEqual(C.tasksOf(s, a.id).length, 0); assert.strictEqual(s.finance.length, 1);
+});
+test('dışa aktarma: proje dışa aktarımında görevler ve geçmiş bulunur; hesap yedeğinde PIN yok', () => {
+  const { s, a } = wkState(); approvedPlan(s, a.id, T0); C.setLock(s, 'salt', 'hash');
+  assert.ok(!C.exportData(s).includes('"hash"')); assert.ok(C.exportData(s).includes('"work"'));
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

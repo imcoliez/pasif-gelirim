@@ -1,0 +1,149 @@
+0|Geplant
+1|In Vorbereitung
+2|Wartet auf deine Zustimmung
+3|Abgeschlossen
+4|Fehlgeschlagen
+5|Abgebrochen
+6|Hoch
+7|Entwurf und Ergebnis vorbereiten
+8|Wird auf diesem Gerät mit lokalen Vorlagen erledigt.
+9|Geld ausgeben oder bezahlen
+10|Keine Zahlungsanbindung.
+11|Inhalte veröffentlichen
+12|Kein verbundenes Konto; es wird nichts veröffentlicht.
+13|Nachrichten oder E-Mails senden
+14|Kein verbundenes Konto; es wird nichts gesendet.
+15|Kontoeinstellungen ändern
+16|Kein verbundenes Konto.
+17|Deine Daten teilen
+18|Deine Daten werden nicht geteilt.
+19|Deine Daten löschen (durch die KI)
+20|Nur du kannst deine Daten löschen.
+21|Änderungen an einem externen Konto
+22|Keine OAuth/API-Anbindung.
+23|Ich habe dein Ziel in einen Aufgabenplan zerlegt (Demo-KI: regelbasierte Vorlage, kein echtes Modell hat ihn geschrieben). Der Plan ist vorerst nur ein ENTWURF; wenn du ihn in der Karte unten genehmigst, können die Aufgaben gestartet werden, sonst läuft keine davon. Für Schritte wie Geld ausgeben, Veröffentlichen oder Nachrichten senden frage ich zusätzlich nach deiner Zustimmung; in dieser Version bin ich mit keinem externen Konto verbunden und kann sie daher nicht ausführen.
+24|Ein Aufgabenplan muss zu einem Projekt gehören. Im allgemeinen Chat erstelle ich keine Pläne; wechsle zum „Projektchat“ (oder starte ein Projekt) und schreibe dein Ziel erneut.
+25|Unbekannte Fähigkeit.
+26|In dieser Version gibt es für diese Aktion keine Anbindung; die Berechtigung kann nicht erteilt werden.
+27|Projekt nicht gefunden oder archiviert; seine Aufgaben können nicht geändert werden.
+28|Schreibe das Ziel etwas klarer (mindestens # Zeichen).
+29|Angaben wie Passwörter, PINs, Karten-/IBAN- oder Ausweisnummern dürfen nicht ins Ziel geschrieben werden.
+30|Aufgabe erstellt (Planentwurf).
+31|Plan nicht gefunden.
+32|Über diesen Plan wurde bereits entschieden.
+33|Der Nutzer hat den Plan genehmigt.
+34|Der Nutzer hat den Plan abgelehnt; die Aufgabe wurde abgebrochen.
+35|Der Aufgabenname darf nicht leer sein.
+36|Aufgabe erstellt.
+37|Aufgabe nicht gefunden.
+38|Nur eine Aufgabe im Status „Geplant“ kann gestartet werden.
+39|Du musst zuerst den Plan genehmigen.
+40|Vorbereitung gestartet.
+41|Ergebnisentwurf vorbereitet.
+42|Der Entwurf ist fertig; du kannst ihn prüfen und die Aufgabe abschließen.
+43|Bei dieser Aufgabe wartet keine Aktion auf Zustimmung.
+44|Bitte wähle eine Option.
+45|Die genehmigte Aktion wird ausgeführt.
+46|Der Nutzer hat nicht zugestimmt; es wurde nichts unternommen.
+47|Abgebrochen (keine Zustimmung erteilt).
+48|Diese Aufgabe braucht deine Zustimmung; ohne sie kann sie nicht abgeschlossen werden.
+49|Eine Aufgabe in diesem Status kann nicht abgeschlossen werden.
+50|Eine Aufgabe in diesem Status kann nicht als fehlgeschlagen markiert werden.
+51|Der Nutzer hat die Aufgabe abgebrochen.
+52|Diese Aufgabe kann nicht abgebrochen werden.
+53|Der Nutzer hat die Aufgabe neu geplant.
+54|Diese Aufgabe kann nicht neu geplant werden.
+55|Die Abhängigkeiten einer abgeschlossenen Aufgabe können nicht geändert werden.
+56|Ungültige Priorität.
+57|Eine Aufgabe kann nicht von sich selbst abhängen.
+58|Die abhängige Aufgabe gehört nicht zu diesem Projekt.
+59|Diese Abhängigkeit würde eine Schleife erzeugen.
+60|Aufgabe bearbeitet.
+61|Nur eine noch nicht begonnene Aufgabe (Geplant) kann verschoben werden.
+62|Nur eine abgeschlossene, fehlgeschlagene oder abgebrochene Aufgabe kann gelöscht werden.
+63|Aufgabenzentrale
+64|# offen · # warten auf Zustimmung
+65|KI-gestützter Aufgabenplan. Jeder Schritt geht nur mit deiner Zustimmung weiter.
+66|Zur Aufgabenzentrale
+67|Aufgabenzentrale
+68|# offen
+69|Ablauf: planen → vorbereiten → Optionen anbieten → Zustimmung holen → unterstützte Aktion ausführen → berichten. Die KI tut hier nichts von selbst; du genehmigst jeden Schritt. Aufgaben gehören nur zu diesem Projekt.
+70|Warten auf Zustimmung
+71|Gerade wartet keine Aktion auf deine Zustimmung.
+72|Noch keine Aufgaben. Schreibe im Chat ein Ziel wie „Ich möchte mein Projekt für digitale Produkte weiterentwickeln“, dann wird ein Planentwurf erstellt; oder füge unten selbst eine Aufgabe hinzu.
+73|Zum Chat
+74|Neue Aufgabe
+75|Aufgabenname
+76|Priorität
+77|Externe Aktionen und Berechtigungen
+78|In dieser Version bin ich mit keinem externen Konto (Social Media, E-Mail, Zahlung, Website) verbunden und frage nie nach Passwörtern/OAuth. Die Aktionen unten werden nicht ausgeführt; es werden nur Entwürfe vorbereitet. Wird später eine Anbindung hinzugefügt, funktioniert jede mit einer eigenen Berechtigung und jedes Mal mit deiner Zustimmung.
+79|Auf diesem Gerät
+80|Nicht verbunden
+81|Paket:
+82|in allen Paketen wird vorerst dieselbe Aufgaben-Grundfunktion genutzt.
+83|Z. B. ersten Produktentwurf skizzieren
+84|Demo-Antwort
+85|Aufgabenplan
+86|Entwurf: wartet auf deine Zustimmung
+87|Aktuellen Projektstatus prüfen
+88|Zielgruppenrecherche vorbereiten
+89|Ideen entwickeln
+90|Entwicklungsplan vorbereiten
+91|Entwürfe für Werbeinhalte erstellen
+92|Ergebnisse auswerten
+93|Wenn du nicht zustimmst, läuft keine Aufgabe. Auch bei Zustimmung startest du jede Aufgabe selbst.
+94|Plan genehmigen
+95|Genehmigt
+96|Zur Aufgabenzentrale ›
+97|Soll ich das im Gedächtnis speichern?
+98|Nicht speichern
+99|verschoben
+100|‹ Aufgabenliste
+101|Priorität:
+102|Erstellt:
+103|Fasse den Zustand des Projekts auf dem Gerät, den Aufgabenfortschritt und das genehmigte Gedächtnis zusammen.
+104|Ergebnis
+105|(Demo, lokale Vorlage)
+106|Neu planen
+107|Aktionsverlauf
+108|Abgeschlossen.
+109|Du
+110|Der Nutzer hat das Ergebnis akzeptiert.
+111|Die KI (Demo, regelbasiert) hat den Plan vorbereitet. Wartet auf deine Zustimmung.
+112|Beschreibung
+113|Ergebnis / Resultat (deine eigene Notiz)
+114|Erstelle einen Entwurf einer Fragenliste zur Recherche, um zu klären, wem du dienen wirst.
+115|Hängt von diesen Aufgaben ab:
+116|Entwirf Produkt-/Inhaltsideen, die zum Einkommensmodell des Projekts passen.
+117|Erstelle ein vierwöchiges Entwicklungsgerüst. Den Ansatz wählst du.
+118|Mit welchem Ansatz sollen wir weitermachen?
+119|Es gibt zwei Ansätze; keiner garantiert ein Ergebnis.
+120|A: Geringe Kosten, langsamer Fortschritt
+121|Abgeschlossen. Bericht: Vierwochenplan-Gerüst vorbereitet (A gewählt).
+122|Aktion ausgeführt: deine Wahl wurde in den Plan übernommen (A).
+123|Der Nutzer hat zugestimmt: A: Geringe Kosten, langsamer Fortschritt
+124|Wartet auf deine Zustimmung: Mit welchem Ansatz sollen wir weitermachen?
+125|Erstelle Entwürfe für Werbebeiträge. Das Veröffentlichen braucht eine eigene Zustimmung und ist derzeit nicht möglich.
+126|Veröffentlichung der Entwürfe
+127|Möchtest du die vorbereiteten Entwürfe veröffentlichen?
+128|Ich stimme der Veröffentlichung zu
+129|Diese Aktion wurde nicht ausgeführt:
+130|Kein verbundenes Konto; es wird nichts veröffentlicht. Der Entwurf ist bereit; die Aktion kannst du selbst durchführen.
+131|Habe ich erledigt, abschließen
+132|Bearbeiten
+133|Als fehlgeschlagen markieren
+134|Abbrechen
+135|Zustimmung gespeichert, aber „Inhalte veröffentlichen“ wird in dieser Version nicht unterstützt: ES WURDE NICHTS GETAN. Der Entwurf bleibt in der Vorbereitung.
+136|Der Nutzer hat zugestimmt: Ich stimme der Veröffentlichung zu
+137|Wartet auf deine Zustimmung: Veröffentlichung der Entwürfe
+138|Prüfe die Ergebnisse und echten Zahlen der vorherigen Schritte; du entscheidest, was du änderst.
+139|Vorbereitung starten
+140|# Tage verschieben
+141|Diese müssen zuerst abgeschlossen werden:
+142|Verschoben:
+143|Verschiebung aufheben
+144|Der Nutzer hat die Aufgabe auf # verschoben.
+145|Fehlgeschlagen: kein Grund angegeben
+146|Sie wird dir zur Zustimmung vorgelegt, sobald die Vorbereitung beginnt.
+147|Vorschläge, die auf Zustimmung warten
+148|Was du im Chat geschrieben hast, wirkte wichtig. Es wird nur gespeichert, wenn du zustimmst.

@@ -516,6 +516,7 @@
     msgs.slice(-40).forEach(function (m) {
       html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) +
         (m.role !== 'user' && m.src === 'demo' ? '<small class="srcl">Demo yanıt</small>' : '') + (m.role !== 'user' && m.src === 'ai' ? '<small class="srcl">Yapay zekâ yanıtı</small>' : '') + '</div>';
+      if (m.plan && cp) { const pl = Core.plansOf(S, cp.id).find(function (x) { return x.id === m.plan; }); if (pl) html += planCard(S, cp, pl, false); }
     });
     if (ui.typing) html += '<div class="msg ai typing" aria-label="Yazıyor"><i></i><i></i><i></i></div>';
     html += '</div>';
@@ -829,6 +830,8 @@
     h += '<div class="card"><div class="row"><b>Görevler</b><span class="muted small">' + x.done + ' / ' + x.total + '</span></div>' + bar(x.pct) +
       (x.next && !x.archived ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
       (x.archived ? '' : '<button class="btn slim" data-act="go" data-route="tasks">Görevlere git</button>') + '</div>';
+    const ws = Core.workSummary(S, p.id);
+    h += '<div class="card"><div class="row"><b>Görev merkezi</b><span class="muted small">' + ws.open + ' açık · ' + ws.waiting + ' onay bekliyor</span></div><p class="muted small">Yapay zekâ destekli görev planı. Her adım senin onayınla ilerler.</p>' + (x.archived ? '' : '<button class="btn slim" data-act="go" data-route="work">Görev merkezine git</button>') + '</div>';
     h += '<div class="card"><b>Proje notları</b><textarea id="pjNote" class="inp" rows="4" maxlength="2000" data-change="projNote" placeholder="Bu projeyle ilgili notların burada saklanır"' + (x.archived ? ' readonly' : '') + '>' + esc(p.note || '') + '</textarea></div>';
     h += '<div class="card"><div class="row"><b>Yapay zekâ hafızası</b><span class="muted small">' + Core.memOf(p).items.length + ' bilgi</span></div><p class="muted small">Bu projeye özel, cihazında tutulan bilgiler. Yapay zekâ yalnızca bu projedeyken bunları kullanır.</p>' + (x.archived ? '' : '<button class="btn slim ghost" data-act="go" data-route="memory">Hafızayı yönet</button>') + '</div>';
     h += '<div class="card"><div class="row"><b>Gelir ve giderler</b><button class="link" data-act="go" data-route="money">Kayıt ekle ›</button></div>';
@@ -858,6 +861,101 @@
       '<button class="btn slim ghost" data-act="exportProject" data-id="' + id + '">' + icon('download', 16) + ' Dışa aktar</button>' +
       (x.archived ? '<button class="btn slim ghost" data-act="restoreProject" data-id="' + id + '">Arşivden çıkar</button>' : '<button class="btn slim ghost" data-act="archiveProject" data-id="' + id + '">Arşivle</button>') + '</div>';
     h += '<div class="card danger"><b>Projeyi sil</b><p class="muted small">Silmeden önce arşivlemeyi düşün: arşivde hiçbir veri kaybolmaz. Silersen projenin görevleri, notları, planları ve kararları gider; gelir-gider kayıtların kalır ve “Genel”e döner. Silmeden önce dışa aktarabilirsin.</p><button class="btn slim danger" data-act="deleteProject" data-id="' + id + '">' + icon('trash', 16) + ' Projeyi sil</button></div>';
+    return h;
+  };
+
+  // ---------- Görev merkezi (Aşama 6) ----------
+  function hm(ms) { const d = new Date(ms), z = function (n) { return (n < 10 ? '0' : '') + n; }; return Core.formatDate(ms) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()); }
+  function stChip(t) {
+    const cls = t.status === 'done' ? 'ok' : t.status === 'awaiting' ? 'warn' : t.status === 'failed' || t.status === 'cancelled' ? 'mute' : '';
+    return '<span class="chip ' + cls + '">' + esc(Core.TASK_STATUS[t.status]) + '</span>';
+  }
+  function approvalBox(p, t) {
+    const a = t.approval; if (!a) return '';
+    const id = esc(t.id);
+    let h = '<div class="card note apv"><b>' + esc(a.title) + '</b><p class="small">' + esc(a.question) + '</p>';
+    if (a.state === 'pending' && t.status === 'awaiting') {
+      a.options.forEach(function (o) {
+        h += '<div class="opt-box"><b class="small">' + esc(o.label) + '</b><p class="fine">' + esc(o.effect) + '</p>' +
+          '<button class="btn slim" data-act="wkApprove" data-id="' + id + '" data-v="' + esc(o.id) + '">' + (a.type === 'external' ? 'Onaylıyorum' : 'Bunu seç') + '</button></div>';
+      });
+      h += '<button class="btn slim ghost" data-act="wkReject" data-id="' + id + '">Onaylamıyorum (iptal et)</button>';
+    } else if (a.state === 'approved') {
+      h += '<p class="small"><span class="chip ok">Onaylandı</span> ' + esc((a.options.find(function (o) { return o.id === a.chosen; }) || {}).label || '') + '</p>' +
+        (t.external ? '<p class="fine"><b>Bu işlem yapılmadı:</b> ' + esc(Core.CAPABILITIES[t.external.cap] ? Core.CAPABILITIES[t.external.cap].note : '') + ' Taslak hazır; işlemi sen kendin yapabilirsin.</p>' : '');
+    } else if (a.state === 'rejected') h += '<p class="small"><span class="chip mute">Onaylanmadı</span> İşlem yapılmadı.</p>';
+    else h += '<p class="fine">Hazırlık başlayınca onayına sunulur.</p>';
+    return h + '</div>';
+  }
+  function taskDetail(S, p, t, ui, now) {
+    const id = esc(t.id), live = !Core.isArchived(p);
+    let h = '<div class="card wk"><div class="row"><b>' + esc(t.title) + '</b>' + stChip(t) + '</div>' +
+      '<p class="muted small"><span>Öncelik:</span> <span>' + esc(Core.PRIORITIES[t.priority]) + '</span> · <span>Oluşturuldu:</span> ' + Core.formatDate(t.createdAt) + (t.snoozeUntil > now ? ' · <span>Ertelendi:</span> ' + Core.formatDate(t.snoozeUntil) : '') + '</p>';
+    if (ui.workEdit === t.id) {
+      h += '<label class="lbl" for="wkTitle">Görev adı</label><input id="wkTitle" class="inp" maxlength="80" value="' + esc(t.title) + '">' +
+        '<label class="lbl" for="wkDesc">Açıklama</label><textarea id="wkDesc" class="inp" rows="3" maxlength="400">' + esc(t.desc) + '</textarea>' +
+        '<label class="lbl" for="wkPri">Öncelik</label><select id="wkPri" class="inp">' + Object.keys(Core.PRIORITIES).map(function (k) { return '<option value="' + k + '"' + (t.priority === k ? ' selected' : '') + '>' + esc(Core.PRIORITIES[k]) + '</option>'; }).join('') + '</select>' +
+        '<label class="lbl" for="wkRes">Sonuç / çıktı (kendi notun)</label><textarea id="wkRes" class="inp" rows="4" maxlength="1500">' + esc(t.result) + '</textarea>' +
+        '<div class="row wrap"><button class="btn slim" data-act="wkSave" data-id="' + id + '">Kaydet</button><button class="btn slim ghost" data-act="wkEditCancel">Vazgeç</button></div></div>';
+      return h;
+    }
+    if (t.desc) h += '<p>' + esc(t.desc) + '</p>';
+    const bl = Core.blockers(p, t);
+    if (t.deps.length) h += '<p class="small"><b>Bağımlı olduğu görevler:</b> ' + t.deps.map(function (d) { const x = Core.tasksOf(S, p.id).find(function (y) { return y.id === d; }); return x ? '<span class="chip ' + (x.status === 'done' ? 'ok' : '') + '">' + esc(x.title) + '</span>' : ''; }).join(' ') + '</p>';
+    h += '</div>';
+    h += approvalBox(p, t);
+    if (t.result) h += '<div class="card"><b>Çıktı</b> <span class="muted small">(' + (t.src === 'ai' ? 'yapay zekâ' : 'demo, yerel şablon') + ')</span><p class="small pre" data-nt>' + esc(t.result) + '</p></div>';
+    if (live) {
+      h += '<div class="row wrap">';
+      if (t.status === 'planned') h += '<button class="btn slim" data-act="wkPrepare" data-id="' + id + '"' + (bl.length ? ' disabled' : '') + '>Hazırlığı başlat</button>';
+      if (t.status === 'active' || t.status === 'preparing') h += '<button class="btn slim" data-act="wkComplete" data-id="' + id + '"' + (t.approval && t.approval.state !== 'approved' ? ' disabled' : '') + '>' + (t.external ? 'Ben yaptım, tamamla' : 'Çıktıyı kabul et') + '</button>';
+      if (t.status === 'planned' || t.status === 'preparing' || t.status === 'active' || t.status === 'awaiting') h += '<button class="btn slim ghost" data-act="wkEdit" data-id="' + id + '">Düzenle</button>';
+      if (t.status === 'planned') h += (t.snoozeUntil > now ? '<button class="btn slim ghost" data-act="wkSnooze" data-id="' + id + '" data-v="0">Ertelemeyi kaldır</button>' : '<button class="btn slim ghost" data-act="wkSnooze" data-id="' + id + '" data-v="7">7 gün ertele</button>');
+      if (t.status === 'preparing' || t.status === 'active') h += '<button class="btn slim ghost" data-act="wkFail" data-id="' + id + '">Başarısız say</button>';
+      if (['planned', 'preparing', 'awaiting', 'active'].indexOf(t.status) !== -1) h += '<button class="btn slim ghost" data-act="wkCancel" data-id="' + id + '">İptal et</button>';
+      if (['done', 'failed', 'cancelled'].indexOf(t.status) !== -1) h += '<button class="btn slim ghost" data-act="wkReopen" data-id="' + id + '">Yeniden planla</button><button class="btn slim danger" data-act="wkDelete" data-id="' + id + '">Sil</button>';
+      h += '</div>';
+      if (t.status === 'planned' && bl.length) h += '<p class="fine"><span>Önce şunlar tamamlanmalı:</span> ' + bl.map(function (x) { return '<span>' + esc(x.title) + '</span>'; }).join(', ') + '</p>';
+    }
+    h += '<div class="card"><b>İşlem geçmişi</b><ul class="list tlog">' + t.log.slice().reverse().map(function (l) {
+      return '<li><span class="muted small">' + hm(l.at) + '</span><br>' + esc(l.text) + ' <span class="chip ' + (l.by === 'user' ? '' : 'mute') + '">' + (l.by === 'user' ? 'Sen' : 'Sistem') + '</span></li>';
+    }).join('') + '</ul></div>';
+    return h;
+  }
+  function planCard(S, p, plan, compact) {
+    const ts = Core.tasksOf(S, p.id).filter(function (t) { return t.planId === plan.id; });
+    let h = '<div class="card plan"><div class="row"><b>Görev planı</b><span class="chip ' + (plan.state === 'approved' ? 'ok' : plan.state === 'rejected' ? 'mute' : 'warn') + '">' + (plan.state === 'approved' ? 'Onaylandı' : plan.state === 'rejected' ? 'Reddedildi' : 'Taslak: onayını bekliyor') + '</span></div>' +
+      '<p class="small" data-nt>' + esc(plan.goal) + '</p><ol class="plist">' + ts.map(function (t) { return '<li><span>' + esc(t.title) + '</span> ' + (compact ? '' : stChip(t)) + '</li>'; }).join('') + '</ol>';
+    if (plan.state === 'proposed') h += '<p class="fine">Onaylamazsan hiçbir görev çalışmaz. Onaylasan bile her görevi sen başlatırsın.</p><div class="row wrap"><button class="btn slim" data-act="wkPlanOk" data-id="' + esc(plan.id) + '" data-pid="' + esc(p.id) + '">Planı onayla</button><button class="btn slim ghost" data-act="wkPlanNo" data-id="' + esc(plan.id) + '" data-pid="' + esc(p.id) + '">Reddet</button></div>';
+    else h += '<button class="link" data-act="go" data-route="work">Görev merkezine git ›</button>';
+    return h + '</div>';
+  }
+  views.work = function (S, ui, now) {
+    const p = Core.activeProject(S);
+    if (!p) return '<h2>Görev Merkezi</h2>' + lock('Görevler bir projeye bağlıdır. Önce bir proje başlat veya seç.', 'Projelere git', 'projects');
+    const w = Core.workSummary(S, p.id), tasks = Core.tasksOf(S, p.id), we = Core.workEntitlements(S);
+    if (ui.workTask) {
+      const t = tasks.find(function (x) { return x.id === ui.workTask; });
+      if (t) return '<button class="link" data-act="wkBack">‹ Görev listesi</button>' + taskDetail(S, p, t, ui, now);
+      ui.workTask = null;
+    }
+    let h = '<h2>Görev Merkezi</h2><div class="row"><span><span class="muted small">Proje</span><br><b class="ptitle">' + esc(p.title) + '</b></span><span class="chip">' + w.open + ' açık</span></div>' +
+      '<p class="fine">Akış: planla → hazırla → seçenek sun → onay al → desteklenen işlemi yap → raporla. Burada yapay zekâ kendi başına işlem yapmaz; her adımı sen onaylarsın. Görevler yalnızca bu projeye aittir.</p>';
+    const aw = Core.pendingApprovals(S, p.id);
+    h += '<div class="card ' + (aw.length ? 'note' : '') + '"><b>Onay bekleyenler</b> <span class="muted small">(' + aw.length + ')</span>' + (aw.length ? '<ul class="list">' + aw.map(function (t) { return '<li><button class="task" data-act="wkOpen" data-id="' + esc(t.id) + '"><span class="chk">!</span><span>' + esc(t.title) + '</span></button></li>'; }).join('') + '</ul>' : '<p class="muted small">Şu an onayını bekleyen bir işlem yok.</p>') + '</div>';
+    Core.plansOf(S, p.id).filter(function (x) { return x.state === 'proposed'; }).forEach(function (x) { h += planCard(S, p, x, true); });
+    const groups = [['awaiting', 'Onay bekliyor'], ['active', 'Devam ediyor'], ['preparing', 'Hazırlanıyor'], ['planned', 'Planlandı'], ['done', 'Tamamlandı'], ['failed', 'Başarısız'], ['cancelled', 'İptal edildi']];
+    if (!tasks.length) h += '<div class="card"><p class="muted">Henüz görev yok. Sohbette "Dijital ürün projemi geliştirmek istiyorum" gibi bir hedef yaz, plan taslağı hazırlansın; ya da aşağıdan kendin görev ekle.</p><button class="btn slim" data-act="go" data-route="chat">Sohbete git</button></div>';
+    groups.forEach(function (g) {
+      const l = tasks.filter(function (t) { return t.status === g[0]; }); if (!l.length) return;
+      h += '<h3 class="sec"><span>' + g[1] + '</span> <span class="muted">(' + l.length + ')</span></h3><ul class="list">' + l.map(function (t) {
+        return '<li><button class="task ' + (t.status === 'done' ? 'done' : '') + '" data-act="wkOpen" data-id="' + esc(t.id) + '"><span class="chk">' + (t.status === 'done' ? icon('check', 16) : t.priority === 'high' ? '!' : '•') + '</span><span>' + esc(t.title) + '</span>' + (t.snoozeUntil > now && t.status === 'planned' ? '<small class="muted">ertelendi</small>' : '') + '</button></li>';
+      }).join('') + '</ul>';
+    });
+    h += '<div class="card"><b>Yeni görev</b><label class="lbl" for="wkNewTitle">Görev adı</label><input id="wkNewTitle" class="inp" maxlength="80" placeholder="Örn. İlk ürün taslağını çiz"><label class="lbl" for="wkNewPri">Öncelik</label><select id="wkNewPri" class="inp"><option value="normal">Normal</option><option value="high">Yüksek</option><option value="low">Düşük</option></select><button class="btn" data-act="wkAdd">Ekle</button></div>';
+    h += '<div class="card"><b>Dış işlemler ve izinler</b><p class="fine">Bu sürümde hiçbir dış hesaba (sosyal medya, e-posta, ödeme, web sitesi) bağlı değilim ve şifre/OAuth istemem. Aşağıdaki işlemler yapılmaz; yalnızca taslak hazırlanır. İleride bir bağlantı eklenirse her biri ayrı izinle ve her seferinde onayınla çalışır.</p><ul class="list">' +
+      Object.keys(Core.CAPABILITIES).map(function (k) { const c = Core.capabilityStatus(S, k); return '<li class="irow"><span>' + esc(c.name) + '</span><span class="chip ' + (c.supported ? 'ok' : 'mute') + '">' + (c.supported ? 'Bu cihazda' : 'Bağlı değil') + '</span></li>'; }).join('') +
+      '</ul><p class="fine"><span>Paket:</span> <span>' + esc(Core.PACKAGES[S.pkg] ? Core.PACKAGES[S.pkg].name : S.pkg) + '</span> · <span>tüm paketlerde şimdilik aynı temel görev motoru kullanılır.</span></p></div>';
     return h;
   };
 
@@ -1115,7 +1213,7 @@
     return html;
   }
 
-  const TAB_OF = { memory: 'chat', project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
+  const TAB_OF = { work: 'projects', memory: 'chat', project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
   function tabOf(route) { return TAB_OF[route] || (TOP.indexOf(route) !== -1 ? route : 'home'); }
 
   const NO_CHIP = ['welcome', 'onboarding', 'lock', 'projects', 'project', 'chat', 'memory', 'settings', 'account'];

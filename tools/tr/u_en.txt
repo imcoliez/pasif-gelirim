@@ -1,0 +1,149 @@
+0|Planned
+1|Preparing
+2|Waiting for your approval
+3|Completed
+4|Failed
+5|Cancelled
+6|High
+7|Draft and output preparation
+8|Done on this device with local templates.
+9|Spending money or payments
+10|No payment integration.
+11|Publishing content
+12|No connected account; nothing is published.
+13|Sending messages or e-mail
+14|No connected account; nothing is sent.
+15|Changing account settings
+16|No connected account.
+17|Sharing your data
+18|Your data is not shared.
+19|Deleting your data (by the AI)
+20|Only you can delete your data.
+21|Changes on an external account
+22|No OAuth/API integration.
+23|I split your goal into a task plan (demo AI: rule-based template, no real model wrote it). For now the plan is only a DRAFT; if you approve it in the card below the tasks can be started, if you don't, none of them runs. For steps like spending money, publishing or sending messages I will ask for your approval separately; in this version I am not connected to any outside account, so I cannot do them.
+24|A task plan must belong to a project. I don't create plans in the general chat; switch to "Project chat" (or start a project) and write your goal again.
+25|Unknown capability.
+26|There is no connection for this action in this version; permission cannot be granted.
+27|Project not found or archived; its tasks cannot be changed.
+28|Write the goal a bit more clearly (at least # characters).
+29|Information such as passwords, PINs, card/IBAN or ID numbers must not be written in the goal.
+30|Task created (plan draft).
+31|Plan not found.
+32|A decision has already been made on this plan.
+33|The user approved the plan.
+34|The user rejected the plan; the task was cancelled.
+35|Task name cannot be empty.
+36|Task created.
+37|Task not found.
+38|Only a task in the "Planned" status can be started.
+39|You must approve the plan first.
+40|Preparation started.
+41|Output draft prepared.
+42|Draft is ready; you can review it and complete the task.
+43|There is no action waiting for approval in this task.
+44|Please choose an option.
+45|The approved action is being carried out.
+46|The user did not approve; no action was taken.
+47|Cancelled (no approval given).
+48|This task needs your approval; it cannot be completed without it.
+49|A task in this status cannot be completed.
+50|A task in this status cannot be marked as failed.
+51|The user cancelled the task.
+52|This task cannot be cancelled.
+53|The user re-planned the task.
+54|This task cannot be re-planned.
+55|The dependencies of a completed task cannot be changed.
+56|Invalid priority.
+57|A task cannot depend on itself.
+58|The dependent task is not in this project.
+59|This dependency would create a loop.
+60|Task edited.
+61|Only a task that has not started yet (Planned) can be postponed.
+62|Only a completed, failed or cancelled task can be deleted.
+63|Task center
+64|# open · # waiting for approval
+65|AI-assisted task plan. Every step moves forward only with your approval.
+66|Go to the task center
+67|Task Center
+68|# open
+69|Flow: plan → prepare → offer options → get approval → do the supported action → report. The AI does nothing on its own here; you approve every step. Tasks belong only to this project.
+70|Waiting for approval
+71|No action is waiting for your approval right now.
+72|No tasks yet. Write a goal like "I want to grow my digital product project" in the chat and a plan draft will be prepared, or add a task yourself below.
+73|Go to chat
+74|New task
+75|Task name
+76|Priority
+77|External actions and permissions
+78|In this version I am not connected to any outside account (social media, e-mail, payment, website) and I never ask for passwords/OAuth. The actions below are not performed; only drafts are prepared. If a connection is added later, each one will work with a separate permission and with your approval every time.
+79|On this device
+80|Not connected
+81|Package:
+82|the same basic task engine is used in all packages for now.
+83|E.g. Sketch the first product draft
+84|Demo reply
+85|Task plan
+86|Draft: waiting for your approval
+87|Review the current project status
+88|Prepare the target audience research
+89|Create the ideas
+90|Prepare the development plan
+91|Create the promotion content drafts
+92|Evaluate the results
+93|If you don't approve, no task runs. Even if you approve, you start each task yourself.
+94|Approve the plan
+95|Approved
+96|Go to the task center ›
+97|Should I save this to memory?
+98|Don't save
+99|postponed
+100|‹ Task list
+101|Priority:
+102|Created:
+103|Summarize the project's on-device status, task progress and approved memory.
+104|Output
+105|(demo, local template)
+106|Re-plan
+107|Action history
+108|Completed.
+109|You
+110|The user accepted the output.
+111|The AI (demo, rule-based) prepared the plan. Waiting for your approval.
+112|Description
+113|Result / output (your own note)
+114|Prepare a draft question list for research to clarify who you will serve.
+115|Depends on these tasks:
+116|Draft product/content ideas that fit the project's income model.
+117|Prepare a four-week development outline. You choose the approach.
+118|Which approach should we take?
+119|There are two approaches; neither guarantees a result.
+120|A: Low cost, slow progress
+121|Completed. Report: four-week plan outline prepared (A chosen).
+122|Action carried out: your choice was applied to the plan (A).
+123|The user approved: A: Low cost, slow progress
+124|Waiting for your approval: Which approach should we take?
+125|Prepare drafts for promotion posts. Publishing needs a separate approval and cannot be done right now.
+126|Publishing the drafts
+127|Do you want to publish the prepared drafts?
+128|I approve publishing
+129|This action was not performed:
+130|No connected account; nothing is published. The draft is ready; you can do the action yourself.
+131|I did it, complete
+132|Edit
+133|Mark as failed
+134|Cancel
+135|Approval recorded, but "Publishing content" is not supported in this version: NOTHING WAS DONE. The draft is kept in the preparation stage.
+136|The user approved: I approve publishing
+137|Waiting for your approval: Publishing the drafts
+138|Review the outputs and real figures of the previous steps; you decide what to change.
+139|Start preparation
+140|Postpone # days
+141|These must be completed first:
+142|Postponed:
+143|Remove postponement
+144|The user postponed the task to #.
+145|Failed: no reason given
+146|It is submitted for your approval once preparation starts.
+147|Suggestions waiting for approval
+148|What you wrote in the chat looked important. It is not saved unless you approve.

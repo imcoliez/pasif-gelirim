@@ -212,6 +212,7 @@
     if (route === 'charts') ui.chartSel = null;
     if (route !== 'money') ui.editId = null;
     if (route !== 'memory') ui.memEdit = null;
+    if (route !== 'work') { ui.workTask = null; ui.workEdit = null; }
     if (route === 'market') setTimeout(function () { loadMarket(false); }, 0);
     if (route === 'chat' || route === 'memory') setTimeout(function () { checkAi(false); }, 0);
     if (extra) for (var k in extra) ui[k] = extra[k];
@@ -422,10 +423,24 @@
       toast(ctl && ctl.signal && ctl.signal.aborted ? 'Yanıt çok gecikti. Tekrar dene.' : 'Bağlanamadım. İnternetini kontrol edip tekrar dene.');
     });
   }
+  function wkPid() { var p = Core.activeProject(S); return p ? p.id : ''; }
+  function wkDo(r, okMsg) {
+    if (!r || !r.ok) { toast((r && r.error) || 'İşlem yapılamadı.'); render(); return; }
+    save(); toast(okMsg); render();
+  }
   function sendChat(text) {
     text = String(text || '').trim(); if (!text || ui.busy) return;
     if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
     var live = aiLive(), url = live ? liveUrl() : '', pid = Core.chatPid(S);
+    // Hedef cümlesi: görev planı TASLAĞI yerelde (kural tabanlı) hazırlanır; ücretli istek gitmez, onay olmadan hiçbir görev çalışmaz.
+    var goal = Core.detectGoal(text);
+    if (goal) {
+      withRewards(function () { Core.addChat(S, 'user', text, now(), pid); });
+      var pr = pid ? Core.proposePlan(S, pid, goal, now(), 'demo') : { ok: false, error: Core.PLAN_NEEDS_PROJECT };
+      Core.addChat(S, 'ai', pr.ok ? Core.PLAN_REPLY : pr.error, now(), pid, 'demo');
+      if (pr.ok) Core.attachPlanToLastChat(S, pr.plan.id);
+      ui.noDraft = true; save(); render(); return;
+    }
     var sug = Core.suggestMemory(S, text, now());          // yalnızca öneri; onay olmadan hiçbir şey kaydedilmez
     var reply = live ? '' : (sug ? Core.SUGGEST_REPLY : Core.aiReply(S, text, now()));
     var memText = live ? Core.memoryForServer(S) : '';
@@ -814,6 +829,32 @@
       if (ui.busy || !aiLive()) { ui.failed = ''; render(); return; }
       var pid = Core.chatPid(S); ui.failed = ''; ui.typing = true; ui.busy = true; render();
       askLive(liveUrl(), pid, Core.memoryForServer(S), 0);
+    },
+    wkOpen: function (el) { ui.workTask = el.getAttribute('data-id'); ui.workEdit = null; render(); },
+    wkBack: function () { ui.workTask = null; ui.workEdit = null; render(); },
+    wkPlanOk: function (el) { wkDo(Core.decidePlan(S, el.getAttribute('data-pid'), el.getAttribute('data-id'), true, now()), 'Plan onaylandı. Görevleri tek tek sen başlatırsın.'); },
+    wkPlanNo: function (el) { wkDo(Core.decidePlan(S, el.getAttribute('data-pid'), el.getAttribute('data-id'), false, now()), 'Plan reddedildi; hiçbir görev çalışmadı.'); },
+    wkPrepare: function (el) { wkDo(Core.prepareTask(S, wkPid(), el.getAttribute('data-id'), now()), 'Hazırlık yapıldı.'); },
+    wkApprove: function (el) {
+      var r = Core.approveTask(S, wkPid(), el.getAttribute('data-id'), el.getAttribute('data-v'), now());
+      wkDo(r, r.ok && !r.executed ? 'Onayın kaydedildi, ama bu işlem bu sürümde desteklenmiyor: hiçbir şey yapılmadı.' : 'Onaylandı ve raporlandı.');
+    },
+    wkReject: function (el) { wkDo(Core.rejectApproval(S, wkPid(), el.getAttribute('data-id'), now()), 'Onaylanmadı; işlem yapılmadı, görev iptal edildi.'); },
+    wkComplete: function (el) { wkDo(Core.completeTask(S, wkPid(), el.getAttribute('data-id'), undefined, now()), 'Görev tamamlandı.'); },
+    wkFail: function (el) { wkDo(Core.failTask(S, wkPid(), el.getAttribute('data-id'), '', now()), 'Başarısız olarak işaretlendi.'); },
+    wkCancel: function (el) { if (!window.confirm(I18n.t('Bu görev iptal edilsin mi?'))) return; wkDo(Core.cancelTask(S, wkPid(), el.getAttribute('data-id'), now()), 'Görev iptal edildi.'); },
+    wkReopen: function (el) { wkDo(Core.reopenTask(S, wkPid(), el.getAttribute('data-id'), now()), 'Görev yeniden planlandı.'); },
+    wkSnooze: function (el) { var d = +el.getAttribute('data-v') || 0; wkDo(Core.snoozeTask(S, wkPid(), el.getAttribute('data-id'), d ? now() + d * 86400000 : 0, now()), d ? 'Görev ertelendi.' : 'Erteleme kaldırıldı.'); },
+    wkDelete: function (el) { if (!window.confirm(I18n.t('Bu görev ve işlem geçmişi silinsin mi? Bu işlem geri alınamaz.'))) return; ui.workTask = null; wkDo(Core.deleteTask(S, wkPid(), el.getAttribute('data-id'), now()), 'Görev silindi.'); },
+    wkEdit: function (el) { ui.workEdit = el.getAttribute('data-id'); render(); },
+    wkEditCancel: function () { ui.workEdit = null; render(); },
+    wkSave: function (el) {
+      var r = Core.editTask(S, wkPid(), el.getAttribute('data-id'), { title: val('wkTitle'), desc: val('wkDesc'), priority: val('wkPri'), result: val('wkRes') }, now());
+      if (r.ok) ui.workEdit = null; wkDo(r, 'Görev güncellendi.');
+    },
+    wkAdd: function () {
+      var r = Core.addTask(S, wkPid(), { title: val('wkNewTitle'), priority: val('wkNewPri') }, now());
+      ui.noDraft = true; wkDo(r, 'Görev eklendi.');
     },
     send: function () { sendChat(val('chatInput')); },
     suggest: function (el) { sendChat(el.getAttribute('data-t')); },

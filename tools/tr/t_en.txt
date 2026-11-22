@@ -1,0 +1,17 @@
+0|Plan approved. You start the tasks one by one.
+1|Plan rejected; no task ran.
+2|Preparation done.
+3|Your approval was recorded, but this action is not supported in this version: nothing was done.
+4|Approved and reported.
+5|Not approved; no action was taken, the task was cancelled.
+6|Marked as failed.
+7|Cancel this task?
+8|Task cancelled.
+9|Task re-planned.
+10|Task postponed.
+11|Postponement removed.
+12|Delete this task and its action history? This cannot be undone.
+13|Task deleted.
+14|Task updated.
+15|Task added.
+16|The action could not be done.

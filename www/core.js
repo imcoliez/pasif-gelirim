@@ -131,6 +131,7 @@
       p.pkg = typeof p.pkg === 'string' && PACKAGES[p.pkg] && p.pkg !== 'free' && !pkgSeen && p.status === 'active' ? p.pkg : '';
       if (p.pkg) pkgSeen = true;
       p.memory = cleanMemory(p.memory);
+      p.work = cleanWork(p.work);
       if (!p.tasks || typeof p.tasks !== 'object') p.tasks = {};
       Object.keys(p.tasks).forEach(function (k) {
         const t = p.tasks[k]; if (!t || typeof t !== 'object') { delete p.tasks[k]; return; }
@@ -138,9 +139,10 @@
       });
     });
     out.chatGeneral = !!out.chatGeneral;
+    out.permissions = cleanPermissions(s.permissions);
     out.settings.aiShareMemory = out.settings.aiShareMemory === true;
     out.settings.aiConsent = +out.settings.aiConsent > 0 ? +out.settings.aiConsent : 0;      // ücretli gerçek AI kullanımını bilerek açma zamanı (0 = açmadı)
-    out.chat.forEach(function (m) { m.pid = typeof m.pid === 'string' ? m.pid : ''; m.src = m.src === 'demo' || m.src === 'ai' ? m.src : ''; });
+    out.chat.forEach(function (m) { m.pid = typeof m.pid === 'string' ? m.pid : ''; m.src = m.src === 'demo' || m.src === 'ai' ? m.src : ''; if (typeof m.plan === 'string' && m.plan) m.plan = m.plan.slice(0, 60); else delete m.plan; });
     if (out.projects.length) { const cur = out.projects.find(function (q) { return q.id === out.activeProjectId; }); if (!cur || cur.status === 'archived') { const live = out.projects.filter(function (q) { return q.status !== 'archived'; }); out.activeProjectId = live.length ? live[live.length - 1].id : null; } }
     return out;
   }
@@ -221,7 +223,7 @@
     if (!canStartProject(state)) return null;
     const p = {
       id: uid('proj'), modelId: m.id, title: m.title, desc: '', status: 'active', goal: 0, note: '', pkg: '', createdAt: now, updatedAt: now,
-      memory: { items: [], pending: [] }, tasks: {}, lastNote: 'Proje başlatıldı.'
+      memory: { items: [], pending: [] }, work: { tasks: [], plans: [] }, tasks: {}, lastNote: 'Proje başlatıldı.'
     };
     state.projects.push(p);
     state.activeProjectId = p.id;
@@ -1231,6 +1233,421 @@
     return 'Bunu biraz daha açabilir misin? Anlamadığın bir terimi (örneğin "hedef kitle" veya "niş") yazarsan açıklayabilirim.';
   }
 
+  // ---------- Görev ve iş akışı motoru (Aşama 6) ----------
+  // Akış: Planla → Hazırla → Seçenek sun → Onay al → Desteklenen işlemi gerçekleştir → Raporla.
+  // Görevler projenin içinde (p.work) tutulur; başka projeye karışmaz. Harici hesaplara bağlantı YOKTUR:
+  // dış etkisi olan işlemler yalnızca taslak olarak hazırlanır ve "yapıldı" diye gösterilmez.
+  const TASK_STATUS = { planned: 'Planlandı', preparing: 'Hazırlanıyor', awaiting: 'Kullanıcı onayı bekliyor', active: 'Devam ediyor', done: 'Tamamlandı', failed: 'Başarısız', cancelled: 'İptal edildi' };
+  const TASK_FLOW = {
+    planned: ['preparing', 'cancelled'],
+    preparing: ['awaiting', 'active', 'done', 'failed', 'cancelled'],
+    awaiting: ['active', 'preparing', 'done', 'failed', 'cancelled'],
+    active: ['done', 'failed', 'cancelled'],
+    failed: ['planned', 'cancelled'],
+    done: ['planned'],
+    cancelled: ['planned']
+  };
+  const PRIORITIES = { high: 'Yüksek', normal: 'Normal', low: 'Düşük' };
+  const WORK_LIMITS = { tasks: 60, plans: 10, title: 80, desc: 400, result: 1500, log: 60, goal: 160, snoozeDays: 90 };
+  // Yetenekler: supported=false → bu sürümde gerçek bağlantı yok; asla gerçekleştirilmiş gibi gösterilmez.
+  // approval=true → her seferinde, işlem başına açık kullanıcı onayı şart (kalıcı izin olsa bile).
+  const CAPABILITIES = {
+    draft:   { name: 'Taslak ve çıktı hazırlama', supported: true,  approval: false, note: 'Bu cihazda, yerel şablonlarla yapılır.' },
+    spend:   { name: 'Para harcama veya ödeme', supported: false, approval: true,  note: 'Ödeme entegrasyonu yok.' },
+    publish: { name: 'İçerik yayımlama', supported: false, approval: true,  note: 'Bağlı hesap yok; yayımlama yapılmaz.' },
+    message: { name: 'Mesaj veya e-posta gönderme', supported: false, approval: true,  note: 'Bağlı hesap yok; gönderim yapılmaz.' },
+    account: { name: 'Hesap ayarlarını değiştirme', supported: false, approval: true,  note: 'Bağlı hesap yok.' },
+    share:   { name: 'Verini paylaşma', supported: false, approval: true,  note: 'Veri paylaşımı yapılmaz.' },
+    erase:   { name: 'Verini silme (yapay zekâ eliyle)', supported: false, approval: true, note: 'Verini yalnızca sen silebilirsin.' },
+    external:{ name: 'Harici hesapta değişiklik', supported: false, approval: true,  note: 'OAuth/API entegrasyonu yok.' }
+  };
+  // Paketlere göre yetenek altyapısı. Aşama 6'da dört paket de aynı temel görev motorunu kullanır;
+  // paketlerin gerçek farkları ileride burada ayrışacak (mevcut entitlements() değişmedi).
+  const WORK_BY_PACKAGE = {
+    free:   { tasks: true, plans: true, caps: ['draft'] },
+    manual: { tasks: true, plans: true, caps: ['draft'] },
+    semi:   { tasks: true, plans: true, caps: ['draft'] },
+    ceo:    { tasks: true, plans: true, caps: ['draft'] }
+  };
+  function workEntitlements(state) {
+    const e = WORK_BY_PACKAGE[state.pkg] || WORK_BY_PACKAGE.free;
+    return { tasks: e.tasks, plans: e.plans, caps: e.caps.slice(), maxTasks: WORK_LIMITS.tasks, maxPlans: WORK_LIMITS.plans };
+  }
+  function capabilityStatus(state, capId) {
+    const c = CAPABILITIES[capId]; if (!c) return null;
+    const granted = !!(state.permissions && state.permissions[capId] === true) && c.supported;
+    return { id: capId, name: c.name, supported: c.supported, approval: c.approval, granted: granted, connected: false, note: c.note };
+  }
+  // Kalıcı izin (ayrı ve açık). Desteklenmeyen yetenek için verilemez. İzin olsa da her işlem ayrıca onay ister.
+  function setPermission(state, capId, on) {
+    const c = CAPABILITIES[capId];
+    if (!c) return { ok: false, error: 'Bilinmeyen yetenek.' };
+    if (!c.supported) return { ok: false, error: 'Bu sürümde bu işlem için bir bağlantı yok; izin verilemez.' };
+    if (!state.permissions || typeof state.permissions !== 'object') state.permissions = {};
+    state.permissions[capId] = !!on;
+    return { ok: true };
+  }
+  function cleanPermissions(x) {
+    const out = {};
+    Object.keys(CAPABILITIES).forEach(function (k) { out[k] = !!(x && typeof x === 'object' && x[k] === true) && CAPABILITIES[k].supported; });
+    return out;
+  }
+
+  function clip(s, n) { return String(s == null ? '' : s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').slice(0, n); }
+  function cleanApproval(a) {
+    if (!a || typeof a !== 'object') return null;
+    const cap = CAPABILITIES[a.cap] ? a.cap : 'draft';
+    const opts = (Array.isArray(a.options) ? a.options : []).filter(function (o) { return o && typeof o === 'object' && o.id; }).slice(0, 4).map(function (o) {
+      return { id: clip(o.id, 20), label: clip(o.label, 80), effect: clip(o.effect, 240) };
+    });
+    if (!opts.length) return null;
+    const st = a.state === 'approved' || a.state === 'rejected' ? a.state : 'pending';
+    const chosen = opts.some(function (o) { return o.id === a.chosen; }) ? a.chosen : '';
+    return { type: a.type === 'external' ? 'external' : 'decision', cap: cap, title: clip(a.title, 80), question: clip(a.question, 240), options: opts, state: st, chosen: st === 'approved' ? chosen : '', decidedAt: +a.decidedAt || 0 };
+  }
+  function cleanTask(t, ids) {
+    if (!t || typeof t !== 'object' || Array.isArray(t)) return null;
+    const title = clip(t.title, WORK_LIMITS.title).trim(); if (!title) return null;
+    let id = String(t.id || uid('wt')).slice(0, 60); if (ids[id]) id = uid('wt'); ids[id] = 1;
+    const ext = t.external && typeof t.external === 'object' && t.external.state === 'draft_only' && CAPABILITIES[t.external.cap] ? { cap: t.external.cap, state: 'draft_only' } : null;
+    return {
+      id: id, title: title, desc: clip(t.desc, WORK_LIMITS.desc), priority: PRIORITIES[t.priority] ? t.priority : 'normal',
+      status: TASK_STATUS[t.status] ? t.status : 'planned', kind: clip(t.kind, 20), planId: clip(t.planId, 60),
+      createdAt: +t.createdAt || 0, updatedAt: +t.updatedAt || 0, snoozeUntil: +t.snoozeUntil > 0 ? +t.snoozeUntil : 0,
+      deps: (Array.isArray(t.deps) ? t.deps : []).map(String).slice(0, 10), result: clip(t.result, WORK_LIMITS.result), summary: clip(t.summary, 160),
+      approval: cleanApproval(t.approval), external: ext, src: t.src === 'ai' ? 'ai' : 'demo',
+      log: (Array.isArray(t.log) ? t.log : []).filter(function (l) { return l && typeof l === 'object'; }).slice(-WORK_LIMITS.log).map(function (l) {
+        return { at: +l.at || 0, status: TASK_STATUS[l.status] ? l.status : 'planned', text: clip(l.text, 200), by: l.by === 'user' ? 'user' : 'system' };
+      })
+    };
+  }
+  function cleanWork(w) {
+    const out = { tasks: [], plans: [] };
+    if (!w || typeof w !== 'object') return out;
+    const pids = {};
+    (Array.isArray(w.plans) ? w.plans : []).slice(-WORK_LIMITS.plans).forEach(function (x) {
+      if (!x || typeof x !== 'object') return;
+      const goal = clip(x.goal, WORK_LIMITS.goal).trim(); if (!goal) return;
+      let id = String(x.id || uid('wp')).slice(0, 60); if (pids[id]) return; pids[id] = 1;
+      out.plans.push({ id: id, goal: goal, state: x.state === 'approved' || x.state === 'rejected' ? x.state : 'proposed', createdAt: +x.createdAt || 0, decidedAt: +x.decidedAt || 0, src: x.src === 'ai' ? 'ai' : 'demo' });
+    });
+    const ids = {};
+    (Array.isArray(w.tasks) ? w.tasks : []).slice(0, WORK_LIMITS.tasks).forEach(function (x) { const c = cleanTask(x, ids); if (c) out.tasks.push(c); });
+    out.tasks.forEach(function (t) {
+      t.deps = t.deps.filter(function (d, i, a) { return d !== t.id && ids[d] && a.indexOf(d) === i; });
+      if (t.planId && !pids[t.planId]) t.planId = '';
+    });
+    out.tasks.forEach(function (t) { if (hasCycle(out.tasks, t.id)) t.deps = []; });
+    return out;
+  }
+  function hasCycle(tasks, startId) {
+    const byId = {}; tasks.forEach(function (t) { byId[t.id] = t; });
+    const seen = {}, stack = (byId[startId] ? byId[startId].deps : []).slice();
+    while (stack.length) {
+      const id = stack.pop();
+      if (id === startId) return true;
+      if (seen[id] || !byId[id]) continue; seen[id] = 1;
+      byId[id].deps.forEach(function (d) { stack.push(d); });
+    }
+    return false;
+  }
+  function workOf(p) { if (!p.work || !Array.isArray(p.work.tasks) || !Array.isArray(p.work.plans)) p.work = cleanWork(p.work); return p.work; }
+  function workTarget(state, pid) { const p = projectById(state, pid); return p && !isArchived(p) ? p : null; }
+  function taskIn(p, tid) { return workOf(p).tasks.find(function (t) { return t.id === tid; }) || null; }
+  function planIn(p, id) { return workOf(p).plans.find(function (x) { return x.id === id; }) || null; }
+  function tlog(t, text, now, by) {
+    t.log.push({ at: now, status: t.status, text: clip(text, 200), by: by === 'user' ? 'user' : 'system' });
+    if (t.log.length > WORK_LIMITS.log) t.log = t.log.slice(-WORK_LIMITS.log);
+    t.updatedAt = now;
+  }
+  function move(t, to, now, text, by) {
+    if (TASK_FLOW[t.status].indexOf(to) === -1) return false;
+    t.status = to; tlog(t, text || TASK_STATUS[to], now, by); return true;
+  }
+  const NOPROJ = { ok: false, error: 'Proje bulunamadı veya arşivde; görevleri değiştirilemez.' };
+  function tasksOf(state, pid) { const p = projectById(state, pid); return p ? workOf(p).tasks : []; }
+  function plansOf(state, pid) { const p = projectById(state, pid); return p ? workOf(p).plans : []; }
+  function blockers(p, t) {
+    return t.deps.map(function (d) { return taskIn(p, d); }).filter(function (x) { return x && x.status !== 'done'; });
+  }
+  function pendingApprovals(state, pid) {
+    return tasksOf(state, pid).filter(function (t) { return t.status === 'awaiting' && t.approval && t.approval.state === 'pending'; });
+  }
+  function workSummary(state, pid) {
+    const c = { planned: 0, preparing: 0, awaiting: 0, active: 0, done: 0, failed: 0, cancelled: 0 };
+    tasksOf(state, pid).forEach(function (t) { c[t.status] += 1; });
+    return { counts: c, total: tasksOf(state, pid).length, waiting: c.awaiting, open: c.planned + c.preparing + c.awaiting + c.active };
+  }
+
+  // ---- Hedeften plan (demo: kural tabanlı; gerçek yapay zekâ plan yazmaz) ----
+  const GOAL_RE = /(geliştirmek|büyütmek|kurmak|başlatmak|ilerletmek|artırmak|toparlamak|canlandırmak)\s+istiyorum|görev planı|plana dök|görevlere böl|plan\s+(hazırla|çıkar|yap)|yol haritası\s+(çıkar|hazırla)/;
+  function detectGoal(text) {
+    const raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if (raw.length < 10 || /\?\s*$/.test(raw)) return '';
+    return GOAL_RE.test(norm(raw)) ? raw.slice(0, WORK_LIMITS.goal) : '';
+  }
+  function planSpecs(goal) {
+    return [
+      { kind: 'inspect', title: 'Mevcut proje durumunu incele', desc: 'Projenin cihazdaki durumunu, görev ilerlemesini ve onaylı hafızasını özetle.', priority: 'normal', deps: [] },
+      { kind: 'audience', title: 'Hedef kitle araştırması hazırla', desc: 'Kime hizmet edeceğini netleştirmek için araştırma soru listesi taslağı hazırla.', priority: 'high', deps: [0] },
+      { kind: 'ideas', title: 'Fikirleri oluştur', desc: 'Projenin gelir modeline uygun ürün/içerik fikirleri taslağı çıkar.', priority: 'normal', deps: [1] },
+      { kind: 'roadmap', title: 'Geliştirme planı hazırla', desc: 'Dört haftalık bir geliştirme iskeleti hazırla. Yaklaşımı sen seçersin.', priority: 'high', deps: [2],
+        approval: { type: 'decision', cap: 'draft', title: 'Hangi yaklaşımla ilerleyelim?', question: 'İki yaklaşım var; ikisinde de sonuç garanti değildir.',
+          options: [
+            { id: 'a', label: 'A: Düşük maliyet, yavaş ilerleme', effect: 'Daha az para ve zaman harcarsın; sonuçlar daha geç görünebilir.' },
+            { id: 'b', label: 'B: Daha yüksek maliyet, hızlı ilerleme ihtimali', effect: 'Daha fazla para/zaman gerekir; hızlanabilir ama kayıp riski de artar. Kazanç garantisi yoktur.' }] } },
+      { kind: 'promo', title: 'Tanıtım içerikleri taslağı oluştur', desc: 'Tanıtım gönderileri için taslaklar hazırla. Yayımlama ayrı bir onay ister ve şu an yapılamaz.', priority: 'normal', deps: [3],
+        approval: { type: 'external', cap: 'publish', title: 'Taslakların yayımlanması', question: 'Hazırlanan taslakları yayımlamak istiyor musun?',
+          options: [{ id: 'publish', label: 'Yayımlamayı onaylıyorum', effect: 'Bu sürümde hiçbir hesaba bağlı değilim; yayımlama yapılmaz, taslak hazır tutulur ve yayımlamayı sen yaparsın.' }] } },
+      { kind: 'review', title: 'Sonuçları değerlendir', desc: 'Önceki adımların çıktılarını ve gerçek rakamlarını gözden geçir; neyi değiştireceğine sen karar ver.', priority: 'normal', deps: [0, 1, 2, 3, 4] }
+    ];
+  }
+  function proposePlan(state, pid, goal, now, src) {
+    const p = workTarget(state, pid); if (!p) return NOPROJ;
+    const g = clip(String(goal || '').replace(/\s+/g, ' '), WORK_LIMITS.goal).trim();
+    if (g.length < 5) return { ok: false, error: 'Hedefi biraz daha açık yaz (en az 5 karakter).' };
+    if (isSensitive(g)) return { ok: false, error: 'Şifre, PIN, kart/IBAN veya kimlik numarası gibi bilgiler hedefe yazılmamalı.' };
+    const w = workOf(p), specs = planSpecs(g);
+    if (w.plans.length >= WORK_LIMITS.plans) return { ok: false, error: 'En fazla ' + WORK_LIMITS.plans + ' plan tutulur. Eski bir planın görevlerini silip tekrar dene.' };
+    if (w.tasks.length + specs.length > WORK_LIMITS.tasks) return { ok: false, error: 'Görev sınırına ulaşıldı (' + WORK_LIMITS.tasks + '). Tamamlanan/iptal edilen görevleri silip tekrar dene.' };
+    const plan = { id: uid('wp'), goal: g, state: 'proposed', createdAt: now, decidedAt: 0, src: src === 'ai' ? 'ai' : 'demo' };
+    w.plans.push(plan);
+    const made = [];
+    specs.forEach(function (s) {
+      const t = { id: uid('wt'), title: s.title, desc: s.desc, priority: s.priority, status: 'planned', kind: s.kind, planId: plan.id, createdAt: now, updatedAt: now, snoozeUntil: 0,
+        deps: [], result: '', summary: '', approval: s.approval ? cleanApproval(Object.assign({ state: 'pending' }, s.approval)) : null, external: null, src: plan.src, log: [] };
+      s.deps.forEach(function (i) { t.deps.push(made[i].id); });
+      tlog(t, 'Görev oluşturuldu (plan taslağı).', now); tlog(t, 'Yapay zekâ ' + (plan.src === 'ai' ? '' : '(demo, kural tabanlı) ') + 'planı hazırladı. Onayını bekliyor.', now);
+      made.push(t); w.tasks.push(t);
+    });
+    p.updatedAt = now; p.lastNote = 'Görev planı hazırlandı: ' + g.slice(0, 60);
+    return { ok: true, plan: plan, tasks: made };
+  }
+  function decidePlan(state, pid, planId, approve, now) {
+    const p = workTarget(state, pid); if (!p) return NOPROJ;
+    const plan = planIn(p, planId); if (!plan) return { ok: false, error: 'Plan bulunamadı.' };
+    if (plan.state !== 'proposed') return { ok: false, error: 'Bu plan için zaten karar verildi.' };
+    plan.state = approve ? 'approved' : 'rejected'; plan.decidedAt = now;
+    workOf(p).tasks.forEach(function (t) {
+      if (t.planId !== plan.id) return;
+      if (approve) tlog(t, 'Kullanıcı planı onayladı.', now, 'user');
+      else if (t.status === 'planned') move(t, 'cancelled', now, 'Kullanıcı planı reddetti; görev iptal edildi.', 'user');
+    });
+    p.updatedAt = now;
+    return { ok: true, plan: plan };
+  }
+  function addTask(state, pid, fields, now) {
+    const p = workTarget(state, pid); if (!p) return NOPROJ;
+    const w = workOf(p), f = fields || {};
+    if (w.tasks.length >= WORK_LIMITS.tasks) return { ok: false, error: 'Görev sınırına ulaşıldı (' + WORK_LIMITS.tasks + ').' };
+    const title = clip(f.title, WORK_LIMITS.title).replace(/\s+/g, ' ').trim(); if (!title) return { ok: false, error: 'Görev adı boş olamaz.' };
+    const t = { id: uid('wt'), title: title, desc: clip(f.desc, WORK_LIMITS.desc), priority: PRIORITIES[f.priority] ? f.priority : 'normal', status: 'planned', kind: 'custom', planId: '',
+      createdAt: now, updatedAt: now, snoozeUntil: 0, deps: [], result: '', summary: '', approval: null, external: null, src: 'demo', log: [] };
+    tlog(t, 'Görev oluşturuldu.', now, 'user');
+    w.tasks.push(t); p.updatedAt = now;
+    return { ok: true, task: t };
+  }
+
+  // ---- Çıktı taslağı (yerel şablon; gerçek model yazmaz, sonuç uydurmaz) ----
+  function memLines(ctx) {
+    const L = [];
+    if (ctx.goals.length) L.push('Onaylı hedeflerin: ' + ctx.goals.join(' | '));
+    if (ctx.decisions.length) L.push('Onaylı kararların: ' + ctx.decisions.join(' | '));
+    if (ctx.prefs.length) L.push('Tercihlerin: ' + ctx.prefs.join(' | '));
+    return L;
+  }
+  function draftFor(state, p, t, choice) {
+    const m = modelById(p.modelId), ctx = projectContext(state, p.id), sum = projectSummary(state, p), ideas = m ? m.planIdeas : [];
+    const mem = memLines(ctx), L = [];
+    if (t.kind === 'inspect') {
+      L.push(ctx.text); L.push('Bu projeye bağlı gerçek kayıtlar: gelir ' + sum.income + ', gider ' + sum.expense + ' (net ' + sum.net + ').');
+      L.push('Bu özet cihazdaki kayıtlarından hesaplandı; tahmin içermez.');
+      return { text: L.join('\n'), summary: 'Proje durumu özetlendi.' };
+    }
+    if (t.kind === 'audience') {
+      L.push('Hedef kitle araştırması için TASLAK soru listesi (araştırmayı sen yapacaksın; sonuç uydurmuyorum):');
+      ['Kime yardım ediyorsun? Yaş, ilgi, ihtiyaç.', 'Hangi sorunu çözüyorsun, şu an nasıl çözüyorlar?', 'Zamanlarını nerede geçiriyorlar (hangi platform/topluluk)?', 'Benzer bir şey için daha önce para harcadılar mı, ne kadar?', 'Rakipler ne sunuyor, eksikleri ne?'].forEach(function (q, i) { L.push((i + 1) + '. ' + q); });
+      return { text: L.concat(mem).join('\n'), summary: 'Hedef kitle soru listesi taslağı hazırlandı.' };
+    }
+    if (t.kind === 'ideas') {
+      L.push('"' + (m ? m.title : p.title) + '" için fikir TASLAKLARI (denenmemiştir, başarı garantisi yoktur):');
+      ideas.slice(0, 4).forEach(function (x, i) { L.push((i + 1) + '. ' + x); });
+      return { text: L.concat(mem).join('\n'), summary: 'Fikir taslakları hazırlandı.' };
+    }
+    if (t.kind === 'roadmap') {
+      const a = choice === 'a';
+      L.push('Seçtiğin yaklaşım: ' + (choice ? (a ? 'A (düşük maliyet, yavaş ilerleme)' : 'B (daha yüksek maliyet, hızlı ilerleme ihtimali)') : 'henüz seçilmedi') + '. Sonuç garanti edilmez.');
+      L.push('Hafta 1: Hedef kitle sorularını yanıtla, bir fikri seç.');
+      L.push('Hafta 2: İlk çıktıyı ' + (a ? 'mevcut araçlarınla, ücretsiz yollarla' : 'gerekirse küçük bir bütçeyle') + ' hazırla.');
+      L.push('Hafta 3: Küçük bir kitleyle dene, geri bildirim topla.');
+      L.push('Hafta 4: Rakamlara bak, neyi sürdüreceğine karar ver.');
+      return { text: L.concat(mem).join('\n'), summary: 'Dört haftalık plan iskeleti hazırlandı' + (choice ? ' (' + choice.toUpperCase() + ' seçildi).' : '.') };
+    }
+    if (t.kind === 'promo') {
+      L.push('Tanıtım TASLAKLARI (yayımlanmadı; köşeli parantezleri kendin doldur):');
+      L.push('1. "[Sorun] yaşıyorsan, [çözüm] tam bunun için. Detaylar profilimde."');
+      L.push('2. "[Ürün/hizmet] nasıl hazırlandı? 3 adımda anlatıyorum."');
+      L.push('3. "[Müşteri/okur sorusu] sorusuna cevap veriyorum."');
+      return { text: L.join('\n'), summary: 'Tanıtım taslakları hazırlandı (yayımlanmadı).' };
+    }
+    if (t.kind === 'review') {
+      L.push('Değerlendirme için gerçek rakamların: gelir ' + sum.income + ', gider ' + sum.expense + ', net ' + sum.net + '.');
+      L.push('Görev ilerlemesi: ' + ctx.progress.done + '/' + ctx.progress.total + '.');
+      L.push('Kendine sor: Ne işe yaradı? Ne zaman/para kaybettirdi? Gelecek hafta neyi değiştireceksin?');
+      return { text: L.concat(mem).join('\n'), summary: 'Değerlendirme soruları ve rakamlar derlendi.' };
+    }
+    return { text: (t.desc || t.title) + '\n\n(Bu görev için hazır şablon yok; çıktıyı kendin yazabilirsin.)', summary: 'Görev notu hazırlandı.' };
+  }
+
+  // ---- Yaşam döngüsü ----
+  function getTask(state, pid, tid) {
+    const p = workTarget(state, pid); if (!p) return { err: NOPROJ };
+    const t = taskIn(p, tid); if (!t) return { err: { ok: false, error: 'Görev bulunamadı.' } };
+    return { p: p, t: t };
+  }
+  function prepareTask(state, pid, tid, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const p = g.p, t = g.t;
+    if (t.status !== 'planned') return { ok: false, error: 'Yalnızca "Planlandı" durumundaki görev başlatılabilir.' };
+    if (t.planId) { const pl = planIn(p, t.planId); if (pl && pl.state !== 'approved') return { ok: false, error: 'Önce planı onaylamalısın.' }; }
+    if (t.snoozeUntil > now) return { ok: false, error: 'Bu görev ' + formatDate(t.snoozeUntil) + ' tarihine ertelendi.' };
+    const bl = blockers(p, t);
+    if (bl.length) return { ok: false, error: 'Önce şu görev(ler) tamamlanmalı: ' + bl.map(function (x) { return x.title; }).join(', ') };
+    move(t, 'preparing', now, 'Hazırlık başladı.', 'user');
+    const d = draftFor(state, p, t, '');
+    t.result = clip(d.text, WORK_LIMITS.result); t.summary = d.summary; t.external = null;
+    tlog(t, 'Çıktı taslağı hazırlandı.', now);
+    if (t.approval && t.approval.state !== 'approved') {
+      t.approval.state = 'pending'; t.approval.chosen = '';
+      move(t, 'awaiting', now, 'Senin onayını bekliyor: ' + t.approval.title);
+    } else move(t, 'active', now, 'Taslak hazır; gözden geçirip tamamlayabilirsin.');
+    p.updatedAt = now;
+    return { ok: true, task: t };
+  }
+  // Onay: yalnızca "onay bekliyor" durumunda ve açık seçimle. Desteklenen işlem gerçekleştirilir, desteklenmeyen işlem YAPILMAZ.
+  function approveTask(state, pid, tid, choice, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const p = g.p, t = g.t, a = t.approval;
+    if (!a || t.status !== 'awaiting' || a.state !== 'pending') return { ok: false, error: 'Bu görevde onay bekleyen bir işlem yok.' };
+    const opt = a.options.find(function (o) { return o.id === choice; });
+    if (!opt) return { ok: false, error: 'Lütfen bir seçenek seç.' };
+    a.state = 'approved'; a.chosen = opt.id; a.decidedAt = now;
+    tlog(t, 'Kullanıcı onayladı: ' + opt.label, now, 'user');
+    const cap = CAPABILITIES[a.cap];
+    if (cap && cap.supported) {
+      const d = draftFor(state, p, t, opt.id);
+      t.result = clip(d.text, WORK_LIMITS.result); t.summary = d.summary;
+      move(t, 'active', now, 'Onaylanan işlem yapılıyor.');
+      tlog(t, 'İşlem gerçekleştirildi: ' + (a.type === 'decision' ? 'seçimin plana işlendi (' + opt.id.toUpperCase() + ').' : 'taslak hazırlandı.'), now);
+      move(t, 'done', now, 'Tamamlandı. Rapor: ' + t.summary);
+      suggestTaskMemory(p, t, now);
+    } else {
+      t.external = { cap: a.cap, state: 'draft_only' };
+      move(t, 'preparing', now, 'Onay kaydedildi, ama "' + (cap ? cap.name : a.cap) + '" bu sürümde desteklenmiyor: HİÇBİR İŞLEM YAPILMADI. Taslak hazırlık aşamasında tutuluyor.');
+    }
+    p.updatedAt = now;
+    return { ok: true, task: t, executed: !!(cap && cap.supported) };
+  }
+  function rejectApproval(state, pid, tid, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const t = g.t, a = t.approval;
+    if (!a || t.status !== 'awaiting' || a.state !== 'pending') return { ok: false, error: 'Bu görevde onay bekleyen bir işlem yok.' };
+    a.state = 'rejected'; a.chosen = a.chosen || ''; a.decidedAt = now;
+    tlog(t, 'Kullanıcı onaylamadı; işlem yapılmadı.', now, 'user');
+    move(t, 'cancelled', now, 'İptal edildi (onay verilmedi).', 'user');
+    g.p.updatedAt = now;
+    return { ok: true, task: t };
+  }
+  function completeTask(state, pid, tid, result, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const p = g.p, t = g.t;
+    if (t.approval && t.approval.state !== 'approved') return { ok: false, error: 'Bu görev senin onayını gerektiriyor; onaylanmadan tamamlanamaz.' };
+    if (t.status !== 'active' && t.status !== 'preparing') return { ok: false, error: 'Bu durumdaki görev tamamlanamaz.' };
+    if (typeof result === 'string') t.result = clip(result, WORK_LIMITS.result);
+    const manual = !!t.external;
+    tlog(t, manual ? 'Kullanıcı, işlemi kendisinin yaptığını belirtti. Uygulama harici işlem yapmadı.' : 'Kullanıcı çıktıyı kabul etti.', now, 'user');
+    move(t, 'done', now, 'Tamamlandı.' + (manual ? ' (Harici işlemi uygulama yapmadı.)' : ''), 'user');
+    suggestTaskMemory(p, t, now);
+    p.updatedAt = now;
+    return { ok: true, task: t };
+  }
+  function failTask(state, pid, tid, reason, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    if (!move(g.t, 'failed', now, 'Başarısız: ' + (clip(reason, 120) || 'neden belirtilmedi'), 'user')) return { ok: false, error: 'Bu durumdaki görev başarısız işaretlenemez.' };
+    g.p.updatedAt = now; return { ok: true, task: g.t };
+  }
+  function cancelTask(state, pid, tid, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    if (!move(g.t, 'cancelled', now, 'Kullanıcı görevi iptal etti.', 'user')) return { ok: false, error: 'Bu görev iptal edilemez.' };
+    g.p.updatedAt = now; return { ok: true, task: g.t };
+  }
+  // Tamamlanan/başarısız/iptal edilen görevi yeniden planla (onay ve çıktı sıfırlanır; geçmiş kalır).
+  function reopenTask(state, pid, tid, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const t = g.t;
+    if (!move(t, 'planned', now, 'Kullanıcı görevi yeniden planladı.', 'user')) return { ok: false, error: 'Bu görev yeniden planlanamaz.' };
+    if (t.approval) { t.approval.state = 'pending'; t.approval.chosen = ''; t.approval.decidedAt = 0; }
+    t.external = null; g.p.updatedAt = now; return { ok: true, task: t };
+  }
+  function editTask(state, pid, tid, f, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const p = g.p, t = g.t; f = f || {};
+    if (t.status === 'done' && 'deps' in f) return { ok: false, error: 'Tamamlanan görevin bağımlılığı değiştirilemez.' };
+    if ('title' in f) { const v = clip(f.title, WORK_LIMITS.title).replace(/\s+/g, ' ').trim(); if (!v) return { ok: false, error: 'Görev adı boş olamaz.' }; t.title = v; }
+    if ('desc' in f) t.desc = clip(f.desc, WORK_LIMITS.desc);
+    if ('priority' in f) { if (!PRIORITIES[f.priority]) return { ok: false, error: 'Geçersiz öncelik.' }; t.priority = f.priority; }
+    if ('result' in f) t.result = clip(f.result, WORK_LIMITS.result);
+    if ('deps' in f) {
+      const w = workOf(p), nd = (Array.isArray(f.deps) ? f.deps : []).filter(function (d, i, a) { return a.indexOf(d) === i; });
+      for (let i = 0; i < nd.length; i++) {
+        if (nd[i] === t.id) return { ok: false, error: 'Görev kendine bağlı olamaz.' };
+        if (!w.tasks.some(function (x) { return x.id === nd[i]; })) return { ok: false, error: 'Bağımlı görev bu projede yok.' };
+      }
+      const old = t.deps; t.deps = nd;
+      if (hasCycle(w.tasks, t.id)) { t.deps = old; return { ok: false, error: 'Bu bağımlılık döngü oluşturur.' }; }
+    }
+    tlog(t, 'Görev düzenlendi.', now, 'user'); p.updatedAt = now;
+    return { ok: true, task: t };
+  }
+  function snoozeTask(state, pid, tid, until, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const t = g.t;
+    if (t.status !== 'planned') return { ok: false, error: 'Yalnızca henüz başlamamış (Planlandı) görev ertelenebilir.' };
+    until = +until || 0;
+    if (until > 0 && (until <= now || until > now + WORK_LIMITS.snoozeDays * 86400000)) return { ok: false, error: 'Erteleme tarihi gelecekte ve en fazla ' + WORK_LIMITS.snoozeDays + ' gün sonrası olabilir.' };
+    t.snoozeUntil = until > 0 ? until : 0;
+    tlog(t, until > 0 ? 'Kullanıcı görevi ' + formatDate(until) + ' tarihine erteledi.' : 'Erteleme kaldırıldı.', now, 'user');
+    g.p.updatedAt = now; return { ok: true, task: t };
+  }
+  function deleteTask(state, pid, tid, now) {
+    const g = getTask(state, pid, tid); if (g.err) return g.err;
+    const t = g.t;
+    if (t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') return { ok: false, error: 'Yalnızca tamamlanan, başarısız veya iptal edilen görev silinebilir.' };
+    const w = workOf(g.p);
+    w.tasks = w.tasks.filter(function (x) { return x.id !== tid; });
+    w.tasks.forEach(function (x) { x.deps = x.deps.filter(function (d) { return d !== tid; }); });
+    w.plans = w.plans.filter(function (pl) { return w.tasks.some(function (x) { return x.planId === pl.id; }) || pl.state === 'proposed'; });
+    g.p.updatedAt = now; return { ok: true };
+  }
+  // Tamamlanan önemli görevin sonucu: yalnızca ÖNERİ olarak onay bekleyen hafıza listesine girer; kullanıcı onaylamadan kalıcı hafızaya yazılmaz.
+  function suggestTaskMemory(p, t, now) {
+    if (!(t.priority === 'high' || t.kind === 'review') || !t.summary) return null;
+    const text = cleanMemText('Tamamlandı: ' + t.title + ' — ' + t.summary);
+    if (!text || isSensitive(text)) return null;
+    const m = memOf(p);
+    if (m.items.some(function (x) { return memKey(x.text) === memKey(text); }) || m.pending.some(function (x) { return memKey(x.text) === memKey(text); })) return null;
+    const pend = { id: uid('pend'), kind: 'status', text: text, at: now };
+    m.pending.push(pend);
+    while (m.pending.length > MEMORY_LIMITS.pending) m.pending.shift();
+    return pend;
+  }
+  // Sohbet kartı için: mesaja bağlı plan
+  function attachPlanToLastChat(state, planId) {
+    const m = state.chat[state.chat.length - 1]; if (m && m.role !== 'user') m.plan = String(planId).slice(0, 60);
+  }
+  const PLAN_REPLY = 'Hedefini bir görev planına böldüm (demo yapay zekâ: kural tabanlı şablon, gerçek model yazmadı). Plan şimdilik yalnızca TASLAK; aşağıdaki karttan onaylarsan görevler başlatılabilir, onaylamazsan hiçbiri çalışmaz. Para harcama, yayımlama veya mesaj gönderme gibi adımlar için ayrıca onayını isterim; bu sürümde dış hesaplara bağlı olmadığım için bunları yapamam.';
+  const PLAN_NEEDS_PROJECT = 'Görev planı bir projeye bağlı olmalı. Genel sohbetteyken plan oluşturmuyorum; "Proje sohbeti"ne geçip (veya bir proje başlatıp) hedefini tekrar yaz.';
+
   // ---------- Dışa aktarma ----------
   // Yedeğe PIN özeti konmaz (başkasına gönderilen dosyada kilit bilgisi olmasın).
   function exportData(state) {
@@ -1284,6 +1701,11 @@
     updateFinance: updateFinance, setBudget: setBudget, budgetProgress: budgetProgress, calcSales: calcSales, checklist: checklist, glossaryList: glossaryList,
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
-    aiReply: aiReply, explainTerm: explainTerm, exportData: exportData
+    aiReply: aiReply, explainTerm: explainTerm, exportData: exportData,
+    TASK_STATUS: TASK_STATUS, TASK_FLOW: TASK_FLOW, PRIORITIES: PRIORITIES, WORK_LIMITS: WORK_LIMITS, CAPABILITIES: CAPABILITIES, WORK_BY_PACKAGE: WORK_BY_PACKAGE,
+    workEntitlements: workEntitlements, capabilityStatus: capabilityStatus, setPermission: setPermission, workOf: workOf, tasksOf: tasksOf, plansOf: plansOf,
+    blockers: blockers, pendingApprovals: pendingApprovals, workSummary: workSummary, detectGoal: detectGoal, proposePlan: proposePlan, decidePlan: decidePlan, addTask: addTask,
+    prepareTask: prepareTask, approveTask: approveTask, rejectApproval: rejectApproval, completeTask: completeTask, failTask: failTask, cancelTask: cancelTask, reopenTask: reopenTask,
+    editTask: editTask, snoozeTask: snoozeTask, deleteTask: deleteTask, attachPlanToLastChat: attachPlanToLastChat, PLAN_REPLY: PLAN_REPLY, PLAN_NEEDS_PROJECT: PLAN_NEEDS_PROJECT
   };
 });
