@@ -24,10 +24,11 @@ export function config(env) {
     priceOut: parseFloat(env.PRICE_OUT_PER_MTOK) > 0 ? parseFloat(env.PRICE_OUT_PER_MTOK) : 0
   };
 }
-export function isConfigured(env) { return !!(env && env.ANTHROPIC_API_KEY && env.LIMITS); }
+export function isConfigured(env) { return !!(env && env.LIMITS && providerOf(env).hasKey(env)); }
 
 const SYSTEM = [
-  'Sen "Pasif Gelirim" uygulamasının sohbet asistanısın. Türkçe, sade ve samimi konuş. Cevapların kısa olsun (en fazla ~150 kelime).',
+  'Sen NORA\'sın: "Pasif Gelirim" uygulamasının içinde çalışan yapay zekâ asistanı. Slogan: Düşünür. Öğrenir. Planlar. Geliştirir. Karakterin samimi, profesyonel ve stratejik; doğal, anlaşılır konuş ve gerektiğinde nazikçe eleştirel ol. Kendini her zaman NORA olarak tanıt; bir yapay zekâ olduğunu gizleme. Altında hangi model/sağlayıcı çalıştığı sorulursa bunu bilmediğini veya paylaşmadığını söyle, uydurma. Türkçe (kullanıcı başka dil seçtiyse o dilde), sade ve samimi konuş. Cevapların kısa olsun (en fazla ~150 kelime).',
+  'Sen yalnızca sohbet edersin: görev, plan veya hafıza kaydını kendin oluşturmaz, işlem başlatmaz, ödeme/yayın/mesaj gönderimi yapmazsın. Böyle bir şey istenirse kullanıcıya uygulamadaki Görev Merkezi\'nde planın taslak olarak hazırlandığını ve her adımın onayıyla ilerlediğini söyle.',
   'Kullanıcının kendi dijital işini adım adım kurmasına yardım edersin: terimleri açıklarsın, görevlerde takıldığı yeri netleştirirsin, genel yön gösterirsin.',
   'DÜRÜSTLÜK KURALLARI: Hiçbir zaman kazanç garantisi verme, "kesin kazanırsın", "hızlı zengin ol", "pasif gelir otomatik gelir" gibi vaatlerde bulunma. Gelirin zaman, emek ve belirsizlik gerektirdiğini gerektiğinde açıkça söyle. Rakam uydurma.',
   'Finansal, hukuki veya vergi tavsiyesi verme; böyle bir soruda genel bilgi ver ve bir uzmana danışmasını söyle.',
@@ -106,20 +107,34 @@ async function addUsage(kv, day, d) {
   } catch (e) { }
 }
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+// Sağlayıcı katmanı (NORA markası sağlayıcıdan bağımsızdır). Şimdilik yalnızca Anthropic; yeni bir sağlayıcı eklemek için
+// aynı üç işlevi (anahtar kontrolü, istek, yanıt çözümleme) tanımlayıp PROVIDER değişkeniyle seçmek yeterlidir.
+const PROVIDERS = {
+  anthropic: {
+    hasKey: function (env) { return !!(env && env.ANTHROPIC_API_KEY); },
+    request: function (env, cfg, system, messages) {
+      return { url: cfg.apiUrl, headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' }, body: JSON.stringify({ model: cfg.model, max_tokens: cfg.maxTokens, system: system, messages: messages }) };
+    },
+    parse: function (data) {
+      data = data || {};
+      const text = (Array.isArray(data.content) ? data.content : []).filter(function (b) { return b && b.type === 'text' && typeof b.text === 'string'; }).map(function (b) { return b.text; }).join('\n').trim();
+      const u = data.usage || {};
+      return { text: text, inTok: +u.input_tokens || 0, outTok: +u.output_tokens || 0 };
+    }
+  }
+};
+function providerOf(env) { return PROVIDERS[(env && env.PROVIDER) || 'anthropic'] || PROVIDERS.anthropic; }
 const RETRYABLE = { 408: 1, 429: 1, 500: 1, 502: 1, 503: 1, 504: 1, 529: 1 };
 // Anthropic çağrısı: zaman aşımı + sınırlı yeniden deneme. Hata metni asla dışarı sızdırılmaz.
 async function callModel(env, cfg, c) {
-  const payload = JSON.stringify({ model: cfg.model, max_tokens: cfg.maxTokens, system: SYSTEM + (c.ctx ? '\n' + c.ctx : ''), messages: c.messages });
+  const pv = providerOf(env), rq = pv.request(env, cfg, SYSTEM + (c.ctx ? '\n' + c.ctx : ''), c.messages);
   let last = { kind: 'down' };
   for (let i = 0; i <= cfg.retries; i++) {
     if (i > 0) await sleep(400 * i);
     const ctl = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = ctl ? setTimeout(function () { ctl.abort(); }, cfg.timeoutMs) : null;
     try {
-      const res = await fetch(cfg.apiUrl, {
-        method: 'POST', signal: ctl ? ctl.signal : undefined,
-        headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' }, body: payload
-      });
+      const res = await fetch(rq.url, { method: 'POST', signal: ctl ? ctl.signal : undefined, headers: rq.headers, body: rq.body });
       if (timer) clearTimeout(timer);
       if (res.ok) {
         let data; try { data = await res.json(); } catch (e) { last = { kind: 'bad' }; continue; }
@@ -174,10 +189,8 @@ export default {
       const msg = r.kind === 'timeout' ? 'Yapay zekâ zamanında yanıt veremedi. Tekrar dene.' : r.kind === 'busy' ? 'Yapay zekâ şu an yoğun. Biraz sonra tekrar dene.' : r.kind === 'bad' ? 'Yanıt okunamadı.' : 'Yapay zekâ şu an yanıt veremiyor. Biraz sonra tekrar dene.';
       return json({ error: msg, code: r.kind }, r.kind === 'timeout' ? 504 : 502);
     }
-    const data = r.data || {};
-    const text = (Array.isArray(data.content) ? data.content : []).filter(function (b) { return b && b.type === 'text' && typeof b.text === 'string'; }).map(function (b) { return b.text; }).join('\n').trim();
-    const usage = data.usage || {};
-    await addUsage(env.LIMITS, day, { ok: !!text, inTok: +usage.input_tokens || 0, outTok: +usage.output_tokens || 0 });
+    const pr = providerOf(env).parse(r.data), text = pr.text;
+    await addUsage(env.LIMITS, day, { ok: !!text, inTok: pr.inTok, outTok: pr.outTok });
     if (!text) return json({ error: 'Boş yanıt geldi, tekrar dene.', code: 'empty' }, 502);
     return json({ reply: text.slice(0, 2000), model: cfg.model });
   }

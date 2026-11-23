@@ -482,16 +482,23 @@
       '<div class="row wrap"><button class="btn slim" data-act="memConfirm" data-id="' + esc(pe.id) + '">Kaydet</button>' +
       '<button class="btn slim ghost" data-act="memDismiss" data-id="' + esc(pe.id) + '">Kaydetme</button></div></div>';
   }
+  // NORA logosu: siyah zemin, neon yeşil halka ve parıltı (aydınlık temada da okunur; ağır efekt yok)
+  function noraLogo(size) {
+    return '<svg class="nora-logo" width="' + size + '" height="' + size + '" viewBox="0 0 48 48" role="img" aria-label="NORA"><circle cx="24" cy="24" r="21" fill="#050805" stroke="#39ff88" stroke-width="2.5"/><path d="M15 33V15l18 18V15" fill="none" stroke="#39ff88" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
   views.chat = function (S, ui, now) {
     const left = Core.remainingSeconds(S, now);
     const cp = Core.chatProject(S), live = Core.liveProjects(S).length > 0;
     const msgs = Core.chatFor(S);
-    let html = '<h2>AI Sohbet</h2>' +
+    const nst = Core.noraStatus(S), nac = Core.noraAccess(S);
+    let html = '<div class="nora-head">' + noraLogo(46) + '<div><h2 class="nora-name">NORA</h2><p class="nora-slogan">' + esc(Core.NORA.slogan) + '</p></div></div>' +
       '<div class="row"><span class="chip">Bugün kalan: <b id="timeLeft">' + Core.formatDuration(left) + '</b></span></div>';
+    if (!nac.allowed) return html + lock('NORA bu pakette açık değil.', 'Paketlere bak', 'packages');
     // Hangi projenin sohbetinde olduğun her zaman görünür
     if (live) html += seg([{ v: 'project', t: 'Proje sohbeti' }, { v: 'general', t: 'Genel sohbet' }], cp ? 'project' : 'general', 'chatScope');
     html += '<div class="card memhead">' + (cp
-      ? '<div class="row"><span><span class="muted small">Konuştuğun proje</span><br><b class="ptitle">' + esc(cp.title) + '</b></span><button class="btn slim ghost" data-act="go" data-route="memory">Hafıza (' + Core.memOf(cp).items.length + ')</button></div>' +
+      ? '<div class="row"><span><span class="muted small">Konuştuğun proje</span><br><b class="ptitle">' + esc(cp.title) + '</b></span><button class="btn slim ghost" data-act="go" data-route="memory">Hafıza (' + nst.memory + ')</button></div>' +
+        '<div class="row wrap nora-links"><button class="btn slim" data-act="go" data-route="work">Görev Merkezi</button><span class="chip ' + (nst.waiting ? 'warn' : '') + '">' + (nst.waiting ? nst.waiting + ' onay bekliyor' : nst.open + ' açık görev') + '</span></div>' +
         '<p class="fine">Bu sohbet ve hafıza yalnızca bu projeye aittir; başka projelerin bilgisi karışmaz. Bilgiler cihazında tutulur.' +
         (ui.live ? (S.settings.aiShareMemory ? ' Proje özetin, yanıt hazırlanırken yapay zekâ sunucusuna gönderilir (Hafıza ekranından kapatabilirsin).' : ' Proje özetin sunucuya gönderilmez.') : '') + '</p>'
       : '<b>Genel sohbet</b><p class="fine">' + (live ? 'Hiçbir projenin hafızası veya verisi kullanılmıyor. Bir projenin bağlamıyla konuşmak için "Proje sohbeti"ni seç.' : 'Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.') + '</p>') + '</div>';
@@ -512,9 +519,9 @@
     html += (ui.live
       ? '<p class="fine">Yanıtlar yapay zekâdan gelir; hata yapabilir ve yatırım, vergi veya hukuk tavsiyesi değildir. Kişisel bilgi (şifre, kart no) yazma. <button class="link" data-act="aiConsentOff">Gerçek yapay zekâyı kapat</button></p>'
       : '<p class="fine">Şu an demo yapay zekâ çalışıyor: kurallara göre terimleri açıklar, projenin özetini ve ilerlemeni söyler. Gerçek bir yapay zekâ modeli henüz bağlı değil.</p>') + '<div class="chat" id="chatBox">';
-    if (!msgs.length) html += '<div class="msg ai">Merhaba! Anlamadığın bir terimi veya görevi yaz, birlikte netleştirelim.</div>';
+    if (!msgs.length) html += '<div class="msg ai"><span class="who">NORA</span>Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa "…geliştirmek istiyorum" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.</div>';
     msgs.slice(-40).forEach(function (m) {
-      html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + nl2br(m.text) +
+      html += '<div class="msg ' + (m.role === 'user' ? 'me" data-nt="1' : 'ai') + '">' + (m.role !== 'user' ? '<span class="who">NORA</span>' : '') + nl2br(m.text) +
         (m.role !== 'user' && m.src === 'demo' ? '<small class="srcl">Demo yanıt</small>' : '') + (m.role !== 'user' && m.src === 'ai' ? '<small class="srcl">Yapay zekâ yanıtı</small>' : '') + '</div>';
       if (m.plan && cp) { const pl = Core.plansOf(S, cp.id).find(function (x) { return x.id === m.plan; }); if (pl) html += planCard(S, cp, pl, false); }
     });
@@ -522,6 +529,7 @@
     html += '</div>';
     if (ui.failed && !ui.busy && (ui.failed === '*' ? !cp : (cp && cp.id === ui.failed))) html += '<div class="card note"><b>Yanıt alınamadı.</b><p class="small">Mesajın duruyor; tekrar deneyebilirsin.</p><button class="btn slim" data-act="retryChat">Yeniden dene</button></div>';
     if (cp) Core.memOf(cp).pending.forEach(function (pe) { html += pendCard(cp, pe); });
+    html += '<p class="fine">NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.</p>';
     if (left <= 0) {
       html += '<div class="card note">Bugünkü 1 saatlik ücretsiz sohbet hakkın doldu. Yarın yenilenir.</div>';
     } else {

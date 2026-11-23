@@ -1,0 +1,8 @@
+0|NORA
+1|Denkt. Lernt. Plant. Verbessert.
+2|Hallo, ich bin NORA! Schreibe einen Begriff oder eine Aufgabe, die du nicht verstehst; wenn du ein Ziel hast, schreibe „…weiterentwickeln möchte“, dann bereite ich einen Planentwurf für die Aufgabenzentrale vor.
+3|NORA-Zugang: in dieser Testversion in allen Paketen offen. Später wird er über ein kostenpflichtiges Paket gesteuert; derzeit gibt es kein echtes Abo und keine Zahlung.
+4|Ich bin NORA, die KI-Assistentin in Pasif Gelirim. Ich denke, lerne, plane und verbessere. Ich nutze die Aufgaben- und Gedächtnisinformationen deiner Projekte nur so weit, wie du es erlaubst, und frage vor wichtigen Dingen immer nach deiner Zustimmung. (Ich bin gerade im Demo-Modus: Ich antworte nach Regeln, kein echtes Modell schreibt das.)
+5|Du bist im allgemeinen Chat; ich schaue auf keine Projektaufgaben. Wenn du zum „Projektchat“ wechselst, kann ich dir den Stand der Aufgabenzentrale dieses Projekts nennen.
+6|# offene Aufgaben
+7|Aufgabenplan vorbereiten

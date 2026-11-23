@@ -110,7 +110,7 @@ function collect() {
     Core.chatSuggestions(S).forEach(x => add(x, 'suggest'));
     Object.values(Core.TASK_STATUS).concat(Object.values(Core.PRIORITIES)).forEach(x => add(x, 'work'));
     Object.values(Core.CAPABILITIES).forEach(c => { add(c.name, 'work'); add(c.note, 'work'); });
-    add(Core.PLAN_REPLY, 'work'); add(Core.PLAN_NEEDS_PROJECT, 'work');
+    add(Core.noraIntro(), 'nora'); add('Genel sohbettesin; hiçbir projenin görevine bakmıyorum. "Proje sohbeti"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.', 'nora'); add(Core.PLAN_REPLY, 'work'); add(Core.PLAN_NEEDS_PROJECT, 'work');
     (function () {
       const src = require('fs').readFileSync(__dirname + '/../www/core.js', 'utf8');
       const w = src.slice(src.indexOf('Görev ve iş akışı motoru'), src.indexOf('// ---------- Dışa aktarma'));

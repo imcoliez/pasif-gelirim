@@ -453,7 +453,15 @@ module.exports = {
   "Görev silindi.": "Task deleted.",
   "Görev güncellendi.": "Task updated.",
   "Görev eklendi.": "Task added.",
-  "İşlem yapılamadı.": "The action could not be done."
+  "İşlem yapılamadı.": "The action could not be done.",
+  "NORA": "NORA",
+  "Düşünür. Öğrenir. Planlar. Geliştirir.": "Thinks. Learns. Plans. Improves.",
+  "Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa \"…geliştirmek istiyorum\" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.": "Hi, I am NORA! Write a term or task you do not understand; if you have a goal, write \"…I want to grow…\" and I will prepare a plan draft for the Task Center.",
+  "NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.": "NORA access: open in all packages in this test version. It will be controlled by a paid package later; right now there is no real subscription or payment.",
+  "Ben NORA, Pasif Gelirim'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)": "I am NORA, the AI assistant inside Pasif Gelirim. I think, learn, plan and improve. I use your projects' task and memory information only as far as you allow, and I always ask for your approval before doing anything important. (I am in demo mode right now: I answer by rules, no real model writes this.)",
+  "Genel sohbettesin; hiçbir projenin görevine bakmıyorum. \"Proje sohbeti\"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.": "You are in the general chat; I do not look at any project's tasks. If you switch to \"Project chat\" I can tell you that project's Task Center status.",
+  "# açık görev": "# open tasks",
+  "Görev planı hazırla": "Prepare a task plan"
  },
  "de": {
   "Dil": "Sprache",
@@ -909,7 +917,15 @@ module.exports = {
   "Görev silindi.": "Aufgabe gelöscht.",
   "Görev güncellendi.": "Aufgabe aktualisiert.",
   "Görev eklendi.": "Aufgabe hinzugefügt.",
-  "İşlem yapılamadı.": "Die Aktion konnte nicht ausgeführt werden."
+  "İşlem yapılamadı.": "Die Aktion konnte nicht ausgeführt werden.",
+  "NORA": "NORA",
+  "Düşünür. Öğrenir. Planlar. Geliştirir.": "Denkt. Lernt. Plant. Verbessert.",
+  "Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa \"…geliştirmek istiyorum\" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.": "Hallo, ich bin NORA! Schreibe einen Begriff oder eine Aufgabe, die du nicht verstehst; wenn du ein Ziel hast, schreibe „…weiterentwickeln möchte“, dann bereite ich einen Planentwurf für die Aufgabenzentrale vor.",
+  "NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.": "NORA-Zugang: in dieser Testversion in allen Paketen offen. Später wird er über ein kostenpflichtiges Paket gesteuert; derzeit gibt es kein echtes Abo und keine Zahlung.",
+  "Ben NORA, Pasif Gelirim'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)": "Ich bin NORA, die KI-Assistentin in Pasif Gelirim. Ich denke, lerne, plane und verbessere. Ich nutze die Aufgaben- und Gedächtnisinformationen deiner Projekte nur so weit, wie du es erlaubst, und frage vor wichtigen Dingen immer nach deiner Zustimmung. (Ich bin gerade im Demo-Modus: Ich antworte nach Regeln, kein echtes Modell schreibt das.)",
+  "Genel sohbettesin; hiçbir projenin görevine bakmıyorum. \"Proje sohbeti\"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.": "Du bist im allgemeinen Chat; ich schaue auf keine Projektaufgaben. Wenn du zum „Projektchat“ wechselst, kann ich dir den Stand der Aufgabenzentrale dieses Projekts nennen.",
+  "# açık görev": "# offene Aufgaben",
+  "Görev planı hazırla": "Aufgabenplan vorbereiten"
  },
  "es": {
   "Dil": "Idioma",
@@ -1365,7 +1381,15 @@ module.exports = {
   "Görev silindi.": "Tarea eliminada.",
   "Görev güncellendi.": "Tarea actualizada.",
   "Görev eklendi.": "Tarea añadida.",
-  "İşlem yapılamadı.": "No se pudo realizar la acción."
+  "İşlem yapılamadı.": "No se pudo realizar la acción.",
+  "NORA": "NORA",
+  "Düşünür. Öğrenir. Planlar. Geliştirir.": "Piensa. Aprende. Planifica. Mejora.",
+  "Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa \"…geliştirmek istiyorum\" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.": "¡Hola, soy NORA! Escribe un término o tarea que no entiendas; si tienes un objetivo, escribe «…quiero hacer crecer…» y prepararé un borrador de plan para el Centro de tareas.",
+  "NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.": "Acceso a NORA: abierto en todos los paquetes en esta versión de prueba. Más adelante se controlará con un paquete de pago; ahora no existe una suscripción ni un pago reales.",
+  "Ben NORA, Pasif Gelirim'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)": "Soy NORA, la asistente de IA dentro de Pasif Gelirim. Pienso, aprendo, planifico y mejoro. Uso la información de tareas y memoria de tus proyectos solo hasta donde lo permitas, y siempre pido tu aprobación antes de hacer algo importante. (Ahora estoy en modo demostración: respondo por reglas, ningún modelo real escribe esto.)",
+  "Genel sohbettesin; hiçbir projenin görevine bakmıyorum. \"Proje sohbeti\"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.": "Estás en el chat general; no miro las tareas de ningún proyecto. Si cambias a «Chat del proyecto», puedo decirte el estado del Centro de tareas de ese proyecto.",
+  "# açık görev": "# tareas abiertas",
+  "Görev planı hazırla": "Preparar un plan de tareas"
  },
  "ru": {
   "Dil": "Язык",
@@ -1821,7 +1845,15 @@ module.exports = {
   "Görev silindi.": "Задача удалена.",
   "Görev güncellendi.": "Задача обновлена.",
   "Görev eklendi.": "Задача добавлена.",
-  "İşlem yapılamadı.": "Не удалось выполнить действие."
+  "İşlem yapılamadı.": "Не удалось выполнить действие.",
+  "NORA": "NORA",
+  "Düşünür. Öğrenir. Planlar. Geliştirir.": "Думает. Учится. Планирует. Улучшает.",
+  "Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa \"…geliştirmek istiyorum\" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.": "Привет, я NORA! Напиши непонятный термин или задачу; если у тебя есть цель, напиши «…хочу развить…», и я подготовлю черновик плана для Центра задач.",
+  "NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.": "Доступ к NORA: в этой тестовой версии открыт во всех пакетах. Позже он будет зависеть от платного пакета; сейчас реальной подписки или оплаты нет.",
+  "Ben NORA, Pasif Gelirim'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)": "Я NORA, ИИ-ассистент внутри Pasif Gelirim. Я думаю, учусь, планирую и улучшаю. Я использую сведения о задачах и памяти твоих проектов только в рамках твоего разрешения и всегда спрашиваю одобрение перед важными действиями. (Сейчас я в демо-режиме: отвечаю по правилам, настоящая модель этого не пишет.)",
+  "Genel sohbettesin; hiçbir projenin görevine bakmıyorum. \"Proje sohbeti\"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.": "Ты в общем чате; я не смотрю задачи проектов. Если перейдёшь в «Чат проекта», я смогу рассказать о состоянии Центра задач этого проекта.",
+  "# açık görev": "# открытых задач",
+  "Görev planı hazırla": "Подготовить план задач"
  },
  "ar": {
   "Dil": "اللغة",
@@ -2277,6 +2309,14 @@ module.exports = {
   "Görev silindi.": "حُذفت المهمة.",
   "Görev güncellendi.": "حُدّثت المهمة.",
   "Görev eklendi.": "أُضيفت المهمة.",
-  "İşlem yapılamadı.": "تعذّر تنفيذ الإجراء."
+  "İşlem yapılamadı.": "تعذّر تنفيذ الإجراء.",
+  "NORA": "NORA",
+  "Düşünür. Öğrenir. Planlar. Geliştirir.": "تفكّر. تتعلم. تخطط. تطوّر.",
+  "Merhaba, ben NORA! Anlamadığın bir terimi veya görevi yaz; bir hedefin varsa \"…geliştirmek istiyorum\" diye yaz, Görev Merkezi için plan taslağı hazırlayayım.": "مرحباً، أنا NORA! اكتب مصطلحاً أو مهمة لا تفهمها؛ وإن كان لديك هدف فاكتب «…أريد تطوير…» وسأجهّز مسودة خطة لمركز المهام.",
+  "NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.": "الوصول إلى NORA: مفتوح في جميع الباقات في هذا الإصدار التجريبي. سيُتحكَّم به لاحقاً عبر باقة مدفوعة؛ ولا يوجد الآن اشتراك أو دفع حقيقي.",
+  "Ben NORA, Pasif Gelirim'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)": "أنا NORA، مساعدة الذكاء الاصطناعي داخل Pasif Gelirim. أفكّر وأتعلم وأخطط وأطوّر. أستخدم معلومات المهام والذاكرة في مشاريعك بالقدر الذي تسمح به فقط، وأطلب موافقتك دائماً قبل أي إجراء مهم. (أنا الآن في الوضع التجريبي: أجيب بحسب قواعد، ولا يكتب نموذج حقيقي هذا.)",
+  "Genel sohbettesin; hiçbir projenin görevine bakmıyorum. \"Proje sohbeti\"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.": "أنت في المحادثة العامة؛ لا أنظر إلى مهام أي مشروع. إن انتقلت إلى «محادثة المشروع» أستطيع إخبارك بحالة مركز المهام لذلك المشروع.",
+  "# açık görev": "# مهام مفتوحة",
+  "Görev planı hazırla": "جهّز خطة مهام"
  }
 };

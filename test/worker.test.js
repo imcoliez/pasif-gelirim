@@ -22,6 +22,15 @@ function req(body, method, p) { return new Request('https://x.test' + (p || '/ch
     assert.ok(/garanti/i.test(calls[0].o.system), 'dürüstlük talimatı var');
     assert.ok(r.headers.get('access-control-allow-origin'));
   });
+  await test('NORA kimliği: sistem talimatı NORA\'yı tanıtır, işlem yapmadığını söyler; bilinmeyen sağlayıcı varsayılana düşer', async () => {
+    calls.length = 0; const e = env(); await W.fetch(req(ok), e);
+    const sys = calls[0].o.system; assert.ok(/NORA/.test(sys)); assert.ok(/onay/i.test(sys) && /Görev Merkezi/.test(sys));
+    assert.ok(!/api.?key|sk-/i.test(sys), 'talimatta anahtar yok');
+    calls.length = 0; const e2 = env(); e2.PROVIDER = 'yok-boyle-bir-saglayici'; const r = await W.fetch(req(ok), e2);
+    assert.strictEqual(r.status, 200); assert.strictEqual(calls[0].u, 'https://api.anthropic.com/v1/messages');
+    assert.ok(mod.isConfigured(e) && !mod.isConfigured({ LIMITS: kv() }));
+    const j = await (await W.fetch(req(null, 'GET', '/health'), e)).text(); assert.ok(!/NORA|sk-test/.test(j) || !/sk-test/.test(j));
+  });
   await test('yanıtta anahtar sızmaz, hata mesajları genel', async () => {
     global.fetch = async () => new Response('{"error":"sk-test leaked"}', { status: 401 });
     const r = await W.fetch(req(ok), env()); const t = await r.text();

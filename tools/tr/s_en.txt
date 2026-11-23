@@ -1,0 +1,8 @@
+0|NORA
+1|Thinks. Learns. Plans. Improves.
+2|Hi, I am NORA! Write a term or task you do not understand; if you have a goal, write "…I want to grow…" and I will prepare a plan draft for the Task Center.
+3|NORA access: open in all packages in this test version. It will be controlled by a paid package later; right now there is no real subscription or payment.
+4|I am NORA, the AI assistant inside Pasif Gelirim. I think, learn, plan and improve. I use your projects' task and memory information only as far as you allow, and I always ask for your approval before doing anything important. (I am in demo mode right now: I answer by rules, no real model writes this.)
+5|You are in the general chat; I do not look at any project's tasks. If you switch to "Project chat" I can tell you that project's Task Center status.
+6|# open tasks
+7|Prepare a task plan

@@ -1108,4 +1108,36 @@ test('dışa aktarma: proje dışa aktarımında görevler ve geçmiş bulunur; 
   assert.ok(!C.exportData(s).includes('"hash"')); assert.ok(C.exportData(s).includes('"work"'));
 });
 
+// ---------- Aşama 7: NORA ----------
+test('NORA: kimlik, slogan ve erişim altyapısı; paketler değişmedi, gerçek abonelik iddiası yok', () => {
+  assert.strictEqual(C.NORA.name, 'NORA'); assert.strictEqual(C.NORA.slogan, 'Düşünür. Öğrenir. Planlar. Geliştirir.');
+  const s = C.defaultState();
+  ['free', 'manual', 'semi', 'ceo'].forEach(k => { C.setPackage(s, k, T0); const a = C.noraAccess(s); assert.strictEqual(a.allowed, true); assert.strictEqual(a.enforced, false); });
+  C.setPackage(s, 'free', T0); assert.strictEqual(C.entitlements(s).automation, false); assert.strictEqual(C.entitlements(s).ceo, false);
+  assert.ok(Object.keys(C.NORA_BY_PACKAGE).every(k => C.PACKAGES[k]), 'tablo yalnızca mevcut paketleri kapsar');
+});
+test('NORA: demo yanıtları kendini tanıtır ve demo olduğunu söyler; görev durumunu yalnızca okur', () => {
+  const { s, a, b } = wkState(); C.setChatScope(s, false);
+  assert.ok(/NORA/.test(C.aiReply(s, 'Sen kimsin?', T0)) && /demo/i.test(C.aiReply(s, 'sen kimsin', T0)));
+  const r = approvedPlan(s, a.id, T0); const before = JSON.stringify(s.projects);
+  const t = C.aiReply(s, 'Görev merkezinde ne var?', T0 + 5);
+  assert.ok(/6 açık görev/.test(t) && /onayın olmadan/.test(t));
+  assert.strictEqual(JSON.stringify(s.projects), before, 'yanıt hiçbir veriyi değiştirmez');
+  C.setActiveProject(s, b.id); assert.ok(/0 açık görev/.test(C.aiReply(s, 'açık görevlerim', T0)), 'başka projenin görevi karışmaz');
+  C.setChatScope(s, true); assert.ok(/Genel sohbettesin/.test(C.aiReply(s, 'bekleyen onay var mı', T0)));
+  assert.strictEqual(C.noraStatus(s).project, null);
+});
+test('NORA: noraStatus aktif projeden okur; onay bekleyen sayısı Görev Merkeziyle aynı kaynaktan gelir', () => {
+  const { s, a } = wkState(); C.setChatScope(s, false); const r = approvedPlan(s, a.id, T0); const T = r.tasks; let n = 10;
+  for (let i = 0; i < 3; i++) { C.prepareTask(s, a.id, T[i].id, T0 + n++); C.completeTask(s, a.id, T[i].id, undefined, T0 + n++); }
+  C.prepareTask(s, a.id, T[3].id, T0 + n++);
+  const st = C.noraStatus(s); assert.strictEqual(st.project.id, a.id); assert.strictEqual(st.waiting, C.pendingApprovals(s, a.id).length); assert.strictEqual(st.waiting, 1);
+});
+test('NORA: sohbetten görev planı mevcut motorla gelir ve onay kurallarını aşmaz (taslak, onaysız çalışmaz)', () => {
+  const { s, a } = wkState(); const g = C.detectGoal('Görev planı hazırla'); assert.ok(g, 'öneri çipi plan olarak algılanır');
+  const r = C.proposePlan(s, a.id, g, T0); assert.ok(r.ok); assert.ok(r.tasks.every(t => t.status === 'planned'));
+  assert.ok(!C.prepareTask(s, a.id, r.tasks[0].id, T0 + 1).ok, 'plan onaylanmadan hiçbir görev çalışmaz');
+  assert.ok(C.chatSuggestions(s).indexOf('Görev planı hazırla') !== -1);
+});
+
 console.log('\n' + passed + ' test geçti' + (process.exitCode ? ', bazıları BAŞARISIZ' : ''));

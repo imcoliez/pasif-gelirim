@@ -52,7 +52,7 @@ function ok(c, m) { if (c) console.log('  ok  ' + m); else { fails++; console.er
   await page.screenshot({ path: path.resolve(__dirname, '../shots/nav-home-dark.png') });
 
   // ---- sekmeler arası geçiş ----
-  const tabs = [['projects', 'Projelerim'], ['chat', 'Sohbet'], ['tools', 'Hesaplayıcı'], ['account', 'Ayarlar'], ['home', 'Gelir ekle']];
+  const tabs = [['projects', 'Projelerim'], ['chat', 'NORA'], ['tools', 'Hesaplayıcı'], ['account', 'Ayarlar'], ['home', 'Gelir ekle']];
   for (const [r, needle] of tabs) {
     await page.click('.tab[data-route="' + r + '"]'); await settle(page);
     ok((await active(page)) === r, 'sekme ' + r + ' seçildi');

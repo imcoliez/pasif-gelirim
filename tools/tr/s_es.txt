@@ -1,0 +1,8 @@
+0|NORA
+1|Piensa. Aprende. Planifica. Mejora.
+2|¡Hola, soy NORA! Escribe un término o tarea que no entiendas; si tienes un objetivo, escribe «…quiero hacer crecer…» y prepararé un borrador de plan para el Centro de tareas.
+3|Acceso a NORA: abierto en todos los paquetes en esta versión de prueba. Más adelante se controlará con un paquete de pago; ahora no existe una suscripción ni un pago reales.
+4|Soy NORA, la asistente de IA dentro de Pasif Gelirim. Pienso, aprendo, planifico y mejoro. Uso la información de tareas y memoria de tus proyectos solo hasta donde lo permitas, y siempre pido tu aprobación antes de hacer algo importante. (Ahora estoy en modo demostración: respondo por reglas, ningún modelo real escribe esto.)
+5|Estás en el chat general; no miro las tareas de ningún proyecto. Si cambias a «Chat del proyecto», puedo decirte el estado del Centro de tareas de ese proyecto.
+6|# tareas abiertas
+7|Preparar un plan de tareas

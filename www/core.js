@@ -1186,6 +1186,8 @@
       if (ent.automation) return 'Bu tür hazırlıkları "Otomasyon" bölümünden yapabilirsin. Orada günlük planı senin için hazırlıyorum.';
       return 'Bu işlemleri senin adına otomatik yapmak ücretli paketlerin (Yarı Otomasyon / CEO Modu) bir özelliği. Ama bunu kendin yapabilmen için yöntemi anlatabilirim: hedefini, haftalık sıklığını ve formatını seç, sonra her içeriği adım adım hazırla. İstersen ilk adımı birlikte netleştirelim.';
     }
+    if (/\bnora\b|sen kimsin|kimsin sen|adın ne|ismin ne/.test(t)) return noraIntro();
+    if (/görev merkezi|gorev merkezi|bekleyen onay|onay bekleyen|açık görev|acik gorev|görevlerim/.test(t)) return noraWorkReply(state);
     if (/hafıza|hafiza|ne biliyorsun|bu proje(m)? (hakkında|ile ilgili)|projemi özetle|özetle|neler karar|ne karar/.test(t)) {
       const cp = chatProject(state);
       if (!cp) return 'Şu an genel sohbettesin; hiçbir projenin hafızasını kullanmıyorum. Bir proje seçersen o projeye kaydettiğin bilgileri ve görev durumunu söyleyebilirim.';
@@ -1648,6 +1650,34 @@
   const PLAN_REPLY = 'Hedefini bir görev planına böldüm (demo yapay zekâ: kural tabanlı şablon, gerçek model yazmadı). Plan şimdilik yalnızca TASLAK; aşağıdaki karttan onaylarsan görevler başlatılabilir, onaylamazsan hiçbiri çalışmaz. Para harcama, yayımlama veya mesaj gönderme gibi adımlar için ayrıca onayını isterim; bu sürümde dış hesaplara bağlı olmadığım için bunları yapamam.';
   const PLAN_NEEDS_PROJECT = 'Görev planı bir projeye bağlı olmalı. Genel sohbetteyken plan oluşturmuyorum; "Proje sohbeti"ne geçip (veya bir proje başlatıp) hedefini tekrar yaz.';
 
+  // ---------- NORA (Aşama 7): uygulama içi yapay zekâ asistanının kimliği ve erişim altyapısı ----------
+  // NORA bir marka/asistan kimliğidir; arka plandaki sağlayıcı (şimdilik Worker üzerinden Claude) istemciye ve markaya yansımaz.
+  const NORA = { name: 'NORA', slogan: 'Düşünür. Öğrenir. Planlar. Geliştirir.' };
+  // Paket yetkisiyle erişim denetimi için hazırlık. enforced:false → bu sürümde erişim hiçbir pakete bağlı değildir
+  // (gerçek abonelik/ödeme yok). İleride yalnızca bu tablo ve enforced değişir; ekranlar noraAccess() sonucuna bakar.
+  const NORA_BY_PACKAGE = { free: { chat: true }, manual: { chat: true }, semi: { chat: true }, ceo: { chat: true } };
+  const NORA_ENFORCED = false;
+  function noraAccess(state) {
+    const e = NORA_BY_PACKAGE[state.pkg] || NORA_BY_PACKAGE.free;
+    return { allowed: NORA_ENFORCED ? !!e.chat : true, enforced: NORA_ENFORCED, packageAllows: !!e.chat, pkg: state.pkg };
+  }
+  // NORA'nın mevcut motorlardan yalnızca OKUDUĞU durum özeti (yeni veri üretmez; görev/hafıza yazmaz).
+  function noraStatus(state) {
+    const cp = chatProject(state);
+    const out = { project: cp ? { id: cp.id, title: cp.title } : null, open: 0, waiting: 0, memory: 0, pendingMemory: 0 };
+    if (cp) { const w = workSummary(state, cp.id), m = memOf(cp); out.open = w.open; out.waiting = w.waiting; out.memory = m.items.length; out.pendingMemory = m.pending.length; }
+    return out;
+  }
+  function noraIntro() {
+    return 'Ben NORA, Pasif Gelirim\'in içindeki yapay zekâ asistanın. Düşünür, öğrenir, planlar, geliştiririm. Projelerinin görev ve hafıza bilgisini yalnızca izin verdiğin kadarıyla kullanırım; önemli bir şey yapmadan önce her zaman onayını isterim. (Şu an demo modundayım: kurallara göre yanıt veriyorum, gerçek bir model yazmıyor.)';
+  }
+  function noraWorkReply(state) {
+    const cp = chatProject(state);
+    if (!cp) return 'Genel sohbettesin; hiçbir projenin görevine bakmıyorum. "Proje sohbeti"ne geçersen o projenin Görev Merkezi durumunu söyleyebilirim.';
+    const st = noraStatus(state);
+    return '"' + cp.title + '" projesinde ' + st.open + ' açık görev var; ' + st.waiting + ' tanesi senin onayını bekliyor. Görev Merkezi\'nden görüntüleyebilir, düzenleyebilir, onaylayabilirsin. Ben onayın olmadan hiçbir görevi başlatmam. (Demo: durum cihazındaki kayıtlardan okundu.)';
+  }
+
   // ---------- Dışa aktarma ----------
   // Yedeğe PIN özeti konmaz (başkasına gönderilen dosyada kilit bilgisi olmasın).
   function exportData(state) {
@@ -1672,6 +1702,7 @@
 
   function chatSuggestions(state) {
     const s = ['Nereden başlayayım?', 'Hedef kitle ne demek?', 'Garanti kazanç var mı?'];
+    if (state.projects.length) s.push('Görev planı hazırla');
     if (state.projects.length || state.finance.length) s.push('Geçmiş işlemlerime nereden ulaşırım?');
     else s.push('Kazancımı nasıl takip ederim?');
     return s;
@@ -1702,6 +1733,7 @@
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData,
+    NORA: NORA, NORA_BY_PACKAGE: NORA_BY_PACKAGE, noraAccess: noraAccess, noraStatus: noraStatus, noraIntro: noraIntro,
     TASK_STATUS: TASK_STATUS, TASK_FLOW: TASK_FLOW, PRIORITIES: PRIORITIES, WORK_LIMITS: WORK_LIMITS, CAPABILITIES: CAPABILITIES, WORK_BY_PACKAGE: WORK_BY_PACKAGE,
     workEntitlements: workEntitlements, capabilityStatus: capabilityStatus, setPermission: setPermission, workOf: workOf, tasksOf: tasksOf, plansOf: plansOf,
     blockers: blockers, pendingApprovals: pendingApprovals, workSummary: workSummary, detectGoal: detectGoal, proposePlan: proposePlan, decidePlan: decidePlan, addTask: addTask,

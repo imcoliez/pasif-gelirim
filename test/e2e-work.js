@@ -109,10 +109,14 @@ const KEY = 'pasif_gelirim_state_v1';
   const rawAfter = await page.evaluate(k => localStorage.getItem(k), KEY);
   ok(work(s).tasks.length >= 13, 'yeniden açınca görevler kayıp değil' + (work(s).tasks.length < 13 ? ' | anahtarlar: ' + (await page.evaluate(() => Object.keys(localStorage).join(','))) + ' | proje sayısı ' + s.projects.length + ' | önce ' + rawBefore.length + ' sonra ' + rawAfter.length + ' tasks ' + work(s).tasks.length + ' seedMi=' + (rawAfter === raw) : ''));
   await tab('projects'); await settle(); await page.evaluate(() => { }); 
-  // 11. başka projeye geçince görevler karışmaz
-  const bs = await stored(); bs.activeProjectId = B.id; await page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, bs]); await page.reload(); await page.waitForSelector('.tab');
-  await tab('projects'); await page.evaluate(() => { var b = document.querySelector('[data-act=go][data-route=work]'); if (b) b.click(); }); await settle();
-  t = await text(); ok(!/Logo çiz/.test(t) && !/Ürünlerimi/.test(t), 'Beta projesinde Alfa görevleri görünmüyor');
+  // 11. başka projede görevler karışmaz (taze bağlamda, B aktifken; dışarıdan yazılan kayıt sayfa kapanırken ezildiği için tohumla)
+  const bs = await stored(); bs.activeProjectId = B.id;
+  const ctxB = await browser.newContext({ viewport: { width: 360, height: 720 }, locale: 'tr-TR' }); const pgB = await ctxB.newPage();
+  await pgB.route(/frankfurter\.dev|binance\.(com|vision)/, r => r.abort());
+  await pgB.addInitScript(r => { try { if (!localStorage.getItem('pasif_gelirim_state_v1')) localStorage.setItem('pasif_gelirim_state_v1', r); } catch (e) { } }, JSON.stringify(bs));
+  await pgB.goto(URL); await pgB.waitForSelector('.tab'); await pgB.click('.tab[data-route=projects]'); await pgB.waitForTimeout(400);
+  await pgB.evaluate(() => { var b = document.querySelector('[data-act=go][data-route=work]'); if (b) b.click(); }); await pgB.waitForTimeout(400);
+  t = await pgB.innerText('#main'); ok(/Beta Proje/.test(t) && !/Logo çiz/.test(t) && !/Ürünlerimi/.test(t), 'Beta projesinin Görev Merkezi boş; Alfa görevleri görünmüyor'); await ctxB.close();
   ok(errors.length === 0, 'konsol/sayfa hatası yok ' + errors.join(' | '));
   await browser.close();
   console.log(fails ? '\n' + fails + ' BAŞARISIZ' : '\nhepsi geçti'); process.exitCode = fails ? 1 : 0;
