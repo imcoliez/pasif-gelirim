@@ -550,3 +550,20 @@ html[data-theme="light"] .scrubtip{background:rgba(255,255,255,.95);color:#10201
 
 .nora-head{display:flex;align-items:center;gap:12px;margin:2px 0 8px}.nora-name{margin:0;letter-spacing:.14em;color:var(--g)}.nora-slogan{margin:0;font-size:13px;color:var(--mu)}.nora-logo{flex:none}
 .msg .who{display:block;font-size:11px;letter-spacing:.12em;color:var(--g);margin-bottom:2px}.nora-links{margin-top:8px;align-items:center}
+
+/* ---- Not Defteri (Aşama 8) ---- */
+.notelist{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.notecard{width:100%;display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--g);border-radius:14px;padding:12px 14px;color:var(--tx);cursor:pointer;font-family:inherit;transition:transform .12s,border-color .2s}
+.notecard:active{transform:scale(.99);border-color:var(--g)}
+.notecard .nt-t{font-size:15.5px;overflow-wrap:anywhere}
+.notecard .nt-s{color:var(--mu);font-size:13.5px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.notecard .nt-m{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.notecard .chip{font-size:12px;padding:2px 9px}
+.chip.pj{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:1px solid var(--g);color:var(--g2)}
+.nb-filters{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0}
+.nb-empty{text-align:center;padding:18px 6px}
+.nb-old{opacity:.7;white-space:pre-wrap;overflow-wrap:anywhere;border-left:2px solid var(--bd);padding-left:10px}
+.npend p{overflow-wrap:anywhere}
+.notetile{align-items:flex-start}
+[dir=rtl] .notecard{text-align:right;border-left:1px solid var(--bd);border-right:3px solid var(--g)}
+@media (min-width:520px){.nb-filters{grid-template-columns:1fr 1fr 1fr}}

@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'pasif_gelirim_state_v1';
   const TOP = ['home', 'projects', 'chat', 'tools', 'account'];
   const NO_CHROME = ['welcome', 'onboarding', 'lock'];
-  const TITLES = { task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', project: 'Proje', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', memory: 'Proje Hafızası', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
+  const TITLES = { notes: 'Not Defteri', note: 'Not', task: 'Görev', calc: 'Hesaplayıcı', plans: 'Planlar ve Birikim', market: 'Piyasa', glossary: 'Sözlük', projects: 'Projelerim', project: 'Proje', tasks: 'Görevler', money: 'Kazanç', packages: 'Paketler', charts: 'Grafikler', auto: 'Otomasyon', history: 'Geçmiş İşlemler', memory: 'Proje Hafızası', settings: 'Ayarlar', about: 'Yardım ve Bilgi' };
 
   // ---------- Çizgi simgeler ----------
   const ICONS = {
@@ -60,6 +60,7 @@
     cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
     megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>',
     box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+    note: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/>',
     dots: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'
   };
   function icon(name, size) {
@@ -498,10 +499,10 @@
     if (live) html += seg([{ v: 'project', t: 'Proje sohbeti' }, { v: 'general', t: 'Genel sohbet' }], cp ? 'project' : 'general', 'chatScope');
     html += '<div class="card memhead">' + (cp
       ? '<div class="row"><span><span class="muted small">Konuştuğun proje</span><br><b class="ptitle">' + esc(cp.title) + '</b></span><button class="btn slim ghost" data-act="go" data-route="memory">Hafıza (' + nst.memory + ')</button></div>' +
-        '<div class="row wrap nora-links"><button class="btn slim" data-act="go" data-route="work">Görev Merkezi</button><span class="chip ' + (nst.waiting ? 'warn' : '') + '">' + (nst.waiting ? nst.waiting + ' onay bekliyor' : nst.open + ' açık görev') + '</span></div>' +
+        '<div class="row wrap nora-links"><button class="btn slim" data-act="go" data-route="work">Görev Merkezi</button><button class="btn slim ghost" data-act="go" data-route="notes">Not Defteri</button><span class="chip ' + (nst.waiting ? 'warn' : '') + '">' + (nst.waiting ? nst.waiting + ' onay bekliyor' : nst.open + ' açık görev') + '</span></div>' +
         '<p class="fine">Bu sohbet ve hafıza yalnızca bu projeye aittir; başka projelerin bilgisi karışmaz. Bilgiler cihazında tutulur.' +
         (ui.live ? (S.settings.aiShareMemory ? ' Proje özetin, yanıt hazırlanırken yapay zekâ sunucusuna gönderilir (Hafıza ekranından kapatabilirsin).' : ' Proje özetin sunucuya gönderilmez.') : '') + '</p>'
-      : '<b>Genel sohbet</b><p class="fine">' + (live ? 'Hiçbir projenin hafızası veya verisi kullanılmıyor. Bir projenin bağlamıyla konuşmak için "Proje sohbeti"ni seç.' : 'Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.') + '</p>') + '</div>';
+      : '<b>Genel sohbet</b><p class="fine">' + (live ? 'Hiçbir projenin hafızası veya verisi kullanılmıyor. Bir projenin bağlamıyla konuşmak için "Proje sohbeti"ni seç.' : 'Henüz projen yok; sohbet genel. Proje başlatınca ona özel hafıza ve sohbet açılır.') + '</p><div class="row wrap nora-links"><button class="btn slim ghost" data-act="go" data-route="notes">Not Defteri</button></div>') + '</div>';
     // Modelin gerçekten bağlı olup olmadığı her zaman açıkça yazılır
     const ai = ui.ai || { state: 'demo', model: '' };
     html += '<div class="aistat">' + (ui.live
@@ -529,6 +530,7 @@
     html += '</div>';
     if (ui.failed && !ui.busy && (ui.failed === '*' ? !cp : (cp && cp.id === ui.failed))) html += '<div class="card note"><b>Yanıt alınamadı.</b><p class="small">Mesajın duruyor; tekrar deneyebilirsin.</p><button class="btn slim" data-act="retryChat">Yeniden dene</button></div>';
     if (cp) Core.memOf(cp).pending.forEach(function (pe) { html += pendCard(cp, pe); });
+    Core.notePendingFor(S, cp ? cp.id : '').forEach(function (pe) { html += notePendCard(S, pe); });
     html += '<p class="fine">NORA erişimi: bu test sürümünde tüm paketlerde açık. İleride ücretli paketle kontrol edilecek; şu an gerçek bir abonelik veya ödeme yoktur.</p>';
     if (left <= 0) {
       html += '<div class="card note">Bugünkü 1 saatlik ücretsiz sohbet hakkın doldu. Yarın yenilenir.</div>';
@@ -869,6 +871,10 @@
       '<button class="btn slim ghost" data-act="exportProject" data-id="' + id + '">' + icon('download', 16) + ' Dışa aktar</button>' +
       (x.archived ? '<button class="btn slim ghost" data-act="restoreProject" data-id="' + id + '">Arşivden çıkar</button>' : '<button class="btn slim ghost" data-act="archiveProject" data-id="' + id + '">Arşivle</button>') + '</div>';
     h += '<div class="card danger"><b>Projeyi sil</b><p class="muted small">Silmeden önce arşivlemeyi düşün: arşivde hiçbir veri kaybolmaz. Silersen projenin görevleri, notları, planları ve kararları gider; gelir-gider kayıtların kalır ve “Genel”e döner. Silmeden önce dışa aktarabilirsin.</p><button class="btn slim danger" data-act="deleteProject" data-id="' + id + '">' + icon('trash', 16) + ' Projeyi sil</button></div>';
+    const nn = Core.noteProjectCount(S, p.id);
+    if (nn) h += '<div class="card ' + (ui.delChoice === p.id ? 'danger' : '') + '"><b>Not Defteri notları</b><p class="muted small">Bu projeye bağlı ' + nn + ' not var. Projeyi silersen bu notlar için sen karar verirsin; sen seçmeden hiçbir not silinmez.</p>' +
+      '<button class="btn slim ghost" data-act="nbShowNotes" data-id="' + id + '">Notları gör</button>' +
+      (ui.delChoice === p.id ? '<div class="row wrap"><button class="btn slim" data-act="deleteProjectGo" data-id="' + id + '" data-v="move">Notları genel notlara taşı ve projeyi sil</button><button class="btn slim danger" data-act="deleteProjectGo" data-id="' + id + '" data-v="delete">Notlarla birlikte projeyi sil</button><button class="btn slim ghost" data-act="deleteProjectCancel">Vazgeç</button></div>' : '') + '</div>';
     return h;
   };
 
@@ -1162,6 +1168,91 @@
   function hubTile(route, ic, title, sub) {
     return '<button class="tile" data-act="go" data-route="' + route + '"><span class="ti">' + icon(ic, 20) + '</span><b>' + title + '</b><small>' + sub + '</small></button>';
   }
+  // ---------- Not Defteri (Aşama 8) ----------
+  function noteProjOptions(S, cur) {
+    let o = '<option value=""' + (!cur ? ' selected' : '') + '>Genel (projesiz)</option>';
+    S.projects.forEach(function (p) {
+      const arch = Core.isArchived(p);
+      if (arch && p.id !== cur) return;
+      o += '<option value="' + esc(p.id) + '"' + (p.id === cur ? ' selected' : '') + ' data-nt>' + esc(p.title) + (arch ? ' (arşiv)' : '') + '</option>';
+    });
+    return o;
+  }
+  function noteCard(S, n) {
+    const p = n.projectId ? Core.projectById(S, n.projectId) : null;
+    const snip = n.body.replace(/\s+/g, ' ').trim().slice(0, 110);
+    return '<li><button class="notecard" data-act="nbOpen" data-id="' + esc(n.id) + '">' +
+      '<b class="nt-t" data-nt>' + esc(n.title) + '</b>' + (snip ? '<span class="nt-s" data-nt>' + esc(snip) + '</span>' : '') +
+      '<span class="nt-m"><span class="chip">' + esc(Core.noteCatName(S, n.cat)) + '</span>' +
+      (p ? '<span class="chip pj" data-nt>' + esc(p.title) + '</span>' : '') +
+      (Core.noteIsSensitive(n) ? '<span class="chip warn">Hassas olabilir</span>' : '') +
+      '<span class="muted small">Güncellendi: ' + Core.formatDate(n.updatedAt) + '</span></span></button></li>';
+  }
+  function noteListHtml(S, ui) {
+    const list = Core.listNotes(S, { q: ui.nbQ, cat: ui.nbCat, project: ui.nbProj, sort: ui.nbSort, dir: ui.nbSort === 'title' ? 'asc' : 'desc' });
+    if (!list.length) return '<p class="muted small nb-empty">' + (Core.notebookOf(S).notes.length ? 'Bu filtreyle eşleşen not yok.' : 'Henüz notun yok. "Yeni not" ile başla.') + '</p>';
+    return '<ul class="list notelist">' + list.map(function (n) { return noteCard(S, n); }).join('') + '</ul>';
+  }
+  function notePendCard(S, pe) {
+    const n = pe.noteId ? Core.noteById(S, pe.noteId) : null, id = esc(pe.id);
+    const p = pe.projectId ? Core.projectById(S, pe.projectId) : null;
+    let h = '<div class="card memsug npend">';
+    if (pe.kind === 'new') h += '<p class="small"><b>NORA bu notu kaydetmeyi öneriyor</b> <span class="chip">' + (p ? esc('Proje notu') : 'Genel not') + '</span></p><p data-nt>' + esc(pe.text) + '</p>';
+    else if (pe.kind === 'edit') h += '<p class="small"><b>Önerilen yeni metin</b> <span class="chip warn">Demo düzenleme</span></p><p class="muted small">Şimdiki not:</p><p class="nb-old" data-nt>' + nl2br(n ? n.body : '') + '</p><p class="muted small">Önerilen:</p><p data-nt>' + nl2br(pe.text) + '</p>';
+    else if (pe.kind === 'link') h += '<p class="small"><b>Not projeye bağlansın mı?</b></p><p><span data-nt>' + esc(pe.title) + '</span> → <b data-nt>' + esc(p ? p.title : '') + '</b></p>';
+    else if (pe.kind === 'task') h += '<p class="small"><b>Bu nottan görev planı taslağı hazırlansın mı?</b></p><p><span data-nt>' + esc(pe.title) + '</span> → <b data-nt>' + esc(p ? p.title : '') + '</b></p><p class="fine">Taslak Görev Merkezi\'ne düşer; orada onaylamadan hiçbir görev çalışmaz.</p>';
+    else h += '<p class="small"><b>Proje hafızasına aktarılsın mı?</b></p><p data-nt>' + esc(pe.text) + '</p><p class="fine">Yalnızca bu notun projesinin hafızasına eklenir.</p>';
+    const yes = pe.kind === 'new' ? 'Kaydet' : pe.kind === 'edit' ? 'Uygula' : pe.kind === 'link' ? 'Bağla' : pe.kind === 'task' ? 'Taslak hazırla' : 'Hafızaya aktar';
+    return h + '<div class="row wrap"><button class="btn slim" data-act="nbPend" data-id="' + id + '" data-v="yes">' + yes + '</button><button class="btn slim ghost" data-act="nbPend" data-id="' + id + '" data-v="no">Vazgeç</button></div></div>';
+  }
+  views.notes = function (S, ui, now) {
+    const nb = Core.notebookOf(S), live = Core.liveProjects(S);
+    let h = '<div class="row"><h2>Not Defteri</h2><span class="chip">' + nb.notes.length + ' not</span></div>' +
+      '<p class="muted small">Notların bu cihazda saklanır, JSON yedeğine girer ve sunucuya gönderilmez.</p>' +
+      '<button class="btn" data-act="nbNew">' + icon('plus', 18) + ' Yeni not</button>';
+    nb.pending.forEach(function (pe) { h += notePendCard(S, pe); });
+    h += '<div class="card"><b>NORA erişimi</b>' + toggleRow('NORA bu defterdeki notları okuyabilsin', 'nbNora', nb.nora) +
+      '<p class="fine">' + (nb.nora ? 'Açık: NORA, sohbet ettiğin kapsamdaki (genel veya aktif proje) notları yerelde okur. Hassas görünen notlara dokunmaz. Notu değiştirmeden önce sana gösterir ve onayını ister; silmez.' : 'Kapalı: NORA hiçbir notunu okumaz. İstediğin an açıp kapatabilirsin.') + '</p></div>';
+    if (nb.notes.length > 3 && !ui.nbQ && !ui.nbCat && !ui.nbProj) {
+      h += '<h3>Son düzenlenenler</h3><ul class="list notelist">' + Core.listNotes(S, { sort: 'updated' }).slice(0, 3).map(function (n) { return noteCard(S, n); }).join('') + '</ul>';
+    }
+    h += '<h3>Tüm notlar</h3><div class="searchbox"><span class="si">' + icon('search', 18) + '</span><input id="nbQ" class="inp" type="search" maxlength="60" placeholder="Notlarda ara" value="' + esc(ui.nbQ || '') + '" aria-label="Notlarda ara"></div>' +
+      '<div class="nb-filters"><select id="nbCat" class="inp" aria-label="Kategori"><option value="">Tüm kategoriler</option>' + Core.noteCats(S).map(function (c) { return '<option value="' + esc(c.id) + '"' + (ui.nbCat === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+      '<select id="nbProj" class="inp" aria-label="Proje"><option value="">Tüm notlar</option><option value="general"' + (ui.nbProj === 'general' ? ' selected' : '') + '>Genel notlar</option>' +
+      S.projects.map(function (p) { return '<option value="' + esc(p.id) + '"' + (ui.nbProj === p.id ? ' selected' : '') + ' data-nt>' + esc(p.title) + (Core.isArchived(p) ? ' (arşiv)' : '') + '</option>'; }).join('') + '</select>' +
+      '<select id="nbSort" class="inp" aria-label="Sırala"><option value="updated"' + (ui.nbSort !== 'created' && ui.nbSort !== 'title' ? ' selected' : '') + '>Son düzenlenen</option><option value="created"' + (ui.nbSort === 'created' ? ' selected' : '') + '>Oluşturulma tarihi</option><option value="title"' + (ui.nbSort === 'title' ? ' selected' : '') + '>Başlığa göre</option></select></div>' +
+      '<div id="nbList">' + noteListHtml(S, ui) + '</div>';
+    return h;
+  };
+  views.note = function (S, ui, now) {
+    const isNew = !ui.noteId || ui.noteId === 'new', n = isNew ? null : Core.noteById(S, ui.noteId);
+    if (!isNew && !n) return lock('Bu not bulunamadı.', 'Not Defteri', 'notes');
+    const d = ui.noteDraft || {}, nb = Core.notebookOf(S);
+    const title = d.title != null ? d.title : n ? n.title : '', body = d.body != null ? d.body : n ? n.body : '';
+    const cat = d.cat != null ? d.cat : n ? n.cat : (ui.nbCat || 'genel'), pid = d.pid != null ? d.pid : n ? n.projectId : (ui.nbProj && ui.nbProj !== 'general' && Core.projectById(S, ui.nbProj) && !Core.isArchived(Core.projectById(S, ui.nbProj)) ? ui.nbProj : '');
+    let h = '<div class="row"><h2>' + (isNew ? 'Yeni not' : 'Not') + '</h2>' + (n && Core.noteIsSensitive(n) ? '<span class="chip warn">Hassas olabilir</span>' : '') + '</div>';
+    if (n) {
+      n && nb.pending.filter(function (x) { return x.noteId === n.id; }).forEach(function (pe) { h += notePendCard(S, pe); });
+    }
+    if (ui.noteMsg) h += '<div class="card note"><p class="small" data-nt>' + nl2br(ui.noteMsg) + '</p></div>';
+    h += '<div class="card"><label class="lbl" for="ntTitle">Başlık</label><input id="ntTitle" class="inp" maxlength="' + Core.NOTE_LIMITS.title + '" value="' + esc(title) + '">' +
+      '<label class="lbl" for="ntBody">İçerik</label><textarea id="ntBody" class="inp" rows="9" maxlength="' + Core.NOTE_LIMITS.body + '">' + esc(body) + '</textarea>' +
+      '<label class="lbl" for="ntCat">Kategori</label><select id="ntCat" class="inp">' + Core.noteCats(S).map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === cat ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+      '<label class="lbl" for="ntProj">Proje bağlantısı</label><select id="ntProj" class="inp">' + noteProjOptions(S, pid) + '</select>' +
+      '<p class="fine">Genel notlar hiçbir projeye bağlı değildir. Proje notu yalnızca o projeyle birlikte görünür ve başka projeye karışmaz. Şifre, kart/IBAN, kimlik no gibi bilgileri not defterine yazmamanı öneririm.</p>' +
+      (n ? '<p class="fine">Oluşturuldu: ' + hm(n.createdAt) + ' · Güncellendi: ' + hm(n.updatedAt) + '</p>' : '') +
+      '<div class="row wrap"><button class="btn" data-act="nbSave">Kaydet</button><button class="btn ghost" data-act="back">Vazgeç</button>' +
+      (n ? '<button class="btn ghost danger" data-act="nbDelete" data-id="' + esc(n.id) + '">' + icon('trash', 16) + ' Sil</button>' : '') + '</div></div>';
+    if (n) {
+      const on = nb.nora, sens = Core.noteIsSensitive(n);
+      h += '<div class="card"><b>NORA ile</b>' + (on && !sens
+        ? '<p class="fine">Aşağıdaki işlemler yerelde çalışır. Değişiklik gerektirenler önce sana gösterilir, onayınla uygulanır. Özetleme gerçek yapay zekâ gerektirir ve şu an kullanılamıyor.</p>' +
+          '<div class="row wrap">' + [['summarize', 'Özetle'], ['tidy', 'Düzenli hâle getir'], ['link', 'Projeye bağla'], ['task', 'Görev öner'], ['memory', 'Hafızaya aktar']].map(function (a) { return '<button class="btn slim ghost" data-act="nbAsk" data-v="' + a[0] + '" data-id="' + esc(n.id) + '">' + a[1] + '</button>'; }).join('') + '</div>'
+        : '<p class="fine">' + (sens ? 'Bu not hassas bilgi içerebileceği için NORA ona dokunmaz.' : 'NORA erişimi kapalı. Notlar ekranından açabilirsin.') + '</p>') + '</div>';
+    }
+    return h;
+  };
+
   views.tools = function (S, ui, now) {
     const ent = Core.entitlements(S);
     return '<h2>Araçlar</h2><p class="muted">Gelirini takip etmek ve karar vermek için araçların hepsi burada.</p><div class="grid2">' +
@@ -1170,6 +1261,7 @@
       hubTile('calc', 'calc', 'Hesaplayıcı', 'Hedefe kaç satış?') +
       hubTile('market', 'dollar', 'Piyasa', 'Dolar, altın, kripto') +
       hubTile('plans', 'repeat', 'Planlar', 'Tekrarlayan, birikim') +
+      '<button class="tile wide notetile" data-act="go" data-route="notes"><span class="ti">' + icon('note', 20) + '</span><b>Not Defteri</b><small>' + (Core.notebookOf(S).notes.length ? Core.notebookOf(S).notes.length + ' not · fikirlerini, işlerini ve araştırmalarını bir arada tut' : 'Fikirlerini, işlerini ve araştırmalarını bir arada tut') + '</small></button>' +
       hubTile('auto', 'zap', 'Otomasyon', ent.automation ? 'Açık' : 'Ücretli paket') +
       hubTile('glossary', 'book', 'Sözlük', 'Terimleri öğren') +
       hubTile('tasks', 'target', 'Gelir modeli testi', 'Sana uygun modeli bul') +
@@ -1221,7 +1313,7 @@
     return html;
   }
 
-  const TAB_OF = { work: 'projects', memory: 'chat', project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
+  const TAB_OF = { notes: 'tools', note: 'tools', work: 'projects', memory: 'chat', project: 'projects', task: 'projects', tasks: 'projects', money: 'tools', charts: 'tools', calc: 'tools', market: 'tools', plans: 'tools', auto: 'tools', glossary: 'tools', settings: 'account', history: 'account', packages: 'account', about: 'account' };
   function tabOf(route) { return TAB_OF[route] || (TOP.indexOf(route) !== -1 ? route : 'home'); }
 
   const NO_CHIP = ['welcome', 'onboarding', 'lock', 'projects', 'project', 'chat', 'memory', 'settings', 'account'];
@@ -1244,5 +1336,5 @@
     };
   }
 
-  return { tabOf: tabOf, convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
+  return { tabOf: tabOf, noteListHtml: noteListHtml, convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
 });

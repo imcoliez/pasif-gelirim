@@ -56,6 +56,18 @@ function states() {
   Core.prepareTask(wk, wp.id, Core.tasksOf(wk, wp.id)[5].id, T);
   wk.chat.push({ role: 'user', text: 'zzgoal', at: T, pid: wp.id }, { role: 'ai', text: Core.PLAN_REPLY, at: T, pid: wp.id, src: 'demo', plan: pl2.id }, { role: 'ai', text: 'zz', at: T, pid: wp.id, src: 'demo', plan: pl1.id });
   out.push(['work', wk, T]);
+  // Aşama 8: Not Defteri durumları
+  const nbS = mk('ceo'); const np = Core.activeProject(nbS); Core.startProject(nbS, 'freelance', T); Core.setActiveProject(nbS, np.id);
+  Core.addNote(nbS, { title: 'Zzgenel', body: 'zzbody', cat: 'fikir' }, T); Core.addNote(nbS, { title: 'Zzproje', body: ' zzbody  iki ', cat: 'is', projectId: np.id }, T + 1);
+  Core.addNote(nbS, { title: 'Zzgizli', body: 'IBAN TR12 3456 7890 1234 5678 9012 34' }, T + 2); Core.addNote(nbS, { title: 'Zzfree', body: 'freelance müşteri' }, T + 3);
+  Core.addNote(nbS, { title: 'Zzold', body: 'x', cat: 'kisisel' }, T + 4); Core.setNoraNoteAccess(nbS, true);
+  const nbp = nbS.notebook; nbp.pending.push(
+    { id: 'p1', kind: 'new', noteId: '', projectId: '', title: 'Zznew', text: 'zznew', base: 0, at: T },
+    { id: 'p2', kind: 'edit', noteId: nbp.notes[1].id, projectId: '', title: 'Zzproje', text: 'Zzbody iki', base: nbp.notes[1].updatedAt, at: T },
+    { id: 'p3', kind: 'link', noteId: nbp.notes[3].id, projectId: nbS.projects[1].id, title: 'Zzfree', text: '', base: 0, at: T },
+    { id: 'p4', kind: 'task', noteId: nbp.notes[1].id, projectId: np.id, title: 'Zzproje', text: '', base: 0, at: T },
+    { id: 'p5', kind: 'memory', noteId: nbp.notes[1].id, projectId: np.id, title: 'Zzproje', text: 'zzmem', base: 0, at: T });
+  out.push(['notes', nbS, T]);
   const pm = mk('semi'); Core.startProject(pm, 'freelance', T); Core.startProject(pm, 'blog-affiliate', T + 1); Core.startProject(pm, 'yerel-hizmet', T + 2);
   Core.updateProject(pm, pm.projects[0].id, { desc: 'zzdesc', goal: 100, note: 'zznote' }, T); Core.addFinance(pm, { type: 'in', amount: 30, src: pm.projects[0].id, note: 'zzrec' }, T); Core.addFinance(pm, { type: 'in', amount: 5, note: 'legacy' }, T);
   Core.assignPackage(pm, pm.projects[0].id, T); Core.archiveProject(pm, pm.projects[1].id, T); Core.setActiveProject(pm, pm.projects[0].id); out.push(['projMix', pm, T]);
@@ -85,6 +97,13 @@ function uiStates(S, T) {
   list.push(ui({ route: 'calc', calcRes: Core.calcSales({ price: 100, cost: 20, fee: 10, target: 1000 }) }), ui({ route: 'calc', calcRes: Core.calcSales({ price: 10, cost: 30, fee: 0, target: 100 }) }));
   list.push(ui({ route: 'plans', recType: 'in' }));
   // Aşama 5: yapay zekâ bağlantı durumları (sunucu hazır/yapılandırılmamış/çevrimdışı/denetleniyor, onay, bağlı, hata)
+  // Aşama 8: Not Defteri ekranları
+  const nbn = S.notebook && S.notebook.notes;
+  if (nbn && nbn.length) {
+    list.push(ui({ route: 'notes' }), ui({ route: 'notes', nbQ: 'zz', nbCat: 'fikir', nbProj: 'general', nbSort: 'title' }), ui({ route: 'notes', nbQ: 'yokyok', nbSort: 'created' }), ui({ route: 'note', noteId: 'new' }), ui({ route: 'note', noteId: 'yokyok' }));
+    nbn.forEach(n => list.push(ui({ route: 'note', noteId: n.id }), ui({ route: 'note', noteId: n.id, noteMsg: 'zzmsg' })));
+    if (p) list.push(ui({ route: 'project', delChoice: p.id }));
+  } else list.push(ui({ route: 'notes' }), ui({ route: 'note', noteId: 'new' }));
   const fp = p ? p.id : '*';
   [{ state: 'ready', model: 'claude-test' }, { state: 'unconfigured', model: '' }, { state: 'offline', model: '' }, { state: 'checking', model: '' }].forEach(ai => list.push(ui({ route: 'chat', ai }), ui({ route: 'memory', ai })));
   list.push(ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, live: true, failed: fp }), ui({ route: 'memory', ai: { state: 'ready', model: 'claude-test' }, live: true }), ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, consentHidden: true }));
@@ -116,6 +135,23 @@ function collect() {
       const w = src.slice(src.indexOf('Görev ve iş akışı motoru'), src.indexOf('// ---------- Dışa aktarma'));
       const re = /(?:error: |tlog\(t, |move\((?:t|g\.t), '[a-z]+', now, )'((?:[^'\\\n]|\\.)*)'(?=\s*[,)}])/g; let m;
       while ((m = re.exec(w))) { const s = m[1].replace(/\\'/g, "'"); if (/\p{L}{3}/u.test(s)) add(s, 'work-core'); }
+    })();
+    // Aşama 8: Not Defteri çekirdek hata metinleri ve NORA not yanıtları
+    (function () {
+      const src = require('fs').readFileSync(__dirname + '/../www/core.js', 'utf8');
+      const w = src.slice(src.indexOf('Not Defteri (Aşama 8)'), src.indexOf('// ---------- Dışa aktarma'));
+      const re = /error: '((?:[^'\\\n]|\\.)*)'/g; let m;
+      while ((m = re.exec(w))) { const x = m[1].replace(/\\'/g, "'"); if (/\p{L}{4}/u.test(x)) add(x, 'notes-core'); }
+      ['Not kaydedildi.', 'Not silindi.', 'Not güncellendi.', 'Not projeye bağlandı.', "Plan taslağı hazırlandı; Görev Merkezi'nde onayını bekliyor.", 'Not proje hafızasına aktarıldı.', 'Önerilen işlem yapılmadı.', 'Bu not kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', "Proje silinsin, bağlı notlar genel notlara taşınsın mı? Gelir-gider kayıtların da Genel'e döner. Bu işlem geri alınamaz.", 'Proje ve bağlı tüm notları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', 'Yedekteki # kayıt, # proje ve # not yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'].forEach(x => add(x, 'notes-msg'));
+      if (S.notebook && S.notebook.notes.length) {
+        const sc = JSON.parse(JSON.stringify(S));
+        ['Notlarımı göster', 'Son aldığım notu bul', 'Bu notu özetle', 'Bu notu daha düzenli hale getir', 'Bu notu projeye bağla', 'Bu nottan görev oluştur', 'Bu notu proje hafızasına aktar', 'Notumu sil', 'Not defterime kaydet: zzx', 'Not defterime kaydet'].forEach(q => [true, false].forEach(on => [true, false].forEach(gen => {
+          const s2 = JSON.parse(JSON.stringify(sc)); Core.setNoraNoteAccess(s2, on); Core.setChatScope(s2, gen); s2.notebook.pending = [];
+          [undefined, { noteId: s2.notebook.notes[3].id, explicit: true }, { noteId: s2.notebook.notes[1].id, explicit: true }, { noteId: s2.notebook.notes[0].id, explicit: true }].forEach(o => {
+            const r = Core.noraNotes(s2, q, T, o); if (r) r.text.split('\n').forEach(l => { if (!s2.notebook.notes.some(n => n.body.indexOf(l) !== -1) && !/^[“•]/.test(l) && !/, \d{2}\.\d{2}\.\d{4}$/.test(l) && !/^zz/i.test(l)) add(l, 'nora-notes'); });
+          });
+        })));
+      }
     })();
     // Sunucudan gelen hata metinleri ve istemci bildirimleri (ekrana çizilmez, toast olarak çıkar)
     ['Yapay zekâ sunucusu henüz yapılandırılmamış.', 'Bugünlük yapay zekâ kapasitesi doldu. Yarın tekrar dene.', 'Bugünkü mesaj hakkın doldu. Yarın tekrar dene.', 'Bugünlük sohbet kapasitesi doldu. Yarın tekrar dene.', 'Yapay zekâ zamanında yanıt veremedi. Tekrar dene.', 'Yapay zekâ şu an yoğun. Biraz sonra tekrar dene.', 'Yanıt okunamadı.', 'Yapay zekâ şu an yanıt veremiyor. Biraz sonra tekrar dene.', 'Boş yanıt geldi, tekrar dene.', 'İstek çok büyük.', 'Geçersiz istek.', 'Yetkisiz.', 'Bulunamadı.', 'Yanıt çok gecikti. Tekrar dene.', 'Bağlanamadım. İnternetini kontrol edip tekrar dene.', 'Yanıt alınamadı, tekrar dene.', 'Gerçek yapay zekâ kapatıldı. Demo yanıtlar kullanılacak.', 'Plan onaylandı. Görevleri tek tek sen başlatırsın.', 'Plan reddedildi; hiçbir görev çalışmadı.', 'Hazırlık yapıldı.', 'Onayın kaydedildi, ama bu işlem bu sürümde desteklenmiyor: hiçbir şey yapılmadı.', 'Onaylandı ve raporlandı.', 'Onaylanmadı; işlem yapılmadı, görev iptal edildi.', 'Görev tamamlandı.', 'Başarısız olarak işaretlendi.', 'Bu görev iptal edilsin mi?', 'Görev iptal edildi.', 'Görev yeniden planlandı.', 'Görev ertelendi.', 'Erteleme kaldırıldı.', 'Bu görev ve işlem geçmişi silinsin mi? Bu işlem geri alınamaz.', 'Görev silindi.', 'Görev güncellendi.', 'Görev eklendi.', 'İşlem yapılamadı.'].forEach(x => add(x, 'ai-msg'));

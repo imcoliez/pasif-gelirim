@@ -1,0 +1,117 @@
+0|Notebook
+1|Keep your ideas, work and research together
+2|# notes
+3|Your notes are stored on this device, included in the JSON backup and never sent to a server.
+4|New note
+5|NORA access
+6|Let NORA read the notes in this notebook
+7|Off: NORA reads none of your notes. You can turn it on or off any time.
+8|All notes
+9|All categories
+10|Ideas
+11|Work
+12|Research
+13|Reminders
+14|Personal
+15|General notes
+16|Recently edited
+17|Date created
+18|By title
+19|You have no notes yet. Start with "New note".
+20|Search notes
+21|Sort
+22|Title
+23|Content
+24|Project link
+25|General (no project)
+26|General notes are not linked to any project. A project note appears only with that project and never mixes into another. I recommend not writing passwords, card/IBAN or ID numbers in the notebook.
+27|Note limit reached. Delete an old note and try again.
+28|A note can't be empty: write a title or content.
+29|A new note can't be linked to an archived or missing project.
+30|Note not found.
+31|Invalid category.
+32|A note can't be linked to an archived or missing project.
+33|Category name can't be empty.
+34|Custom category limit reached.
+35|A category with this name already exists.
+36|Only custom categories can be deleted.
+37|This suggestion is no longer valid.
+38|The note changed in the meantime; the suggestion is no longer valid. Ask again if you like.
+39|The note was linked to a project in the meantime; the suggestion is no longer valid.
+40|The note's project changed; the suggestion is no longer valid.
+41|This note may contain sensitive information; it was not transferred.
+42|Unknown suggestion.
+43|Note saved.
+44|Note deleted.
+45|Note updated.
+46|Note linked to the project.
+47|Plan draft prepared; it is waiting for your approval in the Task Center.
+48|Note transferred to the project memory.
+49|The suggested action was not taken.
+50|Delete this note permanently? This cannot be undone.
+51|Delete the project and move its notes to general notes? Your income-expense records also return to General. This cannot be undone.
+52|Permanently delete the project and all its linked notes? This cannot be undone.
+53|# records, # projects and # notes will be loaded from the backup. They replace your current data. Continue?
+54|Suggested new text
+55|Demo edit
+56|Current note:
+57|Suggested:
+58|Apply
+59|Prepare a task plan draft from this note?
+60|The draft goes to the Task Center; no task runs there without your approval.
+61|Prepare draft
+62|Transfer to project memory?
+63|It is added only to the memory of this note's project.
+64|Transfer to memory
+65|Notebook notes
+66|This project has # linked notes. If you delete the project, you decide what happens to them; no note is deleted until you choose.
+67|View notes
+68|# notes · keep your ideas, work and research together
+69|NORA suggests saving this note
+70|General note
+71|Link the note to the project?
+72|Link
+73|On: NORA reads, locally, the notes in the scope you are chatting in (general or the active project). It doesn't touch notes that look sensitive. It shows you any change before making it and asks for your approval; it does not delete.
+74|Recently edited
+75|Updated: #
+76|May be sensitive
+77|No notes match this filter.
+78|This note was not found.
+79|Created: # # · Updated: # #
+80|With NORA
+81|The actions below run locally. Those that change something are shown to you first and applied only with your approval. Summarizing needs a real AI and is currently unavailable.
+82|Summarize
+83|Tidy up
+84|Link to project
+85|Suggest task
+86|This note may contain sensitive information, so NORA doesn't touch it.
+87|Move notes to general notes and delete the project
+88|Delete the project together with its notes
+89|Your general notes (#):
+90|The full list is in Tools > Notebook.
+91|# notes were hidden because they may contain sensitive information; I don't read them.
+92|(Demo: this action is rule-based, not real AI; your notes were read on your device and not sent to any server.)
+93|Your notes in this project (#):
+94|Switch to General chat to see your general notes.
+95|I didn't read your notes because notebook access is off. If you want me to read them, turn on "NORA access" in Tools > Notebook; you can turn it off any time.
+96|Your latest note:
+97|I used the note you edited most recently in this scope.
+98|Summarizing needs a real AI model, which isn't connected right now; this feature is unavailable.
+99|I'm not making up a summary. You can open the note and read it yourself.
+100|I used this note.
+101|My demo edit suggestion is below: spacing, line and capital-letter tidying only; I don't change the meaning and no AI was used.
+102|Your note doesn't change until you press "Apply".
+103|The note's content didn't match any of your projects, so I have no suggestion. You can link it by hand in the Notebook.
+104|It seems related to this project (by word match, not AI):
+105|To link it, you need to approve the card below.
+106|This note is already linked to a project. To move it to another project, edit the note yourself in the Notebook.
+107|A task plan belongs to a project. This note isn't linked to a project (or its project is archived); link the note to a project first.
+108|From this note I can prepare a task plan DRAFT for its linked project.
+109|If you approve, the draft goes to the Task Center; no task runs there without a separate approval.
+110|Note content can only be transferred to the memory of the project it is linked to. This note isn't linked to a project.
+111|I need your approval before transferring this to project memory. The text below will be added to the memory of the note's project.
+112|I don't delete notes. If you open the note in Tools > Notebook and press "Delete", you'll be asked to confirm; no note is deleted without your confirmation.
+113|I'm submitting this note for your approval before saving it; it will be saved as a general note.
+114|If you press "Save" on the card below, it is added to the Notebook; if you don't, nothing is saved.
+115|I'm submitting this note for your approval before saving it; it will be linked to this project as a project note.
+116|What should I save? Write the note text like this: "Save to my notebook: ..." or write your idea first and then say "save this to my notebook".

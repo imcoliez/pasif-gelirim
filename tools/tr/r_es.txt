@@ -1,0 +1,117 @@
+0|Cuaderno de notas
+1|Mantén tus ideas, trabajo e investigación en un solo lugar
+2|# notas
+3|Tus notas se guardan en este dispositivo, se incluyen en la copia de seguridad JSON y nunca se envían a un servidor.
+4|Nueva nota
+5|Acceso de NORA
+6|Permitir que NORA lea las notas de este cuaderno
+7|Desactivado: NORA no lee ninguna de tus notas. Puedes activarlo o desactivarlo cuando quieras.
+8|Todas las notas
+9|Todas las categorías
+10|Ideas
+11|Trabajo
+12|Investigación
+13|Recordatorios
+14|Personal
+15|Notas generales
+16|Editadas recientemente
+17|Fecha de creación
+18|Por título
+19|Aún no tienes notas. Empieza con "Nueva nota".
+20|Buscar en las notas
+21|Ordenar
+22|Título
+23|Contenido
+24|Vínculo con proyecto
+25|General (sin proyecto)
+26|Las notas generales no están vinculadas a ningún proyecto. Una nota de proyecto solo aparece con ese proyecto y nunca se mezcla con otro. Te recomiendo no escribir contraseñas, números de tarjeta/IBAN ni de identidad en el cuaderno.
+27|Se alcanzó el límite de notas. Elimina una nota antigua e inténtalo de nuevo.
+28|Una nota no puede estar vacía: escribe un título o contenido.
+29|Una nota nueva no se puede vincular a un proyecto archivado o inexistente.
+30|Nota no encontrada.
+31|Categoría no válida.
+32|Una nota no se puede vincular a un proyecto archivado o inexistente.
+33|El nombre de la categoría no puede estar vacío.
+34|Se alcanzó el límite de categorías personalizadas.
+35|Ya existe una categoría con este nombre.
+36|Solo se pueden eliminar las categorías personalizadas.
+37|Esta sugerencia ya no es válida.
+38|La nota cambió mientras tanto; la sugerencia ya no es válida. Pídela de nuevo si quieres.
+39|La nota se vinculó a un proyecto mientras tanto; la sugerencia ya no es válida.
+40|El proyecto de la nota cambió; la sugerencia ya no es válida.
+41|Esta nota puede contener información sensible; no se transfirió.
+42|Sugerencia desconocida.
+43|Nota guardada.
+44|Nota eliminada.
+45|Nota actualizada.
+46|Nota vinculada al proyecto.
+47|Borrador de plan preparado; espera tu aprobación en el Centro de tareas.
+48|Nota transferida a la memoria del proyecto.
+49|No se realizó la acción sugerida.
+50|¿Eliminar esta nota de forma permanente? Esta acción no se puede deshacer.
+51|¿Eliminar el proyecto y mover sus notas a las notas generales? Tus registros de ingresos y gastos también vuelven a General. Esta acción no se puede deshacer.
+52|¿Eliminar de forma permanente el proyecto y todas sus notas vinculadas? Esta acción no se puede deshacer.
+53|Se cargarán # registros, # proyectos y # notas de la copia de seguridad. Reemplazan tus datos actuales. ¿Continuar?
+54|Nuevo texto sugerido
+55|Edición de demostración
+56|Nota actual:
+57|Sugerido:
+58|Aplicar
+59|¿Preparar un borrador de plan de tareas a partir de esta nota?
+60|El borrador va al Centro de tareas; allí ninguna tarea se ejecuta sin tu aprobación.
+61|Preparar borrador
+62|¿Transferir a la memoria del proyecto?
+63|Solo se añade a la memoria del proyecto de esta nota.
+64|Transferir a la memoria
+65|Notas del cuaderno
+66|Este proyecto tiene # notas vinculadas. Si eliminas el proyecto, tú decides qué pasa con ellas; ninguna nota se elimina hasta que elijas.
+67|Ver notas
+68|# notas · mantén tus ideas, trabajo e investigación en un solo lugar
+69|NORA sugiere guardar esta nota
+70|Nota general
+71|¿Vincular la nota al proyecto?
+72|Vincular
+73|Activado: NORA lee, de forma local, las notas del ámbito en el que chateas (general o proyecto activo). No toca las notas que parecen sensibles. Te muestra cualquier cambio antes de hacerlo y pide tu aprobación; no elimina nada.
+74|Editadas recientemente
+75|Actualizada: #
+76|Puede ser sensible
+77|Ninguna nota coincide con este filtro.
+78|No se encontró esta nota.
+79|Creada: # # · Actualizada: # #
+80|Con NORA
+81|Las acciones siguientes se ejecutan de forma local. Las que cambian algo se te muestran primero y se aplican solo con tu aprobación. Resumir requiere una IA real y ahora mismo no está disponible.
+82|Resumir
+83|Ordenar el texto
+84|Vincular a proyecto
+85|Sugerir tarea
+86|Esta nota puede contener información sensible, así que NORA no la toca.
+87|Mover las notas a notas generales y eliminar el proyecto
+88|Eliminar el proyecto junto con sus notas
+89|Tus notas generales (#):
+90|La lista completa está en Herramientas > Cuaderno de notas.
+91|# notas se ocultaron porque pueden contener información sensible; no las leo.
+92|(Demostración: esta acción se basa en reglas, no es IA real; tus notas se leyeron en tu dispositivo y no se enviaron a ningún servidor.)
+93|Tus notas en este proyecto (#):
+94|Cambia al chat general para ver tus notas generales.
+95|No leí tus notas porque el acceso al cuaderno está desactivado. Si quieres que las lea, activa "Acceso de NORA" en Herramientas > Cuaderno de notas; puedes desactivarlo cuando quieras.
+96|Tu última nota:
+97|Usé la última nota que editaste en este ámbito.
+98|Resumir requiere un modelo de IA real, que ahora no está conectado; esta función no está disponible.
+99|No me invento un resumen. Puedes abrir la nota y leerla tú mismo.
+100|Usé esta nota.
+101|Mi sugerencia de edición de demostración está abajo: solo orden de espacios, líneas y mayúsculas; no cambio el significado y no se usó IA.
+102|Tu nota no cambia hasta que pulses "Aplicar".
+103|El contenido de la nota no coincidió con ninguno de tus proyectos, así que no tengo sugerencia. Puedes vincularla a mano en el Cuaderno de notas.
+104|Parece relacionada con este proyecto (por coincidencia de palabras, no por IA):
+105|Para vincularla, debes aprobar la tarjeta de abajo.
+106|Esta nota ya está vinculada a un proyecto. Para moverla a otro proyecto, edita tú mismo la nota en el Cuaderno de notas.
+107|Un plan de tareas pertenece a un proyecto. Esta nota no está vinculada a ningún proyecto (o su proyecto está archivado); vincula primero la nota a un proyecto.
+108|A partir de esta nota puedo preparar un BORRADOR de plan de tareas para su proyecto vinculado.
+109|Si lo apruebas, el borrador va al Centro de tareas; allí ninguna tarea se ejecuta sin una aprobación aparte.
+110|El contenido de la nota solo se puede transferir a la memoria del proyecto al que está vinculada. Esta nota no está vinculada a ningún proyecto.
+111|Necesito tu aprobación antes de transferir esto a la memoria del proyecto. El texto de abajo se añadirá a la memoria del proyecto de la nota.
+112|No elimino notas. Si abres la nota en Herramientas > Cuaderno de notas y pulsas "Eliminar", se te pedirá confirmación; ninguna nota se elimina sin tu confirmación.
+113|Te presento esta nota para tu aprobación antes de guardarla; se guardará como nota general.
+114|Si pulsas "Guardar" en la tarjeta de abajo, se añade al Cuaderno de notas; si no, no se guarda nada.
+115|Te presento esta nota para tu aprobación antes de guardarla; se vinculará a este proyecto como nota de proyecto.
+116|¿Qué guardo? Escribe el texto de la nota así: "Guardar en mi cuaderno: ..." o escribe primero tu idea y luego di "guarda esto en mi cuaderno".

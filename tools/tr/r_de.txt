@@ -1,0 +1,117 @@
+0|Notizbuch
+1|Halte deine Ideen, Arbeit und Recherche an einem Ort
+2|# Notizen
+3|Deine Notizen werden auf diesem Gerät gespeichert, sind im JSON-Sicherung enthalten und werden nie an einen Server gesendet.
+4|Neue Notiz
+5|NORA-Zugriff
+6|NORA darf die Notizen in diesem Notizbuch lesen
+7|Aus: NORA liest keine deiner Notizen. Du kannst es jederzeit ein- oder ausschalten.
+8|Alle Notizen
+9|Alle Kategorien
+10|Ideen
+11|Arbeit
+12|Recherche
+13|Erinnerungen
+14|Persönlich
+15|Allgemeine Notizen
+16|Zuletzt bearbeitet
+17|Erstellungsdatum
+18|Nach Titel
+19|Du hast noch keine Notizen. Beginne mit „Neue Notiz“.
+20|Notizen durchsuchen
+21|Sortieren
+22|Titel
+23|Inhalt
+24|Projektverknüpfung
+25|Allgemein (ohne Projekt)
+26|Allgemeine Notizen sind keinem Projekt zugeordnet. Eine Projektnotiz erscheint nur bei diesem Projekt und vermischt sich nie mit einem anderen. Ich empfehle, keine Passwörter, Karten-/IBAN- oder Ausweisnummern ins Notizbuch zu schreiben.
+27|Notizlimit erreicht. Lösche eine alte Notiz und versuche es erneut.
+28|Eine Notiz darf nicht leer sein: Schreibe einen Titel oder Inhalt.
+29|Eine neue Notiz kann nicht mit einem archivierten oder fehlenden Projekt verknüpft werden.
+30|Notiz nicht gefunden.
+31|Ungültige Kategorie.
+32|Eine Notiz kann nicht mit einem archivierten oder fehlenden Projekt verknüpft werden.
+33|Der Kategoriename darf nicht leer sein.
+34|Limit für eigene Kategorien erreicht.
+35|Eine Kategorie mit diesem Namen existiert bereits.
+36|Nur eigene Kategorien können gelöscht werden.
+37|Dieser Vorschlag ist nicht mehr gültig.
+38|Die Notiz hat sich inzwischen geändert; der Vorschlag ist nicht mehr gültig. Frage bei Bedarf erneut an.
+39|Die Notiz wurde inzwischen mit einem Projekt verknüpft; der Vorschlag ist nicht mehr gültig.
+40|Das Projekt der Notiz hat sich geändert; der Vorschlag ist nicht mehr gültig.
+41|Diese Notiz enthält möglicherweise sensible Informationen; sie wurde nicht übertragen.
+42|Unbekannter Vorschlag.
+43|Notiz gespeichert.
+44|Notiz gelöscht.
+45|Notiz aktualisiert.
+46|Notiz mit dem Projekt verknüpft.
+47|Planentwurf erstellt; er wartet in der Aufgabenzentrale auf deine Zustimmung.
+48|Notiz ins Projektgedächtnis übernommen.
+49|Die vorgeschlagene Aktion wurde nicht ausgeführt.
+50|Diese Notiz endgültig löschen? Das kann nicht rückgängig gemacht werden.
+51|Das Projekt löschen und seine Notizen zu den allgemeinen Notizen verschieben? Deine Einnahmen-Ausgaben-Einträge kehren ebenfalls zu „Allgemein“ zurück. Das kann nicht rückgängig gemacht werden.
+52|Das Projekt und alle verknüpften Notizen endgültig löschen? Das kann nicht rückgängig gemacht werden.
+53|Aus der Sicherung werden # Einträge, # Projekte und # Notizen geladen. Sie ersetzen deine aktuellen Daten. Fortfahren?
+54|Vorgeschlagener neuer Text
+55|Demo-Bearbeitung
+56|Aktuelle Notiz:
+57|Vorschlag:
+58|Anwenden
+59|Aus dieser Notiz einen Aufgabenplan-Entwurf erstellen?
+60|Der Entwurf landet in der Aufgabenzentrale; dort läuft ohne deine Zustimmung keine Aufgabe.
+61|Entwurf erstellen
+62|Ins Projektgedächtnis übernehmen?
+63|Es wird nur dem Gedächtnis des Projekts dieser Notiz hinzugefügt.
+64|Ins Gedächtnis übernehmen
+65|Notizbuch-Notizen
+66|Mit diesem Projekt sind # Notizen verknüpft. Wenn du das Projekt löschst, entscheidest du, was mit ihnen geschieht; keine Notiz wird gelöscht, bevor du wählst.
+67|Notizen ansehen
+68|# Notizen · halte deine Ideen, Arbeit und Recherche an einem Ort
+69|NORA schlägt vor, diese Notiz zu speichern
+70|Allgemeine Notiz
+71|Notiz mit dem Projekt verknüpfen?
+72|Verknüpfen
+73|An: NORA liest lokal die Notizen im Bereich, in dem du chattest (allgemein oder aktives Projekt). Notizen, die sensibel wirken, fasst sie nicht an. Sie zeigt dir jede Änderung vorab und bittet um deine Zustimmung; sie löscht nichts.
+74|Zuletzt bearbeitet
+75|Aktualisiert: #
+76|Möglicherweise sensibel
+77|Keine Notizen entsprechen diesem Filter.
+78|Diese Notiz wurde nicht gefunden.
+79|Erstellt: # # · Aktualisiert: # #
+80|Mit NORA
+81|Die folgenden Aktionen laufen lokal. Solche, die etwas ändern, werden dir zuerst gezeigt und nur mit deiner Zustimmung angewendet. Zusammenfassen erfordert eine echte KI und ist derzeit nicht verfügbar.
+82|Zusammenfassen
+83|Aufräumen
+84|Mit Projekt verknüpfen
+85|Aufgabe vorschlagen
+86|Diese Notiz enthält möglicherweise sensible Informationen, daher fasst NORA sie nicht an.
+87|Notizen zu allgemeinen Notizen verschieben und Projekt löschen
+88|Projekt zusammen mit seinen Notizen löschen
+89|Deine allgemeinen Notizen (#):
+90|Die vollständige Liste findest du unter Tools > Notizbuch.
+91|# Notizen wurden ausgeblendet, weil sie sensible Informationen enthalten könnten; ich lese sie nicht.
+92|(Demo: Diese Aktion ist regelbasiert, keine echte KI; deine Notizen wurden auf deinem Gerät gelesen und an keinen Server gesendet.)
+93|Deine Notizen in diesem Projekt (#):
+94|Wechsle zum allgemeinen Chat, um deine allgemeinen Notizen zu sehen.
+95|Ich habe deine Notizen nicht gelesen, weil der Notizbuch-Zugriff aus ist. Wenn ich sie lesen soll, schalte unter Tools > Notizbuch „NORA-Zugriff“ ein; du kannst ihn jederzeit ausschalten.
+96|Deine letzte Notiz:
+97|Ich habe die Notiz genommen, die du in diesem Bereich zuletzt bearbeitet hast.
+98|Zusammenfassen erfordert ein echtes KI-Modell, das derzeit nicht verbunden ist; diese Funktion ist nicht verfügbar.
+99|Ich erfinde keine Zusammenfassung. Du kannst die Notiz öffnen und selbst lesen.
+100|Ich habe diese Notiz genommen.
+101|Mein Demo-Bearbeitungsvorschlag steht unten: nur Abstände, Zeilen und Großschreibung; ich ändere die Bedeutung nicht und es wurde keine KI verwendet.
+102|Deine Notiz ändert sich nicht, bevor du auf „Anwenden“ drückst.
+103|Der Inhalt der Notiz passte zu keinem deiner Projekte, daher habe ich keinen Vorschlag. Du kannst sie im Notizbuch von Hand verknüpfen.
+104|Sie scheint zu diesem Projekt zu passen (nach Wortübereinstimmung, nicht KI):
+105|Zum Verknüpfen musst du die Karte unten bestätigen.
+106|Diese Notiz ist bereits mit einem Projekt verknüpft. Um sie in ein anderes Projekt zu verschieben, bearbeite die Notiz selbst im Notizbuch.
+107|Ein Aufgabenplan gehört zu einem Projekt. Diese Notiz ist mit keinem Projekt verknüpft (oder ihr Projekt ist archiviert); verknüpfe die Notiz zuerst mit einem Projekt.
+108|Aus dieser Notiz kann ich einen ENTWURF eines Aufgabenplans für das verknüpfte Projekt erstellen.
+109|Wenn du zustimmst, landet der Entwurf in der Aufgabenzentrale; dort läuft ohne gesonderte Zustimmung keine Aufgabe.
+110|Notizinhalt kann nur ins Gedächtnis des verknüpften Projekts übernommen werden. Diese Notiz ist mit keinem Projekt verknüpft.
+111|Ich brauche deine Zustimmung, bevor ich dies ins Projektgedächtnis übernehme. Der folgende Text wird dem Gedächtnis des Projekts der Notiz hinzugefügt.
+112|Ich lösche keine Notizen. Wenn du die Notiz unter Tools > Notizbuch öffnest und „Löschen“ drückst, wirst du um Bestätigung gebeten; ohne deine Bestätigung wird keine Notiz gelöscht.
+113|Ich lege diese Notiz dir zur Zustimmung vor, bevor ich sie speichere; sie wird als allgemeine Notiz gespeichert.
+114|Wenn du auf der Karte unten „Speichern“ drückst, wird sie ins Notizbuch aufgenommen; sonst wird nichts gespeichert.
+115|Ich lege diese Notiz dir zur Zustimmung vor, bevor ich sie speichere; sie wird als Projektnotiz mit diesem Projekt verknüpft.
+116|Was soll ich speichern? Schreibe den Notiztext so: „In mein Notizbuch speichern: ...“ oder schreibe zuerst deine Idee und sage dann „speichere das in meinem Notizbuch“.

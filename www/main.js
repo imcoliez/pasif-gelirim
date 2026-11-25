@@ -104,7 +104,7 @@
   }
 
   // ---------- Çizim ----------
-  var DRAFT_IDS = ['nameInput', 'finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'memText', 'memKind', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget'];
+  var DRAFT_IDS = ['nameInput', 'finAmount', 'finNote', 'finDate', 'finCat', 'goalInput', 'budgetInput', 'chatInput', 'memText', 'memKind', 'setName', 'finSrc', 'recAmount', 'recNote', 'recDate', 'recCat', 'recFreq', 'savName', 'savTarget', 'taxInput', 'calcPrice', 'calcCost', 'calcFee', 'calcTarget', 'ntTitle', 'ntBody', 'ntCat', 'ntProj'];
   function captureDraft() {
     if (ui.noDraft) { ui.draft = {}; ui.noDraft = false; return; }   // gönderildi/kaydedildi: alanlar temizlensin
     if (lastRoute !== ui.route) { ui.draft = {}; return; }
@@ -212,6 +212,8 @@
     if (route === 'charts') ui.chartSel = null;
     if (route !== 'money') ui.editId = null;
     if (route !== 'memory') ui.memEdit = null;
+    if (route !== 'note') ui.noteMsg = '';
+    if (route !== 'project') ui.delChoice = null;
     if (route !== 'work') { ui.workTask = null; ui.workEdit = null; }
     if (route === 'market') setTimeout(function () { loadMarket(false); }, 0);
     if (route === 'chat' || route === 'memory') setTimeout(function () { checkAi(false); }, 0);
@@ -433,6 +435,14 @@
     if (Core.remainingSeconds(S, now()) <= 0) { render(); return; }
     var live = aiLive(), url = live ? liveUrl() : '', pid = Core.chatPid(S);
     // Hedef cümlesi: görev planı TASLAĞI yerelde (kural tabanlı) hazırlanır; ücretli istek gitmez, onay olmadan hiçbir görev çalışmaz.
+    // Not Defteri istekleri tamamen yerelde işlenir: izin yoksa okunmaz, değişiklikler onay kartıyla sunulur, sunucuya hiçbir şey gitmez.
+    var prevUser = ''; Core.chatFor(S).slice().reverse().some(function (m) { if (m.role === 'user') { prevUser = m.text; return true; } return false; });
+    var nr = Core.noraNotes(S, text, now(), { prevUser: prevUser });
+    if (nr) {
+      withRewards(function () { Core.addChat(S, 'user', text, now(), pid); });
+      Core.addChat(S, 'ai', nr.text, now(), pid, 'demo');
+      ui.noDraft = true; save(); render(); return;
+    }
     var goal = Core.detectGoal(text);
     if (goal) {
       withRewards(function () { Core.addChat(S, 'user', text, now(), pid); });
@@ -580,7 +590,7 @@
     rd.onload = function () {
       var res = Core.importData(String(rd.result || ''));
       if (!res.ok) { toast(res.error); return; }
-      if (!window.confirm(I18n.t('Yedekteki ' + res.counts.finance + ' kayıt ve ' + res.counts.projects + ' proje yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'))) return;
+      if (!window.confirm(I18n.t('Yedekteki ' + res.counts.finance + ' kayıt, ' + res.counts.projects + ' proje ve ' + res.counts.notes + ' not yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'))) return;
       res.state.lock = S.lock;                        // kilit yedeğe girmez, mevcut kilit korunur
       res.state.user.onboarded = true;
       S = res.state; save(); applyTheme(); ui.noDraft = true; toast('Yedek geri yüklendi.'); render();
@@ -611,6 +621,11 @@
   }
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t) return;
+    if (t.id === 'nbCat' || t.id === 'nbProj' || t.id === 'nbSort') {
+      ui[t.id] = t.value; var bx = document.getElementById('nbList');
+      if (bx) { bx.innerHTML = App.noteListHtml(S, ui); I18n.apply(bx); }
+      return;
+    }
     if (t.id === 'avatarFile' && t.files && t.files[0]) {
       var f = t.files[0];
       if (!/^image\//.test(f.type) || f.size > 25 * 1024 * 1024) { toast('Bir resim dosyası seç.'); t.value = ''; return; }
@@ -628,6 +643,11 @@
     var t = e.target; if (!t) return;
     if (t.id === 'mkAmount') {
       var box = document.getElementById('mkConv'); if (box && ui.market) box.innerHTML = App.convHtml(ui.market.items, t.value);
+      return;
+    }
+    if (t.id === 'nbQ') {
+      ui.nbQ = t.value; var bx = document.getElementById('nbList');
+      if (bx) { bx.innerHTML = App.noteListHtml(S, ui); I18n.apply(bx); }
       return;
     }
     if (t.id === 'finSearch' || t.id === 'glossQ') {
@@ -730,9 +750,50 @@
     },
     deleteProject: function (el) {
       var id = el.getAttribute('data-id'), q = Core.projectById(S, id); if (!q) return;
+      var nn = Core.noteProjectCount(S, id);
+      if (nn) { ui.delChoice = id; render(); return; }       // bağlı notlar için önce kullanıcı karar verir; hiçbir şey silinmez
       var msg = I18n.t('Bu proje kalıcı olarak silinsin mi? Silinecek: görevler, notlar, planlar ve kararlar. Silinmeyecek: gelir-gider kayıtların (Genel\'e döner). Bu işlem geri alınamaz. Emin değilsen İptal\'e bas ve projeyi arşivle.') + '\n\n' + q.title;
       if (!window.confirm(msg)) return;
       Core.deleteProject(S, id); save(); toast('Proje silindi.'); go('projects');
+    },
+    deleteProjectGo: function (el) {
+      var id = el.getAttribute('data-id'), mode = el.getAttribute('data-v'), q = Core.projectById(S, id); if (!q) return;
+      var msg = I18n.t(mode === 'move' ? 'Proje silinsin, bağlı notlar genel notlara taşınsın mı? Gelir-gider kayıtların da Genel\'e döner. Bu işlem geri alınamaz.' : 'Proje ve bağlı tüm notları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.') + '\n\n' + q.title;
+      if (!window.confirm(msg)) return;
+      var r = Core.deleteProject(S, id, mode === 'move' ? 'move' : 'delete');
+      if (!r || r.blocked) { toast('İşlem yapılamadı.'); return; }
+      ui.delChoice = null; save(); toast('Proje silindi.'); go('projects');
+    },
+    deleteProjectCancel: function () { ui.delChoice = null; render(); },
+    nbShowNotes: function (el) { ui.nbProj = el.getAttribute('data-id'); ui.nbQ = ''; ui.nbCat = ''; go('notes'); },
+    // ---- Not Defteri ----
+    nbNew: function () { go('note', { noteId: 'new', noteMsg: '' }); },
+    nbOpen: function (el) { go('note', { noteId: el.getAttribute('data-id'), noteMsg: '' }); },
+    nbSave: function () {
+      var f = { title: val('ntTitle'), body: val('ntBody'), cat: val('ntCat'), projectId: val('ntProj') };
+      var r = (!ui.noteId || ui.noteId === 'new') ? Core.addNote(S, f, now()) : Core.updateNote(S, ui.noteId, f, now());
+      if (!r.ok) { toast(r.error); return; }
+      ui.noDraft = true; save(); toast('Not kaydedildi.'); back();
+    },
+    nbDelete: function (el) {
+      var n = Core.noteById(S, el.getAttribute('data-id')); if (!n) return;
+      if (!window.confirm(I18n.t('Bu not kalıcı olarak silinsin mi? Bu işlem geri alınamaz.') + '\n\n' + n.title)) return;
+      Core.deleteNote(S, n.id); ui.noDraft = true; save(); toast('Not silindi.'); back();
+    },
+    nbNora: function (el) { Core.setNoraNoteAccess(S, el.getAttribute('data-v') === 'on'); save(); render(); },
+    nbAsk: function (el) {
+      var id = el.getAttribute('data-id'), k = el.getAttribute('data-v');
+      var T = { summarize: 'Bu notu özetle', tidy: 'Bu notu daha düzenli hale getir', link: 'Bu notu projeye bağla', task: 'Bu nottan görev oluştur', memory: 'Bu notu proje hafızasına aktar' };
+      if (!T[k]) return;
+      var r = Core.noraNotes(S, T[k], now(), { noteId: id, explicit: true });
+      ui.noteMsg = r ? r.text : ''; save(); render();
+    },
+    nbPend: function (el) {
+      var r = Core.resolveNotePending(S, el.getAttribute('data-id'), el.getAttribute('data-v') === 'yes', now());
+      if (!r.ok) { toast(r.error); save(); render(); return; }
+      save(); ui.noteMsg = ''; if (r.kind === 'edit' || r.kind === 'link') ui.noDraft = true;
+      toast(r.declined ? 'Önerilen işlem yapılmadı.' : r.kind === 'new' ? 'Not kaydedildi.' : r.kind === 'edit' ? 'Not güncellendi.' : r.kind === 'link' ? 'Not projeye bağlandı.' : r.kind === 'task' ? 'Plan taslağı hazırlandı; Görev Merkezi\'nde onayını bekliyor.' : 'Not proje hafızasına aktarıldı.');
+      render();
     },
     linkLegacy: function (el) {
       var id = el.getAttribute('data-id'), n = Core.unlinkedFinance(S).length; if (!n) return;

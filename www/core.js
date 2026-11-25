@@ -74,6 +74,7 @@
       chatGeneral: false,
       plans: [],
       decisions: [],
+      notebook: { notes: [], cats: [], nora: false, pending: [] },
       createdAt: Date.now()
     };
   }
@@ -138,6 +139,7 @@
         t.read = !!(t.read || t.understood || t.done); t.understood = !!(t.understood || t.done);
       });
     });
+    out.notebook = cleanNotebook(s.notebook, out.projects);      // proje silinmişse not silinmez, genele döner
     out.chatGeneral = !!out.chatGeneral;
     out.permissions = cleanPermissions(s.permissions);
     out.settings.aiShareMemory = out.settings.aiShareMemory === true;
@@ -270,8 +272,15 @@
     return true;
   }
   // Silme: proje, görevleri, notları, planları ve kararları gider. Gelir-gider kayıtları SİLİNMEZ; "Genel"e döner.
-  function deleteProject(state, id) {
+  // noteMode: projeye bağlı not varsa kullanıcı 'move' (genel notlara taşı) veya 'delete' (sil) demeden HİÇBİR ŞEY silinmez.
+  function deleteProject(state, id, noteMode) {
     const p = projectById(state, id); if (!p) return null;
+    const pnotes = nbOf(state).notes.filter(function (n) { return n.projectId === id; });
+    if (pnotes.length && noteMode !== 'move' && noteMode !== 'delete') return { blocked: true, notes: pnotes.length };
+    let notesMoved = 0, notesDeleted = 0;
+    if (noteMode === 'move') pnotes.forEach(function (n) { n.projectId = ''; notesMoved++; });
+    else if (noteMode === 'delete') { const ids = {}; pnotes.forEach(function (n) { ids[n.id] = 1; }); nbOf(state).notes = nbOf(state).notes.filter(function (n) { return !ids[n.id]; }); notesDeleted = pnotes.length; }
+    nbOf(state).pending = nbOf(state).pending.filter(function (x) { return x.projectId !== id; });
     let keptFinance = 0;
     state.finance.forEach(function (f) { if (f.src === id) { delete f.src; keptFinance++; } });
     const plans = state.plans.filter(function (x) { return x.projectId === id; }).length;
@@ -282,7 +291,7 @@
     state.chat = state.chat.filter(function (m) { return m.pid !== id; });      // yalnızca bu projenin sohbeti gider
     state.projects = state.projects.filter(function (x) { return x.id !== id; });
     fallbackActive(state);
-    return { keptFinance: keptFinance, plans: plans, decisions: decisions, tasks: Object.keys(p.tasks).length, memory: memory, chats: chats };
+    return { notesMoved: notesMoved, notesDeleted: notesDeleted, keptFinance: keptFinance, plans: plans, decisions: decisions, tasks: Object.keys(p.tasks).length, memory: memory, chats: chats };
   }
   // Eski, hiçbir projeye bağlı olmayan kayıtlar
   function unlinkedFinance(state) {
@@ -340,7 +349,8 @@
       finance: state.finance.filter(function (f) { return f.src === p.id; }),
       plans: state.plans.filter(function (x) { return x.projectId === p.id; }),
       decisions: state.decisions.filter(function (x) { return x.projectId === p.id; }),
-      chat: state.chat.filter(function (m) { return m.pid === p.id; })
+      chat: state.chat.filter(function (m) { return m.pid === p.id; }),
+      notes: nbOf(state).notes.filter(function (n) { return n.projectId === p.id; })
     }, null, 2);
   }
 
@@ -843,7 +853,7 @@
     st.plans = st.plans.slice(-200);
     st.decisions = st.decisions.slice(-200);
     if (!projectById(st, st.activeProjectId)) st.activeProjectId = st.projects.length ? st.projects[st.projects.length - 1].id : null;
-    return { ok: true, state: st, counts: { finance: st.finance.length, projects: st.projects.length } };
+    return { ok: true, state: st, counts: { finance: st.finance.length, projects: st.projects.length, notes: st.notebook.notes.length } };
   }
 
   // ---------- Tema ----------
@@ -1678,6 +1688,273 @@
     return '"' + cp.title + '" projesinde ' + st.open + ' açık görev var; ' + st.waiting + ' tanesi senin onayını bekliyor. Görev Merkezi\'nden görüntüleyebilir, düzenleyebilir, onaylayabilirsin. Ben onayın olmadan hiçbir görevi başlatmam. (Demo: durum cihazındaki kayıtlardan okundu.)';
   }
 
+  // ---------- Not Defteri (Aşama 8) ----------
+  // Notların sahibi uygulamadır; NORA yalnızca kullanıcının verdiği izinle (nora=true) okur, değişiklikleri onaya sunar.
+  // Proje hafızasından (kısa, onaylı bilgiler) ayrı bir veri türüdür; sunucuya hiçbir not içeriği gitmez.
+  const NOTE_LIMITS = { notes: 500, title: 80, body: 8000, cats: 10, catName: 24, pending: 5, memText: 240 };
+  const NOTE_CATS = [
+    { id: 'genel', name: 'Genel' }, { id: 'fikir', name: 'Fikirler' }, { id: 'is', name: 'İş' }, { id: 'proje', name: 'Projeler' },
+    { id: 'arastirma', name: 'Araştırma' }, { id: 'hatirlatma', name: 'Hatırlatmalar' }, { id: 'kisisel', name: 'Kişisel' }
+  ];
+  const NOTE_SORTS = ['updated', 'created', 'title'];
+  const NOTE_PEND_KINDS = ['new', 'edit', 'link', 'task', 'memory'];
+  function noteText(s, n) { return clip(s, n).replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, ' ').trim(); }
+  function cleanNotebook(nb, projects) {
+    const out = { notes: [], cats: [], nora: false, pending: [] };
+    if (!nb || typeof nb !== 'object' || Array.isArray(nb)) return out;
+    out.nora = nb.nora === true;
+    const used = Object.create(null), pids = Object.create(null), seen = Object.create(null);
+    NOTE_CATS.forEach(function (c) { used[c.id] = 1; });
+    (projects || []).forEach(function (p) { pids[p.id] = 1; });
+    (Array.isArray(nb.cats) ? nb.cats : []).forEach(function (c) {
+      if (!c || typeof c !== 'object') return;
+      const name = noteText(c.name, NOTE_LIMITS.catName), id = String(c.id || '');
+      if (!name || !/^c_[a-z0-9_]{1,24}$/.test(id) || used[id] || out.cats.length >= NOTE_LIMITS.cats) return;
+      used[id] = 1; out.cats.push({ id: id, name: name });
+    });
+    (Array.isArray(nb.notes) ? nb.notes : []).forEach(function (n) {
+      if (!n || typeof n !== 'object' || out.notes.length >= NOTE_LIMITS.notes) return;
+      const title = noteText(n.title, NOTE_LIMITS.title), body = clip(n.body, NOTE_LIMITS.body);
+      if (!title && !body.trim()) return;
+      let id = String(n.id || uid('nt')); if (seen[id]) id = uid('nt'); seen[id] = 1;
+      const created = +n.createdAt > 0 ? +n.createdAt : 0;
+      out.notes.push({ id: id, title: title || 'Başlıksız not', body: body, cat: typeof n.cat === 'string' && used[n.cat] ? n.cat : 'genel',
+        projectId: typeof n.projectId === 'string' && pids[n.projectId] ? n.projectId : '',       // proje yoksa not silinmez, genele döner
+        createdAt: created, updatedAt: +n.updatedAt > 0 ? +n.updatedAt : created });
+    });
+    const ids = Object.create(null); out.notes.forEach(function (n) { ids[n.id] = 1; });
+    (Array.isArray(nb.pending) ? nb.pending : []).forEach(function (x) {
+      if (!x || typeof x !== 'object' || NOTE_PEND_KINDS.indexOf(x.kind) === -1 || out.pending.length >= NOTE_LIMITS.pending) return;
+      if (x.kind !== 'new' && !ids[x.noteId]) return;
+      const text = clip(x.text, NOTE_LIMITS.body);
+      if ((x.kind === 'new' || x.kind === 'edit' || x.kind === 'memory') && !text.trim()) return;
+      if ((x.kind === 'link' || x.kind === 'task' || x.kind === 'memory') && !pids[x.projectId]) return;
+      out.pending.push({ id: String(x.id || uid('np')), kind: x.kind, noteId: x.kind === 'new' ? '' : String(x.noteId), projectId: typeof x.projectId === 'string' && pids[x.projectId] ? x.projectId : '',
+        title: noteText(x.title, NOTE_LIMITS.title), text: text, base: +x.base || 0, at: +x.at || 0 });
+    });
+    return out;
+  }
+  function nbOf(state) {
+    if (!state.notebook || !Array.isArray(state.notebook.notes) || !Array.isArray(state.notebook.pending)) state.notebook = cleanNotebook(state.notebook, state.projects || []);
+    return state.notebook;
+  }
+  function noteCats(state) { return NOTE_CATS.concat(nbOf(state).cats); }
+  function noteCatName(state, id) { const c = noteCats(state).find(function (x) { return x.id === id; }); return c ? c.name : 'Genel'; }
+  function noteById(state, id) { return nbOf(state).notes.find(function (n) { return n.id === id; }) || null; }
+  function noteIsSensitive(n) { return !!n && isSensitive((n.title || '') + ' ' + (n.body || '')); }
+  function noteLiveProject(state, pid) { const p = projectById(state, pid); return p && !isArchived(p) ? p : null; }
+  function noteProjectCount(state, pid) { return nbOf(state).notes.filter(function (n) { return n.projectId === pid; }).length; }
+  function addNote(state, f, now) {
+    f = f || {}; const nb = nbOf(state);
+    if (nb.notes.length >= NOTE_LIMITS.notes) return { ok: false, error: 'Not sınırına ulaşıldı. Eski bir notu silip tekrar dene.' };
+    const body = clip(f.body, NOTE_LIMITS.body); let title = noteText(f.title, NOTE_LIMITS.title);
+    if (!title && !body.trim()) return { ok: false, error: 'Not boş olamaz: başlık veya içerik yaz.' };
+    if (!title) title = noteText(body, NOTE_LIMITS.title);
+    const pid = f.projectId ? String(f.projectId) : '';
+    if (pid && !noteLiveProject(state, pid)) return { ok: false, error: 'Arşivdeki veya olmayan projeye yeni not bağlanamaz.' };
+    const cat = noteCats(state).some(function (c) { return c.id === f.cat; }) ? f.cat : 'genel';
+    const n = { id: uid('nt'), title: title, body: body, cat: cat, projectId: pid, createdAt: now, updatedAt: now };
+    nb.notes.push(n); return { ok: true, note: n };
+  }
+  function updateNote(state, id, f, now) {
+    f = f || {}; const n = noteById(state, id); if (!n) return { ok: false, error: 'Not bulunamadı.' };
+    const title = 'title' in f ? noteText(f.title, NOTE_LIMITS.title) : n.title, body = 'body' in f ? clip(f.body, NOTE_LIMITS.body) : n.body;
+    if (!title && !body.trim()) return { ok: false, error: 'Not boş olamaz: başlık veya içerik yaz.' };
+    let cat = n.cat, pid = n.projectId;
+    if ('cat' in f) { if (!noteCats(state).some(function (c) { return c.id === f.cat; })) return { ok: false, error: 'Geçersiz kategori.' }; cat = f.cat; }
+    if ('projectId' in f) {
+      const np = f.projectId ? String(f.projectId) : '';
+      if (np !== n.projectId && np && !noteLiveProject(state, np)) return { ok: false, error: 'Arşivdeki veya olmayan projeye not bağlanamaz.' };
+      pid = np;
+    }
+    const nt = title || noteText(body, NOTE_LIMITS.title);
+    if (nt === n.title && body === n.body && cat === n.cat && pid === n.projectId) return { ok: true, note: n, unchanged: true };
+    n.title = nt; n.body = body; n.cat = cat; n.projectId = pid; n.updatedAt = now;
+    return { ok: true, note: n };
+  }
+  function deleteNote(state, id) {
+    const nb = nbOf(state), i = nb.notes.findIndex(function (n) { return n.id === id; }); if (i < 0) return false;
+    nb.notes.splice(i, 1);
+    nb.pending = nb.pending.filter(function (x) { return x.noteId !== id; });
+    return true;
+  }
+  // o: { q, cat, project: 'all' | 'general' | <projeId>, sort: updated|created|title, dir: asc|desc }
+  function listNotes(state, o) {
+    o = o || {}; const q = norm(o.q).trim(), nb = nbOf(state);
+    let list = nb.notes.filter(function (n) {
+      if (o.cat && o.cat !== 'all' && n.cat !== o.cat) return false;
+      if (o.project === 'general' && n.projectId) return false;
+      if (o.project && o.project !== 'all' && o.project !== 'general' && n.projectId !== o.project) return false;
+      if (!q) return true;
+      const p = n.projectId ? projectById(state, n.projectId) : null;
+      return norm(n.title + ' ' + n.body + ' ' + noteCatName(state, n.cat) + ' ' + (p ? p.title : '')).indexOf(q) !== -1;
+    });
+    const sort = NOTE_SORTS.indexOf(o.sort) === -1 ? 'updated' : o.sort, asc = o.dir === 'asc';
+    list = list.slice().sort(function (a, b) {
+      const r = sort === 'title' ? norm(a.title).localeCompare(norm(b.title), 'tr') : sort === 'created' ? a.createdAt - b.createdAt : a.updatedAt - b.updatedAt;
+      return asc ? r : -r;
+    });
+    return list;
+  }
+  function addNoteCategory(state, name) {
+    const nb = nbOf(state), nm = noteText(name, NOTE_LIMITS.catName);
+    if (!nm) return { ok: false, error: 'Kategori adı boş olamaz.' };
+    if (nb.cats.length >= NOTE_LIMITS.cats) return { ok: false, error: 'Özel kategori sınırına ulaşıldı.' };
+    if (noteCats(state).some(function (c) { return norm(c.name) === norm(nm); })) return { ok: false, error: 'Bu adla bir kategori zaten var.' };
+    const c = { id: 'c_' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: nm };
+    nb.cats.push(c); return { ok: true, cat: c };
+  }
+  function removeNoteCategory(state, id, now) {
+    const nb = nbOf(state), i = nb.cats.findIndex(function (c) { return c.id === id; }); if (i < 0) return { ok: false, error: 'Yalnızca özel kategoriler silinebilir.' };
+    let moved = 0; nb.notes.forEach(function (n) { if (n.cat === id) { n.cat = 'genel'; n.updatedAt = now; moved++; } });   // notlar silinmez
+    nb.cats.splice(i, 1); return { ok: true, moved: moved };
+  }
+  function setNoraNoteAccess(state, on) { nbOf(state).nora = !!on; if (!on) nbOf(state).pending = []; return true; }
+  function noraNoteAccess(state) { return nbOf(state).nora === true; }
+
+  // ---- NORA ↔ Not Defteri ----
+  const NO_ACCESS = 'Not Defteri erişimin kapalı olduğu için notlarını okumadım. Okumamı istersen Araçlar > Not Defteri ekranında "NORA erişimi"ni açabilirsin; istediğin an kapatabilirsin.';
+  const NOTE_RE = {
+    del: /\bnot\w*\b.*\b(sil|silsene|silelim)\b|\b(sil|sileyim)\b.*\bnot/,
+    save: /(not defter\w*|notlar\w*)\b.*\b(kaydet|ekle|yaz)\w*|\b(kaydet|ekle|yaz)\w*\b.*not defter|\bnot al\b/,
+    memory: /\bnot\w*\b.*hafıza\w*.*(aktar|kaydet|ekle)|hafıza\w*.*\bnot\w*\b.*(aktar|kaydet|ekle)/,
+    summarize: /\bnot\w*\b.*özetle|özetle.*\bnot\b/,
+    tidy: /\bnot\w*\b.*(düzenli|düzenle|toparla|derle)|(düzenle|toparla|derle).*\bnot\b/,
+    link: /\bnot\w*\b.*(projeye bağla|proje\w* bağla|ilgili proje)|projeye bağla.*\bnot/,
+    task: /\bnot\w*\b.*görev|görev.*\bnot\b/,
+    last: /\bson\b.*\bnot(um|u|umu)?\b|\bnot\w*\b.*\bbul\b/,
+    list: /\bnotlar(ım|ımı|ı)?\b|not defterim|not defterimi/
+  };
+  function noteIntent(text) {
+    const t = norm(text); if (!t.trim() || t.length > 600) return '';
+    const order = ['del', 'save', 'memory', 'summarize', 'tidy', 'link', 'task', 'last', 'list'];
+    for (let i = 0; i < order.length; i++) if (NOTE_RE[order[i]].test(t)) return order[i];
+    return '';
+  }
+  function noraVisibleNotes(state, pid) {
+    const all = nbOf(state).notes.filter(function (n) { return (n.projectId || '') === (pid || ''); });
+    const ok = all.filter(function (n) { return !noteIsSensitive(n); });
+    return { notes: ok.sort(function (a, b) { return b.updatedAt - a.updatedAt; }), hidden: all.length - ok.length };
+  }
+  function noteTidy(body) {
+    let s = String(body || '').replace(/\r\n?/g, '\n').split('\n').map(function (l) { return l.replace(/[ \t]+/g, ' ').trim(); }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    s = s.split('\n').map(function (l) { return l ? l.charAt(0).toLocaleUpperCase('tr') + l.slice(1) : l; }).join('\n');
+    return s;
+  }
+  function addNotePending(state, p, now) {
+    const nb = nbOf(state), item = Object.assign({ id: uid('np'), noteId: '', projectId: '', title: '', text: '', base: 0, at: now }, p);
+    nb.pending.push(item); while (nb.pending.length > NOTE_LIMITS.pending) nb.pending.shift();
+    return item;
+  }
+  function notePendingFor(state, pid) {
+    const nb = nbOf(state);
+    return nb.pending.filter(function (x) {
+      if (x.kind === 'new') return (x.projectId || '') === (pid || '');
+      const n = noteById(state, x.noteId); return n && (n.projectId || '') === (pid || '');
+    });
+  }
+  function dateTr(ms) { return formatDate(ms); }
+  // Döner: { text, pending? } veya null (not isteği değilse). Yalnızca yerel çalışır; hiçbir şey sunucuya gitmez.
+  // Metin satırlara bölünür: not başlıkları ayrı satırda durur, sabit cümleler çevrilebilir.
+  const L_TAG = '(Demo: bu işlem kural tabanlıdır, gerçek yapay zekâ değil; notların cihazından okundu, sunucuya gönderilmedi.)';
+  function noraNotes(state, text, now, opts) {
+    const kind = noteIntent(text); if (!kind) return null;
+    const pid = chatPid(state), cp = pid ? projectById(state, pid) : null;
+    const out = function (lines, pending) { return { text: lines.join('\n'), pending: pending }; };
+    const q = function (t) { return '“' + t + '”'; };
+    if (kind === 'del') return out(['Not silmeyi ben yapmam. Notu Araçlar > Not Defteri\'nde açıp "Sil"e basarsan onay sorulur; onay vermeden hiçbir not silinmez.']);
+    if (kind === 'save') {
+      const prev = (opts && opts.prevUser) || '';
+      const m = String(text).match(/[:：]\s*([\s\S]+)$/);
+      const content = clip(m ? m[1] : prev, NOTE_LIMITS.body).trim();
+      if (!content) return out(['Neyi kaydedeyim? Notun metnini şöyle yaz: "Not defterime kaydet: ..." ya da önce fikrini yazıp ardından "bunu not defterime kaydet" de.']);
+      if (isSensitive(content)) return out(['Bu metin şifre, PIN, kart/IBAN veya kimlik numarası gibi hassas bilgi içerebilir; bunu ben kaydetmem. İstersen kendin Not Defteri\'ne yazabilirsin.']);
+      const it = addNotePending(state, { kind: 'new', title: noteText(content, 50), text: content, projectId: cp ? cp.id : '' }, now);
+      return out([cp ? 'Bu notu kaydetmeden önce onayına sunuyorum; proje notu olarak bu projeye bağlanacak.' : 'Bu notu kaydetmeden önce onayına sunuyorum; genel not olarak kaydedilecek.', 'Aşağıdaki karttan "Kaydet"e basarsan Not Defteri\'ne eklenir; basmazsan hiçbir şey kaydedilmez.'], it.id);
+    }
+    if (!noraNoteAccess(state)) return out([NO_ACCESS]);
+    const vis = noraVisibleNotes(state, pid);
+    const extra = [];
+    if (vis.hidden) extra.push(vis.hidden + ' not, hassas bilgi içerebileceği için gizlendi; bunları okumuyorum.');
+    if (cp) extra.push('Genel notlarını görmek için Genel sohbete geç.');
+    if (kind === 'list') {
+      if (!vis.notes.length) return out(['Bu kapsamda gösterilecek not yok.'].concat(extra));
+      const rows = vis.notes.slice(0, 8).map(function (n) { return '• ' + n.title + ' (' + noteCatName(state, n.cat) + ', ' + dateTr(n.updatedAt) + ')'; });
+      return out([(cp ? 'Bu projedeki notların (' : 'Genel notların (') + vis.notes.length + '):'].concat(rows, vis.notes.length > 8 ? ['… ve ' + (vis.notes.length - 8) + ' not daha.'] : [], ['Tamamı Araçlar > Not Defteri\'nde.'], extra, [L_TAG]));
+    }
+    let n = opts && opts.noteId ? noteById(state, opts.noteId) : null;
+    if (n && (n.projectId || '') !== (pid || '') && !(opts && opts.explicit)) n = null;
+    if (n && noteIsSensitive(n)) return out(['Bu not hassas bilgi içerebileceği için ona dokunmuyorum.']);
+    if (!n) n = kind === 'last' ? vis.notes.slice().sort(function (a, b) { return b.createdAt - a.createdAt; })[0] : vis.notes[0];
+    if (!n) return out(['Bu kapsamda üzerinde çalışabileceğim bir not yok.'].concat(extra));
+    const ref = [q(n.title), opts && opts.noteId ? 'Bu notu esas aldım.' : 'Bu kapsamdaki en son düzenlediğin notu esas aldım.'];
+    if (kind === 'last') {
+      const b = n.body.length > 300 ? n.body.slice(0, 300) + '…' : n.body;
+      return out(['Son aldığın not:', q(n.title), noteCatName(state, n.cat) + ', ' + dateTr(n.createdAt)].concat(b ? [b] : [], [L_TAG]));
+    }
+    if (kind === 'summarize') return out(ref.concat(['Özetleme gerçek bir yapay zekâ modeli gerektirir ve şu an bağlı değil; bu özellik kullanılamıyor.', 'Uydurma bir özet üretmiyorum. Notu açıp kendin okuyabilirsin.']));
+    if (kind === 'tidy') {
+      const nb = noteTidy(n.body);
+      if (nb === n.body) return out(ref.concat(['Metin zaten düzenli görünüyor; önerecek bir değişiklik bulamadım.', L_TAG]));
+      const it = addNotePending(state, { kind: 'edit', noteId: n.id, text: nb, base: n.updatedAt, title: n.title }, now);
+      return out(ref.concat(['Demo düzenleme önerim aşağıda: boşluk, satır ve baş harf düzeni; anlamı değiştirmiyorum, yapay zekâ kullanılmadı.', '"Uygula"ya basmadan notun değişmez.']), it.id);
+    }
+    if (kind === 'link') {
+      if (n.projectId) return out(ref.concat(['Bu not zaten bir projeye bağlı. Başka projeye taşımak istersen notu Not Defteri\'nde sen düzenle.']));
+      const words = norm(n.title + ' ' + n.body).replace(/[^a-zçğıöşü0-9 ]/g, ' ').split(/\s+/).filter(function (w) { return w.length >= 4; });
+      let best = null, bs = 0;
+      liveProjects(state).forEach(function (p) {
+        const m = modelById(p.modelId), hay = norm(p.title + ' ' + (p.desc || '') + ' ' + (m ? m.title : ''));
+        let sc = 0; words.forEach(function (w) { if (hay.indexOf(w) !== -1) sc++; });
+        if (sc > bs) { bs = sc; best = p; }
+      });
+      if (!best) return out(ref.concat(['Notun içeriği hiçbir projenle eşleşmedi; önerim yok. İstersen Not Defteri\'nde elle bağlayabilirsin.', L_TAG]));
+      const it = addNotePending(state, { kind: 'link', noteId: n.id, projectId: best.id, title: n.title }, now);
+      return out(ref.concat(['Şu projeyle ilgili görünüyor (kelime eşleşmesine göre, yapay zekâ değil):', q(best.title), 'Bağlamak için aşağıdaki karta onay vermen gerekir.']), it.id);
+    }
+    if (kind === 'task') {
+      const p = n.projectId ? noteLiveProject(state, n.projectId) : null;
+      if (!p) return out(ref.concat(['Görev planı bir projeye aittir. Bu not bir projeye bağlı değil (veya projesi arşivde); önce notu bir projeye bağla.']));
+      const it = addNotePending(state, { kind: 'task', noteId: n.id, projectId: p.id, title: n.title }, now);
+      return out(ref.concat(['Bu nottan, bağlı olduğu proje için bir görev planı TASLAĞI hazırlayabilirim.', 'Onay verirsen taslak Görev Merkezi\'ne düşer; orada ayrıca onaylamadan hiçbir görev çalışmaz.']), it.id);
+    }
+    if (kind === 'memory') {
+      const p = n.projectId ? noteLiveProject(state, n.projectId) : null;
+      if (!p) return out(ref.concat(['Not içeriği yalnızca bağlı olduğu projenin hafızasına aktarılabilir. Bu not bir projeye bağlı değil.']));
+      const snip = noteText(n.title + (n.body ? ': ' + n.body : ''), NOTE_LIMITS.memText);
+      const it = addNotePending(state, { kind: 'memory', noteId: n.id, projectId: p.id, text: snip, title: n.title }, now);
+      return out(ref.concat(['Proje hafızasına aktarmadan önce onayını istiyorum. Aşağıdaki metin notun projesinin hafızasına eklenecek.']), it.id);
+    }
+    return null;
+  }
+  // Onay kartlarından gelen karar. Hiçbir zaman izinsiz işlem yapmaz; bayat öneriyi reddeder.
+  function resolveNotePending(state, id, accept, now) {
+    const nb = nbOf(state), i = nb.pending.findIndex(function (x) { return x.id === id; });
+    if (i < 0) return { ok: false, error: 'Bu öneri artık geçerli değil.' };
+    const it = nb.pending[i]; nb.pending.splice(i, 1);
+    if (!accept) return { ok: true, declined: true };
+    if (it.kind === 'new') { const r = addNote(state, { title: it.title, body: it.text, cat: 'genel', projectId: it.projectId }, now); return r.ok ? { ok: true, kind: 'new', note: r.note } : r; }
+    const n = noteById(state, it.noteId); if (!n) return { ok: false, error: 'Not bulunamadı.' };
+    if (it.kind === 'edit') {
+      if (n.updatedAt !== it.base) return { ok: false, error: 'Not bu arada değişti; öneri geçersiz kaldı. İstersen yeniden iste.' };
+      const r = updateNote(state, n.id, { body: it.text }, now); return r.ok ? { ok: true, kind: 'edit', note: n } : r;
+    }
+    if (it.kind === 'link') {
+      if (n.projectId) return { ok: false, error: 'Not bu arada bir projeye bağlandı; öneri geçersiz kaldı.' };
+      const r = updateNote(state, n.id, { projectId: it.projectId }, now); return r.ok ? { ok: true, kind: 'link', note: n } : r;
+    }
+    if (n.projectId !== it.projectId) return { ok: false, error: 'Notun projesi değişti; öneri geçersiz kaldı.' };
+    if (noteIsSensitive(n)) return { ok: false, error: 'Bu not hassas bilgi içerebilir; aktarılmadı.' };
+    if (it.kind === 'task') {
+      const r = proposePlan(state, it.projectId, noteText(n.title + (n.body ? ' — ' + n.body : ''), WORK_LIMITS.goal), now, 'demo');
+      return r.ok ? { ok: true, kind: 'task', plan: r.plan } : r;
+    }
+    if (it.kind === 'memory') {
+      const r = addMemory(state, it.projectId, 'note', it.text, now, 'user'); return r.ok ? { ok: true, kind: 'memory' } : r;
+    }
+    return { ok: false, error: 'Bilinmeyen öneri.' };
+  }
+
   // ---------- Dışa aktarma ----------
   // Yedeğe PIN özeti konmaz (başkasına gönderilen dosyada kilit bilgisi olmasın).
   function exportData(state) {
@@ -1733,6 +2010,7 @@
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData,
+    NOTE_CATS: NOTE_CATS, NOTE_LIMITS: NOTE_LIMITS, NOTE_SORTS: NOTE_SORTS, noteCats: noteCats, noteCatName: noteCatName, noteById: noteById, noteIsSensitive: noteIsSensitive, noteProjectCount: noteProjectCount, addNote: addNote, updateNote: updateNote, deleteNote: deleteNote, listNotes: listNotes, addNoteCategory: addNoteCategory, removeNoteCategory: removeNoteCategory, setNoraNoteAccess: setNoraNoteAccess, noraNoteAccess: noraNoteAccess, noteIntent: noteIntent, noraNotes: noraNotes, NOTE_NORA_LINES: [NO_ACCESS, L_TAG], noteTidy: noteTidy, notePendingFor: notePendingFor, resolveNotePending: resolveNotePending, notebookOf: nbOf, noraVisibleNotes: noraVisibleNotes,
     NORA: NORA, NORA_BY_PACKAGE: NORA_BY_PACKAGE, noraAccess: noraAccess, noraStatus: noraStatus, noraIntro: noraIntro,
     TASK_STATUS: TASK_STATUS, TASK_FLOW: TASK_FLOW, PRIORITIES: PRIORITIES, WORK_LIMITS: WORK_LIMITS, CAPABILITIES: CAPABILITIES, WORK_BY_PACKAGE: WORK_BY_PACKAGE,
     workEntitlements: workEntitlements, capabilityStatus: capabilityStatus, setPermission: setPermission, workOf: workOf, tasksOf: tasksOf, plansOf: plansOf,
