@@ -1,0 +1,22 @@
+0|Tipp: Wähle einen Text in der App durch langes Drücken aus, dann erscheint „Mit NORA notieren“. Falls nicht, kopiere den Text und füge ihn in „Neue Notiz“ ein.
+1|Mit NORA notieren
+2|Dein ausgewählter Text steht unten. Prüfe ihn vor dem Speichern.
+3|NORA-Vorschlag
+4|Demo
+5|Dieser Vorschlag ist eine regelbasierte Demo, keine echte KI-Analyse. Er betrachtet nur den ausgewählten Text und deine Projektnamen; deine Notizen liest er nicht. Ich habe die Vorschläge unten eingetragen, du kannst alles ändern.
+6|Titelvorschlag bereit
+7|Kategorievorschlag:
+8|Ich habe keine eindeutige Projektzuordnung gefunden; es bleibt eine allgemeine Notiz
+9|Projektverknüpfung (optional)
+10|NORA-Zugriff ist aus: NORA liest diese Notiz nicht. Du kannst ihn im Notizbuch-Bildschirm einschalten. Die Notiz wird nur auf diesem Gerät gespeichert.
+11|Sie enthält möglicherweise Informationen wie ein Passwort oder Karte/IBAN. Du kannst sie trotzdem speichern; NORA fasst sensibel wirkende Notizen nicht an.
+12|Im Notizbuch speichern
+13|Der zu speichernde Text ist zu kurz.
+14|Im Notizbuch gespeichert.
+15|Aktionen für ausgewählten Text
+16|Projektvorschlag:
+17|NORA-Zugriff ist an: Es kann diese Notiz im Rahmen deiner Notizbuch-Berechtigungen sehen. Die Notiz wird nur auf diesem Gerät gespeichert.
+18|Dieser Text ist bereits in einer Notiz gespeichert:
+19|Wenn du keine zweite Notiz aus demselben Text möchtest, tippe auf Abbrechen oder öffne die vorhandene Notiz.
+20|Trotzdem speichern
+21|Vorhandene Notiz öffnen

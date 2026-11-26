@@ -567,3 +567,14 @@ html[data-theme="light"] .scrubtip{background:rgba(255,255,255,.95);color:#10201
 .notetile{align-items:flex-start}
 [dir=rtl] .notecard{text-align:right;border-left:1px solid var(--bd);border-right:3px solid var(--g)}
 @media (min-width:520px){.nb-filters{grid-template-columns:1fr 1fr 1fr}}
+
+/* Aşama 9: seçili metin çubuğu ve kaydetme ekranı */
+.selbar{position:fixed;z-index:18;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 16px);width:max-content;padding:6px;border-radius:16px;background:#0d1316;border:1px solid rgba(var(--gr),.35);box-shadow:0 10px 28px rgba(0,0,0,.55);animation:fadeIn .15s}
+.selbar[hidden]{display:none}
+.sb-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #24312b;background:#151d20;color:#e8eeea;border-radius:12px;padding:8px 12px;font:600 13px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sb-btn.sb-nora{background:rgba(var(--gr),.16);border-color:rgba(var(--gr),.5);color:var(--g)}
+.sb-btn:active{transform:scale(.97)}
+html[data-theme="light"] .selbar{background:#fff;border-color:rgba(0,0,0,.14)}
+html[data-theme="light"] .sb-btn{background:#f2f5f4;border-color:#d5dcd8;color:#121a16}
+.selprev{white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto;padding:10px 12px;border-radius:12px;background:rgba(var(--gr),.06);border:1px solid var(--bd);border-left:3px solid var(--g);font-size:14.5px;line-height:1.5;user-select:text}
+.selsheet .nora-sug{margin:12px 0 0}

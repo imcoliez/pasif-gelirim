@@ -207,7 +207,7 @@
     stopSpeak();
     var prev = ui.route;
     var dir = direction(prev, route);
-    ui.route = route; ui.narr = null; ui.narrAnswer = ''; ui.exportText = null;
+    ui.route = route; ui.narr = null; ui.narrAnswer = ''; ui.exportText = null; ui.selSheet = null;
     if (route !== 'tasks') ui.quiz = null;
     if (route === 'charts') ui.chartSel = null;
     if (route !== 'money') ui.editId = null;
@@ -237,11 +237,71 @@
     ui.enter = direction(ui.route, r) === 'fwd' ? 'back' : direction(ui.route, r);
     ui.route = r; ui.depth = (st && st.depth) || 0;
     if (st && st.taskId) ui.taskId = st.taskId;
-    ui.narr = null; ui.narrAnswer = ''; ui.exportText = null;
+    ui.narr = null; ui.narrAnswer = ''; ui.exportText = null; ui.selSheet = null;
     if (r !== 'tasks') ui.quiz = null;
     render();
   });
   try { window.history.replaceState({ route: ui.route, depth: 0 }, ''); } catch (e) { }
+
+  // ---------- Aşama 9: metin seçimi ----------
+  // Yalnızca bu uygulamanın ana içeriğinde, kullanıcının kendi seçtiği metin için çalışır. Arka planda izleme, erişilebilirlik izni
+  // veya başka uygulamayı okuma yoktur: yalnızca bu sayfanın "selectionchange" olayı dinlenir.
+  var selBar = document.createElement('div'), selText = '', selTimer = null, selDownAt = 0, selLang = '';
+  selBar.id = 'selbar'; selBar.className = 'selbar'; selBar.hidden = true; selBar.setAttribute('role', 'toolbar'); selBar.setAttribute('aria-label', 'Seçili metin işlemleri');
+  document.body.appendChild(selBar);
+  function hideSelBar() { selBar.hidden = true; selText = ''; selLang = ''; }
+  function selForbidden(node) {
+    var el = node && node.nodeType === 1 ? node : node && node.parentElement;
+    return !el || !!(el.closest && el.closest('input,textarea,select,[contenteditable="true"],#selbar,.modal,#layer,#top,#tabs'));
+  }
+  function readSel() {
+    if (ui.pinMode || ui.selSheet || ui.exportText != null || ['lock', 'welcome', 'onboarding'].indexOf(ui.route) !== -1) return null;
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+    var a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return null;
+    var r = sel.getRangeAt(0);
+    // Seçim BAŞLANGICI uygulamanın ana içeriğinde olmalı. Üç kez dokunmak son paragrafta seçimi ana içeriğin dışına (alt menü vb.)
+    // taşırabilir; bu durumda seçim ana içeriğin sonuna kırpılır, dışarıdaki hiçbir metin alınmaz.
+    if (!elMain.contains(r.startContainer) || selForbidden(r.startContainer)) return null;
+    if (!elMain.contains(r.endContainer)) { r = r.cloneRange(); r.setEnd(elMain, elMain.childNodes.length); }
+    else if (selForbidden(r.commonAncestorContainer)) return null;
+    var t = r.toString();
+    return Core.selClean(t).ok ? { text: t, rect: r.getBoundingClientRect() } : null;
+  }
+  function placeSelBar(rect) {
+    var w = selBar.offsetWidth, h = selBar.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+    var nav = elTabs && elTabs.offsetParent !== null ? elTabs.getBoundingClientRect().top : vh;
+    var left = Math.min(Math.max(8, rect.left + rect.width / 2 - w / 2), Math.max(8, vw - w - 8));
+    var top = rect.bottom + 34;                                      // seçim tutamaçlarının altı
+    if (top + h > nav - 8) top = rect.top - h - 14;                 // sığmazsa seçimin üstü
+    if (top < 8 || top + h > nav - 4) top = Math.max(8, nav - h - 10);    // yine sığmazsa alt menünün hemen üstü
+    selBar.style.left = left + 'px'; selBar.style.top = top + 'px';
+  }
+  function updateSelBar() {
+    var info = readSel();
+    if (!info) { if (Date.now() - selDownAt > 700) hideSelBar(); return; }
+    selText = info.text;
+    var lang = I18n.getLang();
+    if (selBar.hidden || selLang !== lang) { selBar.innerHTML = App.selBarHtml(); I18n.apply(selBar); selLang = lang; }
+    selBar.hidden = false; placeSelBar(info.rect);
+  }
+  document.addEventListener('selectionchange', function () { clearTimeout(selTimer); selTimer = setTimeout(updateSelBar, 120); });
+  window.addEventListener('scroll', function () { if (!selBar.hidden) { clearTimeout(selTimer); selTimer = setTimeout(updateSelBar, 60); } }, { passive: true });
+  // Düğmeye dokunmak seçimi bozmasın
+  ['mousedown', 'touchstart', 'pointerdown'].forEach(function (ev) { selBar.addEventListener(ev, function (e) { selDownAt = Date.now(); if (e.cancelable && ev !== 'touchstart') e.preventDefault(); }, { passive: false }); });
+  function openSelSheet(mode) {
+    var c = Core.selClean(selText); if (!c.ok) { hideSelBar(); return; }
+    var sug = Core.suggestNoteFromText(S, c.text);
+    ui.selSheet = { mode: mode, text: c.text, title: sug.title, cat: mode === 'nora' ? sug.cat : 'genel', pid: mode === 'nora' ? sug.projectId : '', sug: mode === 'nora' ? sug : null };
+    hideSelBar();
+    try { window.getSelection().removeAllRanges(); } catch (e) { }
+    render();
+  }
+  document.addEventListener('input', function (e) { if (ui.selSheet && e.target && e.target.id === 'selTitle') ui.selSheet.title = e.target.value; });
+  document.addEventListener('change', function (e) {
+    if (!ui.selSheet || !e.target) return;
+    if (e.target.id === 'selCat') ui.selSheet.cat = e.target.value; else if (e.target.id === 'selProj') ui.selSheet.pid = e.target.value;
+  });
 
   // ---------- Sesli okuma (cihazın kendi sesi, ücretsiz) ----------
   function stopSpeak() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { } }
@@ -765,6 +825,29 @@
       ui.delChoice = null; save(); toast('Proje silindi.'); go('projects');
     },
     deleteProjectCancel: function () { ui.delChoice = null; render(); },
+    // ---- Aşama 9: seçilen metin ----
+    selNora: function () { openSelSheet('nora'); },
+    selSave: function () { openSelSheet('plain'); },
+    selCopy: function () {
+      var t = selText; hideSelBar(); if (!t) return;
+      var done = function () { toast('Kopyalandı.'); };
+      function fallback() {
+        var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+        document.body.appendChild(ta); ta.select();
+        try { if (document.execCommand('copy')) done(); else toast('Metni elle seçip kopyala.'); } catch (e) { toast('Metni elle seçip kopyala.'); }
+        ta.remove();
+      }
+      try { navigator.clipboard.writeText(t).then(done, fallback); } catch (e) { fallback(); }
+    },
+    selCancel: function () { ui.selSheet = null; render(); },
+    selOpenDup: function (el) { var id = el.getAttribute('data-id'); ui.selSheet = null; go('note', { noteId: id, noteMsg: '' }); },
+    selConfirm: function (el) {
+      var d = ui.selSheet; if (!d) return;
+      var r = Core.saveSelectionNote(S, { text: d.text, title: val('selTitle'), cat: val('selCat'), projectId: val('selProj'), force: el.getAttribute('data-v') === 'force' }, now());
+      if (r.duplicate) { render(); return; }
+      if (!r.ok) { toast(r.error); return; }
+      ui.selSheet = null; save(); render(); toast("Not Defteri'ne kaydedildi.");
+    },
     nbShowNotes: function (el) { ui.nbProj = el.getAttribute('data-id'); ui.nbQ = ''; ui.nbCat = ''; go('notes'); },
     // ---- Not Defteri ----
     nbNew: function () { go('note', { noteId: 'new', noteMsg: '' }); },

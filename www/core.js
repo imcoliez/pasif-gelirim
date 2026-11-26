@@ -1841,6 +1841,63 @@
     s = s.split('\n').map(function (l) { return l ? l.charAt(0).toLocaleUpperCase('tr') + l.slice(1) : l; }).join('\n');
     return s;
   }
+  // ---- Aşama 9: Seçilen metni Not Defteri'ne kaydet ----
+  // Yalnızca kullanıcının uygulama içinde AÇIKÇA seçtiği metin işlenir. Öneriler kural tabanlı demodur ve yalnızca seçili metne
+  // ile proje adlarına bakar; mevcut notları OKUMAZ (NORA erişim izninden bağımsızdır, çünkü not içeriği kullanılmaz).
+  const SEL_MIN = 3;
+  const SEL_CAT_RULES = [
+    ['hatirlatma', /hatırlat|unutma|yarın|bu hafta|son gün|randevu|toplantı|teslim tarihi/],
+    ['fikir', /fikir|öneri|ilham|denenebilir|belki|kurgula|konsept/],
+    ['arastirma', /araştır|kaynak|analiz|rapor|istatistik|rakip|pazar|trend|inceleme/],
+    ['is', /müşteri|satış|fatura|gelir|gider|fiyat|teklif|sözleşme|tedarik|kâr|abonelik|reklam/],
+    ['proje', /proje|görev|plan\b|adım|hedef|yol haritası|başlangıç/],
+    ['kisisel', /\bben\b|\bbana\b|benim|günlük|hislerim|ailem|sağlık/]
+  ];
+  function selClean(text) {
+    let t = String(text == null ? '' : text).replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    const truncated = t.length > NOTE_LIMITS.body; if (truncated) t = t.slice(0, NOTE_LIMITS.body).trim();
+    return { text: t, truncated: truncated, ok: t.replace(/\s/g, '').length >= SEL_MIN };
+  }
+  function selKey(t) { return norm(t).replace(/\s+/g, ' ').trim(); }
+  function selTitle(text) {
+    const first = String(text).split('\n').map(function (l) { return l.trim(); }).filter(Boolean)[0] || '';
+    const m = first.match(/^[\s\S]*?[.!?…](?=\s|$)/);                  // ilk cümle
+    let t = noteText(m ? m[0] : first, 60).replace(/[.:;,\-–—\s]+$/, '');
+    if (t.length > 52) { const cut = t.slice(0, 52), sp = cut.lastIndexOf(' '); t = (sp > 24 ? cut.slice(0, sp) : cut) + '…'; }
+    return t || 'Seçilen metin';
+  }
+  // Döner: { demo:true, title, cat, catName, projectId, projectName }
+  function suggestNoteFromText(state, text) {
+    const sel = selClean(text), t = norm(sel.text);
+    let cat = 'genel';
+    for (let i = 0; i < SEL_CAT_RULES.length; i++) { if (SEL_CAT_RULES[i][1].test(t)) { cat = SEL_CAT_RULES[i][0]; break; } }
+    let hit = null, hits = 0;
+    liveProjects(state).forEach(function (p) {
+      const m = modelById(p.modelId), names = [p.title, m && m.title].filter(Boolean).map(norm);
+      const ok = names.some(function (nm) {
+        if (nm.length >= 4 && t.indexOf(nm) !== -1) return true;
+        return nm.split(/[^a-zçğıöşü0-9]+/).some(function (w) { return w.length >= 6 && new RegExp('(^|[^a-zçğıöşü0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(t); });
+      });
+      if (ok) { hits++; hit = p; }
+    });
+    const pr = hits === 1 ? hit : null;                                // birden çok proje eşleşirse tahmin etme
+    return { demo: true, title: selTitle(sel.text), cat: cat, catName: noteCatName(state, cat), projectId: pr ? pr.id : '', projectName: pr ? pr.title : '' };
+  }
+  // Aynı metin zaten bir notta varsa (boşluk/büyük-küçük harf farkı yok sayılır) o notu döner.
+  function findNoteByText(state, text) {
+    const k = selKey(selClean(text).text); if (!k) return null;
+    return nbOf(state).notes.find(function (n) { return selKey(n.body) === k; }) || null;
+  }
+  // f: { text, title, cat, projectId, force }. Aynı metin varsa ve force yoksa kaydetmez ({ok:false,duplicate}).
+  function saveSelectionNote(state, f, now) {
+    f = f || {}; const sel = selClean(f.text);
+    if (!sel.ok) return { ok: false, error: 'Kaydedilecek metin çok kısa.' };
+    const dup = findNoteByText(state, sel.text);
+    if (dup && !f.force) return { ok: false, duplicate: dup };
+    const r = addNote(state, { title: f.title, body: sel.text, cat: f.cat, projectId: f.projectId }, now);
+    if (r.ok && sel.truncated) r.truncated = true;
+    return r;
+  }
   function addNotePending(state, p, now) {
     const nb = nbOf(state), item = Object.assign({ id: uid('np'), noteId: '', projectId: '', title: '', text: '', base: 0, at: now }, p);
     nb.pending.push(item); while (nb.pending.length > NOTE_LIMITS.pending) nb.pending.shift();
@@ -2010,7 +2067,7 @@
     setPackage: setPackage, buyNarration: buyNarration, cancelNarration: cancelNarration,
     history: history, generatePlan: generatePlan, ensureDecisions: ensureDecisions, decide: decide,
     aiReply: aiReply, explainTerm: explainTerm, exportData: exportData,
-    NOTE_CATS: NOTE_CATS, NOTE_LIMITS: NOTE_LIMITS, NOTE_SORTS: NOTE_SORTS, noteCats: noteCats, noteCatName: noteCatName, noteById: noteById, noteIsSensitive: noteIsSensitive, noteProjectCount: noteProjectCount, addNote: addNote, updateNote: updateNote, deleteNote: deleteNote, listNotes: listNotes, addNoteCategory: addNoteCategory, removeNoteCategory: removeNoteCategory, setNoraNoteAccess: setNoraNoteAccess, noraNoteAccess: noraNoteAccess, noteIntent: noteIntent, noraNotes: noraNotes, NOTE_NORA_LINES: [NO_ACCESS, L_TAG], noteTidy: noteTidy, notePendingFor: notePendingFor, resolveNotePending: resolveNotePending, notebookOf: nbOf, noraVisibleNotes: noraVisibleNotes,
+    NOTE_CATS: NOTE_CATS, NOTE_LIMITS: NOTE_LIMITS, NOTE_SORTS: NOTE_SORTS, noteCats: noteCats, noteCatName: noteCatName, noteById: noteById, noteIsSensitive: noteIsSensitive, noteProjectCount: noteProjectCount, addNote: addNote, updateNote: updateNote, deleteNote: deleteNote, listNotes: listNotes, addNoteCategory: addNoteCategory, removeNoteCategory: removeNoteCategory, setNoraNoteAccess: setNoraNoteAccess, noraNoteAccess: noraNoteAccess, noteIntent: noteIntent, noraNotes: noraNotes, NOTE_NORA_LINES: [NO_ACCESS, L_TAG], noteTidy: noteTidy, selClean: selClean, suggestNoteFromText: suggestNoteFromText, findNoteByText: findNoteByText, saveSelectionNote: saveSelectionNote, SEL_MIN: SEL_MIN, notePendingFor: notePendingFor, resolveNotePending: resolveNotePending, notebookOf: nbOf, noraVisibleNotes: noraVisibleNotes,
     NORA: NORA, NORA_BY_PACKAGE: NORA_BY_PACKAGE, noraAccess: noraAccess, noraStatus: noraStatus, noraIntro: noraIntro,
     TASK_STATUS: TASK_STATUS, TASK_FLOW: TASK_FLOW, PRIORITIES: PRIORITIES, WORK_LIMITS: WORK_LIMITS, CAPABILITIES: CAPABILITIES, WORK_BY_PACKAGE: WORK_BY_PACKAGE,
     workEntitlements: workEntitlements, capabilityStatus: capabilityStatus, setPermission: setPermission, workOf: workOf, tasksOf: tasksOf, plansOf: plansOf,

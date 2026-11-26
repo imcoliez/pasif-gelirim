@@ -104,6 +104,19 @@ function uiStates(S, T) {
     nbn.forEach(n => list.push(ui({ route: 'note', noteId: n.id }), ui({ route: 'note', noteId: n.id, noteMsg: 'zzmsg' })));
     if (p) list.push(ui({ route: 'project', delChoice: p.id }));
   } else list.push(ui({ route: 'notes' }), ui({ route: 'note', noteId: 'new' }));
+  // Aşama 9: seçilen metni kaydetme ekranı (NORA / düz, tekrar, hassas, uzun metin, projeli öneri)
+  {
+    const selMk = (mode, text) => { const sug = Core.suggestNoteFromText(S, text), c = Core.selClean(text); return { mode, text: c.text, title: sug.title, cat: mode === 'nora' ? sug.cat : 'genel', pid: mode === 'nora' ? sug.projectId : '', sug: mode === 'nora' ? sug : null }; };
+    const pn = p ? p.title : 'zzproje';
+    const dupBody = nbn && nbn.length ? nbn[0].body : 'zzbody';
+    ['nora', 'plain'].forEach(m => [
+      'Zzsecili metin için bir fikir. ' + pn + ' ile ilgili müşteri teklifi hazırla.',
+      'Zzsecili düz metin, projeyle ilgisi yok.',
+      dupBody,
+      'IBAN TR12 3456 7890 1234 5678 9012 34 zzsecili',
+      'x'.repeat(Core.NOTE_LIMITS.body + 50)
+    ].forEach(tx => list.push(ui({ route: 'notes', selSheet: selMk(m, tx) }))));
+  }
   const fp = p ? p.id : '*';
   [{ state: 'ready', model: 'claude-test' }, { state: 'unconfigured', model: '' }, { state: 'offline', model: '' }, { state: 'checking', model: '' }].forEach(ai => list.push(ui({ route: 'chat', ai }), ui({ route: 'memory', ai })));
   list.push(ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, live: true, failed: fp }), ui({ route: 'memory', ai: { state: 'ready', model: 'claude-test' }, live: true }), ui({ route: 'chat', ai: { state: 'ready', model: 'claude-test' }, consentHidden: true }));
@@ -142,7 +155,7 @@ function collect() {
       const w = src.slice(src.indexOf('Not Defteri (Aşama 8)'), src.indexOf('// ---------- Dışa aktarma'));
       const re = /error: '((?:[^'\\\n]|\\.)*)'/g; let m;
       while ((m = re.exec(w))) { const x = m[1].replace(/\\'/g, "'"); if (/\p{L}{4}/u.test(x)) add(x, 'notes-core'); }
-      ['Not kaydedildi.', 'Not silindi.', 'Not güncellendi.', 'Not projeye bağlandı.', "Plan taslağı hazırlandı; Görev Merkezi'nde onayını bekliyor.", 'Not proje hafızasına aktarıldı.', 'Önerilen işlem yapılmadı.', 'Bu not kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', "Proje silinsin, bağlı notlar genel notlara taşınsın mı? Gelir-gider kayıtların da Genel'e döner. Bu işlem geri alınamaz.", 'Proje ve bağlı tüm notları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', 'Yedekteki # kayıt, # proje ve # not yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'].forEach(x => add(x, 'notes-msg'));
+      ["Not Defteri'ne kaydedildi.", 'Kopyalandı.', 'Metni elle seçip kopyala.', 'Seçili metin işlemleri', 'Not kaydedildi.', 'Not silindi.', 'Not güncellendi.', 'Not projeye bağlandı.', "Plan taslağı hazırlandı; Görev Merkezi'nde onayını bekliyor.", 'Not proje hafızasına aktarıldı.', 'Önerilen işlem yapılmadı.', 'Bu not kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', "Proje silinsin, bağlı notlar genel notlara taşınsın mı? Gelir-gider kayıtların da Genel'e döner. Bu işlem geri alınamaz.", 'Proje ve bağlı tüm notları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', 'Yedekteki # kayıt, # proje ve # not yüklenecek. Şu anki verilerinin yerine geçer. Devam edilsin mi?'].forEach(x => add(x, 'notes-msg'));
       if (S.notebook && S.notebook.notes.length) {
         const sc = JSON.parse(JSON.stringify(S));
         ['Notlarımı göster', 'Son aldığım notu bul', 'Bu notu özetle', 'Bu notu daha düzenli hale getir', 'Bu notu projeye bağla', 'Bu nottan görev oluştur', 'Bu notu proje hafızasına aktar', 'Notumu sil', 'Not defterime kaydet: zzx', 'Not defterime kaydet'].forEach(q => [true, false].forEach(on => [true, false].forEach(gen => {

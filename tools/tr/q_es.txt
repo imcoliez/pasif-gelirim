@@ -1,0 +1,22 @@
+0|Consejo: selecciona un texto de la app manteniéndolo pulsado y aparecerá «Tomar nota con NORA». Si no aparece, copia el texto y pégalo en Nueva nota.
+1|Tomar nota con NORA
+2|Tu texto seleccionado está abajo. Revísalo antes de guardar.
+3|Sugerencia de NORA
+4|Demo
+5|Esta sugerencia es una demo basada en reglas, no un análisis de IA real. Solo mira el texto que seleccionaste y los nombres de tus proyectos; no lee tus notas. Puse las sugerencias en los campos de abajo y puedes cambiar lo que quieras.
+6|Sugerencia de título lista
+7|Sugerencia de categoría:
+8|No encontré una coincidencia clara con un proyecto; quedará como nota general
+9|Vínculo con un proyecto (opcional)
+10|El acceso de NORA está desactivado: NORA no lee esta nota. Puedes activarlo en la pantalla del Bloc de notas. La nota se guarda solo en este dispositivo.
+11|Puede contener datos como una contraseña o una tarjeta/IBAN. Aun así puedes guardarla; NORA no toca las notas que parecen sensibles.
+12|Guardar en el Bloc de notas
+13|El texto a guardar es demasiado corto.
+14|Guardado en el Bloc de notas.
+15|Acciones del texto seleccionado
+16|Sugerencia de proyecto:
+17|El acceso de NORA está activado: puede ver esta nota dentro de los permisos de tu Bloc de notas. La nota se guarda solo en este dispositivo.
+18|Este texto ya está guardado en una nota:
+19|Si no quieres una segunda nota con el mismo texto, pulsa Cancelar o abre la nota existente.
+20|Guardar de todos modos
+21|Abrir la nota existente

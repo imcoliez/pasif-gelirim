@@ -1,0 +1,22 @@
+0|Tip: select a piece of text in the app by long-pressing it and "Take a note with NORA" appears. If it doesn't, copy the text and paste it into New note.
+1|Take a note with NORA
+2|Your selected text is below. Check it before saving.
+3|NORA suggestion
+4|Demo
+5|This suggestion is a rule-based demo, not real AI analysis. It only looks at the text you selected and your project names; it does not read your notes. I filled the fields below with the suggestions, and you can change anything.
+6|Title suggestion ready
+7|Category suggestion:
+8|I couldn't find a clear project match; it will stay a general note
+9|Project link (optional)
+10|NORA access is off: NORA does not read this note. You can turn it on from the Notebook screen. The note is stored only on this device.
+11|It may contain information such as a password or card/IBAN. You can still save it; NORA does not touch notes that look sensitive.
+12|Save to Notebook
+13|The text to save is too short.
+14|Saved to Notebook.
+15|Selected text actions
+16|Project suggestion:
+17|NORA access is on: it can see this note within your Notebook permissions. The note is stored only on this device.
+18|This text is already saved in a note:
+19|If you don't want a second note from the same text, press Cancel or open the existing note.
+20|Save anyway
+21|Open existing note

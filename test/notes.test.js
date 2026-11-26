@@ -240,4 +240,65 @@ t('NORA not niyeti: diğer sohbetleri bozmaz', () => {
 t('mevcut paket yetkileri ve NORA erişimi Not Defteri yüzünden değişmedi', () => {
   const s = mk(); assert.strictEqual(Core.noraAccess(s).allowed, true); Core.addNote(s, { title: 'x' }, T); assert.strictEqual(Core.entitlements(s).finance, true);
 });
+
+// ---- Aşama 9: seçilen metni Not Defteri'ne kaydet ----
+t('seçili metin temizleme: boşluklar toparlanır, çok kısa metin reddedilir, uzun metin kısaltılır ve bildirilir', () => {
+  assert.strictEqual(Core.selClean('  Merhaba \r\n\r\n\r\n\r\ndünya  ').text, 'Merhaba\n\ndünya'); assert.strictEqual(Core.selClean('a ').ok, false); assert.strictEqual(Core.selClean('   ').ok, false);
+  const l = Core.selClean('x'.repeat(Core.NOTE_LIMITS.body + 40)); assert.strictEqual(l.truncated, true); assert.ok(l.text.length <= Core.NOTE_LIMITS.body);
+  assert.strictEqual(Core.selClean(null).ok, false);
+});
+t('başlık önerisi: ilk cümleden türer, uzun cümle kısaltılır, değiştirilebilir', () => {
+  const s = mk(); assert.strictEqual(Core.suggestNoteFromText(s, 'Ürünü önce küçük bir kitleye sat. Sonra büyüt.').title, 'Ürünü önce küçük bir kitleye sat');
+  const long = Core.suggestNoteFromText(s, 'Bu çok uzun bir cümle olup başlık sınırını rahatlıkla aşacak kadar kelime içermektedir ve kesilmelidir').title; assert.ok(long.length <= 56 && /…$/.test(long));
+  const r = Core.saveSelectionNote(s, { text: 'Ürünü önce küçük bir kitleye sat.', title: 'Benim başlığım' }, T); assert.ok(r.ok); assert.strictEqual(r.note.title, 'Benim başlığım');
+});
+t('NORA önerisi kural tabanlı demodur: kategori önerir, tek proje eşleşirse proje önerir, belirsizse tahmin etmez', () => {
+  const { s, a, b } = withProjects(); Core.updateProject(s, a.id, { title: 'Alfa Kanalı' }, T); Core.updateProject(s, b.id, { title: 'Beta Hizmeti' }, T);
+  const g = Core.suggestNoteFromText(s, 'Yarın müşteriye teklif göndermeyi unutma'); assert.strictEqual(g.demo, true); assert.strictEqual(g.cat, 'hatirlatma'); assert.strictEqual(g.projectId, '');
+  assert.strictEqual(Core.suggestNoteFromText(s, 'Alfa Kanalı için haftalık plan yaz').projectId, a.id);
+  assert.strictEqual(Core.suggestNoteFromText(s, 'Alfa Kanalı ve Beta Hizmeti karşılaştırması').projectId, '');         // iki proje: tahmin yok
+  assert.strictEqual(Core.suggestNoteFromText(s, 'Bu bir fikir olabilir').cat, 'fikir'); assert.strictEqual(Core.suggestNoteFromText(s, 'Düz bir cümle yazıyorum burada').cat, 'genel');
+});
+t('öneri mevcut notları OKUMAZ: NORA erişimi kapalıyken de açıkken de aynı sonuç, not içeriği sonucu etkilemez', () => {
+  const { s, a } = withProjects(); Core.updateProject(s, a.id, { title: 'Alfa Kanalı' }, T);
+  const q = 'Düz bir cümle yazıyorum burada'; const before = JSON.stringify(Core.suggestNoteFromText(s, q));
+  Core.addNote(s, { title: 'ZZ gizli', body: 'Alfa Kanalı fikir müşteri teklif', projectId: a.id }, T);
+  Core.setNoraNoteAccess(s, false); assert.strictEqual(JSON.stringify(Core.suggestNoteFromText(s, q)), before); Core.setNoraNoteAccess(s, true); assert.strictEqual(JSON.stringify(Core.suggestNoteFromText(s, q)), before);
+});
+t('arşivdeki proje önerilmez ve arşivdeki projeye seçili metin bağlanamaz', () => {
+  const { s, a } = withProjects(); Core.updateProject(s, a.id, { title: 'Alfa Kanalı' }, T); Core.archiveProject(s, a.id, T + 1);
+  assert.strictEqual(Core.suggestNoteFromText(s, 'Alfa Kanalı notları burada').projectId, '');
+  assert.strictEqual(Core.saveSelectionNote(s, { text: 'Alfa Kanalı notları burada', projectId: a.id }, T + 2).ok, false); assert.strictEqual(Core.notebookOf(s).notes.length, 0);
+});
+t('seçili metin kaydı: genel not, kategori, proje, tarihler Aşama 8 yapısıyla aynı', () => {
+  const { s, a } = withProjects(); const r = Core.saveSelectionNote(s, { text: 'Seçilen açıklama metni', title: 'Başlık', cat: 'arastirma', projectId: a.id }, T);
+  assert.ok(r.ok); const n = Core.noteById(s, r.note.id); assert.deepStrictEqual(Object.keys(n).sort(), ['body', 'cat', 'createdAt', 'id', 'projectId', 'title', 'updatedAt']);
+  assert.strictEqual(n.cat, 'arastirma'); assert.strictEqual(n.projectId, a.id); assert.strictEqual(n.createdAt, T); assert.strictEqual(n.updatedAt, T);
+  const g = Core.saveSelectionNote(s, { text: 'Başka bir seçili açıklama' }, T + 5); assert.ok(g.ok); assert.strictEqual(g.note.projectId, ''); assert.strictEqual(g.note.cat, 'genel');
+  assert.strictEqual(Core.listNotes(s, { project: 'general' }).length, 1); assert.strictEqual(Core.listNotes(s, { project: a.id }).length, 1);
+  assert.strictEqual(Core.saveSelectionNote(s, { text: 'ab' }, T).ok, false);
+});
+t('tekrar kontrolü: aynı metin (boşluk/harf farkı yok sayılır) ikinci kez kaydedilmez, bilerek istenirse kaydedilir', () => {
+  const s = mk(); const a = Core.saveSelectionNote(s, { text: 'Aynı  metin\nburada' }, T); assert.ok(a.ok);
+  const b = Core.saveSelectionNote(s, { text: ' aynı metin burada ' }, T + 1); assert.strictEqual(b.ok, false); assert.strictEqual(b.duplicate.id, a.note.id); assert.strictEqual(Core.notebookOf(s).notes.length, 1);
+  assert.ok(Core.saveSelectionNote(s, { text: 'aynı metin burada', force: true }, T + 2).ok); assert.strictEqual(Core.notebookOf(s).notes.length, 2);
+  assert.strictEqual(Core.findNoteByText(s, 'tamamen farklı metin'), null);
+});
+t('uzun seçim kaydedilirken kısaltıldığı bildirilir', () => {
+  const s = mk(); const r = Core.saveSelectionNote(s, { text: 'y'.repeat(Core.NOTE_LIMITS.body + 10) }, T); assert.ok(r.ok && r.truncated); assert.ok(Core.noteById(s, r.note.id).body.length <= Core.NOTE_LIMITS.body);
+});
+t('NORA izinleri: seçili metinden kaydedilen not, erişim kapalıyken NORA tarafından okunmaz; açıkken kapsam kuralları geçerli', () => {
+  const { s, a, b } = withProjects(); Core.saveSelectionNote(s, { text: 'ZZSECILI gizli içerik', projectId: a.id }, T); Core.setActiveProject(s, a.id); Core.setChatScope(s, false);
+  Core.setNoraNoteAccess(s, false); const r = Core.noraNotes(s, 'Notlarımı göster', T, {}); assert.ok(r && !/ZZSECILI/.test(r.text));
+  Core.setNoraNoteAccess(s, true); assert.ok(/ZZSECILI/.test(Core.noraNotes(s, 'Notlarımı göster', T, {}).text));
+  Core.setActiveProject(s, b.id); assert.ok(!/ZZSECILI/.test(Core.noraNotes(s, 'Notlarımı göster', T, {}).text));     // başka proje görmez
+  assert.ok(!/ZZSECILI/.test(Core.memoryForServer(s) + JSON.stringify(Core.projectContext(s, a.id))));                  // sunucuya gitmez
+});
+t('seçili metinden kaydedilen not yedeğe girer, geri yüklemede ve eski yedekte uyumluluk korunur; hassas metin işaretlenir', () => {
+  const { s, a } = withProjects(); Core.saveSelectionNote(s, { text: 'Yedeğe girecek seçili metin', title: 'Sel', cat: 'fikir', projectId: a.id }, T); Core.saveSelectionNote(s, { text: 'IBAN TR12 3456 7890 1234 5678 9012 34' }, T + 1);
+  const res = Core.importData(Core.exportData(s)); assert.ok(res.ok); assert.strictEqual(res.counts.notes, 2);
+  const n = res.state.notebook.notes.find(x => x.title === 'Sel'); assert.strictEqual(n.body, 'Yedeğe girecek seçili metin'); assert.strictEqual(n.projectId, a.id); assert.strictEqual(n.createdAt, T);
+  assert.ok(Core.noteIsSensitive(res.state.notebook.notes.find(x => /IBAN/.test(x.body))));
+  const old = JSON.parse(Core.exportData(s)); delete old.notebook; assert.deepStrictEqual(Core.importData(JSON.stringify(old)).state.notebook.notes, []);
+});
 console.log('\n' + (fail ? fail + ' BAŞARISIZ, ' : '') + pass + ' test geçti'); process.exitCode = fail ? 1 : 0;

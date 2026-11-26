@@ -1205,11 +1205,43 @@
     const yes = pe.kind === 'new' ? 'Kaydet' : pe.kind === 'edit' ? 'Uygula' : pe.kind === 'link' ? 'Bağla' : pe.kind === 'task' ? 'Taslak hazırla' : 'Hafızaya aktar';
     return h + '<div class="row wrap"><button class="btn slim" data-act="nbPend" data-id="' + id + '" data-v="yes">' + yes + '</button><button class="btn slim ghost" data-act="nbPend" data-id="' + id + '" data-v="no">Vazgeç</button></div></div>';
   }
+  // ---------- Aşama 9: seçilen metni Not Defteri'ne kaydet ----------
+  // Seçim çubuğu (yüzen düğmeler). Yalnızca uygulamanın kendi ekranında kullanıcının seçtiği metin için gösterilir.
+  function selBarHtml() {
+    return '<button class="sb-btn sb-nora" data-act="selNora">' + icon('note', 16) + ' NORA\'ya Not Al</button>' +
+      '<button class="sb-btn" data-act="selSave">Not Defterine Kaydet</button>' +
+      '<button class="sb-btn" data-act="selCopy">' + icon('copy', 16) + ' Kopyala</button>';
+  }
+  function selSheetHtml(S, ui) {
+    const d = ui.selSheet, sel = Core.selClean(d.text), nora = d.mode === 'nora', nb = Core.notebookOf(S);
+    const dup = Core.findNoteByText(S, sel.text), sens = Core.isSensitive(sel.text);
+    let h = '<div class="modal"><div class="sheet selsheet" role="dialog" aria-modal="true"><h3>' + (nora ? 'NORA\'ya Not Al' : 'Not Defterine Kaydet') + '</h3>' +
+      '<p class="muted small">Seçtiğin metin aşağıda. Kaydetmeden önce kontrol et.</p>' +
+      '<div class="selprev" data-nt>' + esc(sel.text) + '</div>';
+    if (sel.truncated) h += '<p class="fine"><span class="chip warn">Metin çok uzun</span> Yalnızca ilk ' + Core.NOTE_LIMITS.body + ' karakter kaydedilir.</p>';
+    if (sens) h += '<p class="fine"><span class="chip warn">Hassas olabilir</span> Şifre, kart/IBAN gibi bilgi içeriyor olabilir. Yine de kaydedebilirsin; NORA hassas görünen notlara dokunmaz.</p>';
+    if (dup) h += '<div class="card note"><p class="small">Bu metin zaten bir notta kayıtlı: <b data-nt>' + esc(dup.title) + '</b></p><p class="fine">Aynı metinden ikinci bir not oluşturmak istemiyorsan Vazgeç\'e bas veya mevcut notu aç.</p></div>';
+    if (nora) {
+      h += '<div class="card nora-sug"><b>NORA önerisi <span class="chip">Demo</span></b>' +
+        '<p class="fine">Bu öneri kural tabanlı bir demodur, gerçek yapay zekâ analizi değildir. Yalnızca seçtiğin metne ve proje adlarına bakar; notlarını okumaz. Önerileri aşağıdaki alanlara yerleştirdim, istediğini değiştirebilirsin.</p>' +
+        '<ul class="list"><li>Başlık önerisi hazır</li><li>Kategori önerisi: <b data-nt>' + esc(d.sug.catName) + '</b></li>' +
+        '<li>' + (d.sug.projectId ? 'Proje önerisi: <b data-nt>' + esc(d.sug.projectName) + '</b>' : 'Projeyle net bir eşleşme bulamadım; genel not olarak kalır') + '</li></ul></div>';
+    }
+    h += '<label class="lbl" for="selTitle">Başlık</label><input id="selTitle" class="inp" maxlength="' + Core.NOTE_LIMITS.title + '" value="' + esc(d.title) + '">' +
+      '<label class="lbl" for="selCat">Kategori</label><select id="selCat" class="inp">' + Core.noteCats(S).map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === d.cat ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+      '<label class="lbl" for="selProj">Proje bağlantısı (isteğe bağlı)</label><select id="selProj" class="inp">' + noteProjOptions(S, d.pid) + '</select>' +
+      '<p class="fine">' + (nb.nora ? 'NORA erişimi açık: bu notu Not Defteri izinlerin kapsamında görebilir.' : 'NORA erişimi kapalı: NORA bu notu okumaz. Not Defteri ekranından açabilirsin.') + ' Not yalnızca bu cihazda saklanır.</p>' +
+      '<div class="row wrap"><button class="btn" data-act="selConfirm" data-v="' + (dup ? 'force' : '') + '">' + (dup ? 'Yine de kaydet' : 'Kaydet') + '</button>' +
+      (dup ? '<button class="btn ghost" data-act="selOpenDup" data-id="' + esc(dup.id) + '">Mevcut notu aç</button>' : '') +
+      '<button class="btn ghost" data-act="selCancel">Vazgeç</button></div></div></div>';
+    return h;
+  }
   views.notes = function (S, ui, now) {
     const nb = Core.notebookOf(S), live = Core.liveProjects(S);
     let h = '<div class="row"><h2>Not Defteri</h2><span class="chip">' + nb.notes.length + ' not</span></div>' +
       '<p class="muted small">Notların bu cihazda saklanır, JSON yedeğine girer ve sunucuya gönderilmez.</p>' +
-      '<button class="btn" data-act="nbNew">' + icon('plus', 18) + ' Yeni not</button>';
+      '<button class="btn" data-act="nbNew">' + icon('plus', 18) + ' Yeni not</button>' +
+      '<p class="fine">İpucu: uygulamadaki bir metni basılı tutup seçersen "NORA\'ya Not Al" çıkar. Çıkmazsa metni kopyalayıp Yeni not\'a yapıştırabilirsin.</p>';
     nb.pending.forEach(function (pe) { h += notePendCard(S, pe); });
     h += '<div class="card"><b>NORA erişimi</b>' + toggleRow('NORA bu defterdeki notları okuyabilsin', 'nbNora', nb.nora) +
       '<p class="fine">' + (nb.nora ? 'Açık: NORA, sohbet ettiğin kapsamdaki (genel veya aktif proje) notları yerelde okur. Hassas görünen notlara dokunmaz. Notu değiştirmeden önce sana gösterir ve onayını ister; silmez.' : 'Kapalı: NORA hiçbir notunu okumaz. İstediğin an açıp kapatabilirsin.') + '</p></div>';
@@ -1303,6 +1335,7 @@
       if (t && ui.narr === 'offer') html += offerModal();
       if (t && ui.narr === 'panel') html += narrationPanel(S, ui, t);
     }
+    if (ui.selSheet) html += selSheetHtml(S, ui);
     if (ui.exportText != null) {
       html += '<div class="modal"><div class="sheet"><h3>' + esc(ui.exportTitle || 'Dışa aktarma') + '</h3>' +
         '<p class="muted small">' + esc(ui.exportNote || 'Dosya otomatik kaydedilemedi. Metni kopyalayıp bir not uygulamasına yapıştırabilirsin.') + '</p>' +
@@ -1336,5 +1369,5 @@
     };
   }
 
-  return { tabOf: tabOf, noteListHtml: noteListHtml, convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
+  return { tabOf: tabOf, selBarHtml: selBarHtml, noteListHtml: noteListHtml, convHtml: convHtml, esc: esc, tl: tl, icon: icon, views: views, parts: parts, catOptions: catOptions, STORAGE_KEY: STORAGE_KEY, TOP: TOP };
 });
