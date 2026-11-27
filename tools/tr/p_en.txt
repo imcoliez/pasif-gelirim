@@ -1,0 +1,31 @@
+0|This month
+1|# mo
+2|No records in this period. As you add income, other expenses or mandatory spending, the chart is drawn from your real data.
+3|Other expense
+4|Mandatory spending
+5|Write your real numbers. The goal is to see your progress without fooling yourself. Enter rent, bills and required payments as
+6|; your existing expenses stay as "Other expense", and you can edit them and change the type if you like.
+7|Mandatory
+8|Income, other expenses and mandatory spending breakdown
+9|of goal reached
+10|Actual
+11|Remaining
+12|+# K
+13|Other expenses
+14|Mandatory spending
+15|Net earnings
+16|Mandatory spending is not added to other expenses a second time; each record belongs to one slice only.
+17|Plan
+18|Prep
+19|Approval
+20|Result
+21|Rent
+22|Bills
+23|Over
+24|You passed the goal. The real rate is %#; the bar visually stops at %#.
+25|Rent · # TL
+26|Other mandatory
+27|Required payment
+28|Required payment · # TL
+29|Bills · # TL
+30|Other mandatory · # TL

@@ -1,0 +1,31 @@
+0|Este mes
+1|# mes
+2|No hay registros en este período. A medida que añadas ingresos, otros gastos o gastos obligatorios, el gráfico se dibuja con tus datos reales.
+3|Otro gasto
+4|Gasto obligatorio
+5|Escribe tus cifras reales. El objetivo es ver tu progreso sin engañarte. Registra el alquiler, las facturas y los pagos obligatorios como
+6|; tus gastos anteriores se quedan como «Otro gasto» y puedes editarlos y cambiar el tipo si quieres.
+7|Obligatorio
+8|Distribución de ingresos, otros gastos y gastos obligatorios
+9|del objetivo alcanzado
+10|Real
+11|Restante
+12|+# mil
+13|Otros gastos
+14|Gastos obligatorios
+15|Ganancia neta
+16|Los gastos obligatorios no se suman una segunda vez a otros gastos; cada registro pertenece a un solo sector.
+17|Plan
+18|Preparación
+19|Aprobación
+20|Resultado
+21|Alquiler
+22|Facturas
+23|Exceso
+24|Superaste el objetivo. La tasa real es %#; la barra se detiene visualmente en %#.
+25|Alquiler · # TL
+26|Otro obligatorio
+27|Pago obligatorio
+28|Pago obligatorio · # TL
+29|Facturas · # TL
+30|Otro obligatorio · # TL

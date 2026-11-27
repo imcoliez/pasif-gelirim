@@ -81,6 +81,33 @@
     return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
   }
   function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + tl(Math.abs(n)); }
+  // Proje ilerlemesi (Aşama 10): yüzde mevcut Core.progress()/projectSummary değerinden gelir; burada yeniden hesaplanmaz.
+  function pgm(pct, sub) {
+    return '<div class="pgm' + (pct >= 100 ? ' full' : '') + '"><div class="pgm-top"><b class="pgm-pct">%' + pct + '</b><span class="pgm-sub">' + sub + '</span></div>' +
+      '<div class="bar pgm-bar"><div class="bar-fill" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></div></div></div>';
+  }
+  // Görev aşama göstergesi: yalnızca Core.taskStages() çıktısını çizer (görev durumunu değiştirmez).
+  function stepper(t, big) {
+    const g = Core.taskStages(t); let h = '';
+    g.steps.forEach(function (st, i) {
+      if (i) h += '<span class="sln' + (g.steps[i - 1].state === 'done' ? ' fill' : '') + '"><b></b></span>';
+      h += '<span class="sp ' + st.state + '"><span class="sc">' + (st.state === 'done' ? icon('check', big ? 16 : 14) : st.state === 'stop' ? '!' : st.n) + '</span><span class="sl">' + esc(st.label) + '</span></span>';
+    });
+    return '<span class="stp' + (big ? ' big' : '') + '" role="img" aria-label="' + g.done + ' / ' + g.total + '">' + h + '</span>';
+  }
+  function pie3(b) {
+    let off = 0, segs = '';
+    const live = b.slices.filter(function (x) { return x.amount > 0; }).length;
+    b.slices.forEach(function (it, i) {
+      if (!(it.amount > 0)) return;
+      const p = Math.max(0, it.pct - (live > 1 ? 0.8 : 0));
+      segs += '<circle class="seg" cx="21" cy="21" r="15.9155" fill="none" stroke="var(--' + (it.id === 'income' ? 'inc' : it.id === 'other' ? 'oth' : 'mst') + ')" stroke-width="5.2" stroke-dasharray="' + p + ' ' + (100 - p) + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 21 21)" style="animation-delay:' + (i * 120) + 'ms"/>';
+      off += it.pct;
+    });
+    return '<svg viewBox="0 0 42 42" class="donut pie3" role="img" aria-label="Gelir, diğer giderler ve mecburi harcamalar dağılımı">' +
+      '<circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--bd)" stroke-width="5.2"/>' + segs +
+      (b.empty ? '' : '<text x="21" y="20.6" class="dn-main" text-anchor="middle">' + esc((b.net < 0 ? '−' : b.net > 0 ? '+' : '') + compact(Math.abs(b.net))) + '</text><text x="21" y="25.6" class="dn-sub" text-anchor="middle">Net</text>') + '</svg>';
+  }
   function bar(pct, over) { return '<div class="bar' + (over ? ' over' : '') + '"><div class="bar-fill" style="width:' + pct + '%"></div></div>'; }
   function lock(msg, btnText, route) {
     return '<div class="card lock"><div class="lock-ico">' + icon('lock', 28) + '</div><p>' + esc(msg) + '</p>' +
@@ -100,7 +127,7 @@
     return String(Math.round(n));
   }
   function catOptions(type, sel) {
-    return Core.CATEGORIES[type === 'out' ? 'out' : 'in'].map(function (c) {
+    return (type === 'must' ? Core.CATEGORIES.must : Core.CATEGORIES[type === 'out' ? 'out' : 'in']).map(function (c) {
       return '<option value="' + esc(c.id) + '"' + (c.id === sel ? ' selected' : '') + '>' + esc(c.name) + '</option>';
     }).join('');
   }
@@ -246,7 +273,7 @@
     const up = p > 0, good = up === goodWhenUp;
     return '<span class="trend ' + (good ? 'up' : 'down') + '">' + (up ? '▲' : '▼') + ' %' + String(Math.abs(p)).replace('.', ',') + '</span>';
   }
-  const CAT_ICON = { satis: 'cart', hizmet: 'wallet', ortaklik: 'megaphone', arac: 'tag', reklam: 'megaphone', malzeme: 'box', diger: 'dots' };
+  const CAT_ICON = { satis: 'cart', hizmet: 'wallet', ortaklik: 'megaphone', arac: 'tag', reklam: 'megaphone', malzeme: 'box', diger: 'dots', kira: 'box', fatura: 'tag', zorunlu: 'wallet', mdiger: 'dots' };
 
   // ---------- Görünümler ----------
   const views = {};
@@ -337,8 +364,7 @@
     if (p) {
       const pr = Core.progress(p);
       const nt = Core.nextTask(p);
-      html += '<div class="card"><div class="row"><b>' + esc(p.title) + '</b><span class="muted">%' + pr.pct + '</span></div>' + bar(pr.pct) +
-        '<p class="muted">' + pr.done + ' / ' + pr.total + ' görev tamamlandı</p>' +
+      html += '<div class="card"><div class="row"><b>' + esc(p.title) + '</b></div>' + pgm(pr.pct, pr.done + ' / ' + pr.total + ' görev tamamlandı') +
         (nt ? '<button class="btn" data-act="openTask" data-id="' + esc(nt.id) + '"><span>Sıradaki:</span> <span>' + esc(nt.title) + '</span></button>'
             : '<p>Tüm görevleri tamamladın. Şimdi sonuçlarını takip etme zamanı.</p>') + '</div>';
     } else if (ent.selectModel) {
@@ -385,7 +411,7 @@
     }
     const m = Core.modelById(p.modelId);
     const pr = Core.progress(p);
-    let html = '<h2>' + esc(p.title) + '</h2>' + bar(pr.pct) + '<p class="muted">' + pr.done + ' / ' + pr.total + ' tamamlandı</p>';
+    let html = '<h2>' + esc(p.title) + '</h2>' + pgm(pr.pct, pr.done + ' / ' + pr.total + ' tamamlandı');
     if (!ent.selectModel) html += '<div class="card note">Aboneliğin aktif değil; bu işe manuel devam edebilirsin. Yeni model seçmek için paket gerekir.</div>';
     html += '<div class="card honest"><b>Dürüst not:</b> ' + esc(m.honest) + '</div>';
     html += '<ul class="list">';
@@ -595,19 +621,33 @@
   views.money = function (S, ui, now) {
     const f = Core.financeSummary(S, now);
     const gp = Core.goalProgress(S, now);
-    const type = ui.finType === 'out' ? 'out' : 'in';
+    const type = ui.finType === 'out' || ui.finType === 'must' ? ui.finType : 'in';
     const today = Core.dateInputValue(now);
     const ed = ui.editId ? S.finance.find(function (r) { return r.id === ui.editId; }) : null;
     let html = '<h2>Kazanç</h2>';
-    html += '<div class="card goal">';
+    // Gelir hedefi: pastadan bağımsız kart. Yalnızca gerçekleşen gelirden hesaplanır (giderler katılmaz).
     if (gp.target > 0) {
-      html += '<div class="goal-row">' + ring(gp.pct, '%' + gp.pct) + '<div><b>Aylık hedef: ' + tl(gp.target) + '</b><p class="muted small">Bu ay: ' + tl(gp.got) + '</p>' +
-        '<p class="small">' + (gp.reached ? 'Hedefe ulaştın, tebrikler.' : 'Kalan: ' + tl(gp.left)) + '</p></div></div>' +
-        '<details><summary class="link">Hedefi değiştir</summary><div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Yeni hedef (TL)"><button class="btn" data-act="saveGoal">Kaydet</button></div></details>';
+      html += '<div class="card goalc' + (gp.over ? ' over' : gp.reached ? ' hit' : '') + '"><div class="row"><b>Aylık gelir hedefi</b><span class="chip">Bu ay</span></div>' +
+        '<div class="goalc-pct"><b>%' + gp.rawPct + '</b><span class="muted small">hedefe ulaşma</span></div>' +
+        '<div class="bar goalc-bar"><div class="bar-fill" style="width:' + Math.min(100, gp.rawPct) + '%"></div></div>' +
+        '<div class="goalc-st"><div class="irow"><span>Hedef</span><b>' + tl(gp.target) + '</b></div><div class="irow"><span>Gerçekleşen</span><b class="pos">' + tl(gp.got) + '</b></div>' +
+        '<div class="irow"><span>' + (gp.over ? 'Aşan' : 'Kalan') + '</span><b>' + tl(gp.over ? gp.over : gp.left) + '</b></div></div>' +
+        (gp.over ? '<p class="small pos">Hedefi aştın. Gerçek oran %' + gp.rawPct + '; çubuk görsel olarak %100\'de durur.</p>' : gp.reached ? '<p class="small pos">Hedefe ulaştın, tebrikler.</p>' : '') +
+        '<details><summary class="link">Hedefi değiştir</summary><div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Yeni hedef (TL)"><button class="btn" data-act="saveGoal">Kaydet</button></div></details></div>';
     } else {
-      html += '<b>Aylık gelir hedefi</b><p class="muted small">Gerçekçi bir hedef koy; ilerlemeni burada izle. Hedef bir garanti değildir.</p>' +
-        '<div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Örn: 2500"><button class="btn" data-act="saveGoal">Kaydet</button></div>';
+      html += '<div class="card goalc"><b>Aylık gelir hedefi</b><p class="muted small">Gerçekçi bir hedef koy; ilerlemeni burada izle. Hedef bir garanti değildir.</p>' +
+        '<div class="send"><input id="goalInput" class="inp" inputmode="decimal" placeholder="Örn: 2500"><button class="btn" data-act="saveGoal">Kaydet</button></div></div>';
     }
+    // Gelir – diğer giderler – mecburi harcamalar: üç dilimli pasta (gerçek kayıtlardan)
+    const pp = ui.pieP === '30d' || ui.pieP === '12m' ? ui.pieP : 'month', pb = Core.financeBreakdown(S, pp, now);
+    html += '<div class="card pie3c"><div class="row"><b>Gelir ve gider dağılımı</b></div>' + seg([{ v: 'month', t: 'Bu ay' }, { v: '30d', t: '30 gün' }, { v: '12m', t: '12 ay' }], pp, 'pieP');
+    if (pb.empty) html += '<div class="pie-empty">' + pie3(pb) + '<p class="muted small">Bu dönemde kayıt yok. Gelir, diğer gider veya mecburi harcama ekledikçe grafik gerçek verinle çizilir.</p></div>';
+    else html += '<div class="donut-row">' + pie3(pb) + '<ul class="legend pl3">' + pb.slices.map(function (it) {
+      const c = it.id === 'income' ? 'inc' : it.id === 'other' ? 'oth' : 'mst';
+      return '<li class="pl-' + it.id + '"><i style="background:var(--' + c + ')"></i><span class="nm">' + esc(it.name) + '<small>' + tl(it.amount) + '</small></span><b>%' + Math.round(it.pct) + '</b></li>';
+    }).join('') + '</ul></div>' +
+      '<div class="irow"><span>Toplam gider</span><b>' + tl(pb.totalOut) + '</b></div><div class="irow"><span>Net kazanç</span><b class="' + (pb.net < 0 ? 'neg' : 'pos') + '">' + signed(pb.net) + '</b></div>' +
+      '<p class="fine">Mecburi harcamalar diğer giderlere ikinci kez eklenmez; her kayıt yalnızca bir dilimdedir.</p>';
     html += '</div>';
     const bp = Core.budgetProgress(S, now);
     html += '<div class="card goal">';
@@ -623,22 +663,22 @@
     html += '<div class="grid2"><div class="stat"><small>Bu ay net</small><b class="' + (f.monthNet < 0 ? 'neg' : '') + '">' + tl(f.monthNet) + '</b></div><div class="stat"><small>Toplam net</small><b class="' + (f.net < 0 ? 'neg' : '') + '">' + tl(f.net) + '</b></div>' +
       '<div class="stat in"><small>Toplam gelir</small><b>' + tl(f.totalIn) + '</b></div><div class="stat out"><small>Toplam gider</small><b>' + tl(f.totalOut) + '</b></div></div>';
     html += '<button class="btn ghost" data-act="go" data-route="charts">' + icon('chart', 18) + ' Gelir-Gider Grafiklerini Aç</button>';
-    html += '<div class="card' + (ed ? ' editing' : '') + '" id="finForm"><div class="row"><b>' + (ed ? 'Kaydı düzenle' : 'Yeni kayıt') + '</b>' + (ed ? '<button class="link" data-act="cancelEdit">Vazgeç</button>' : '') + '</div>' + seg([{ v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], type, 'finType') +
+    html += '<div class="card' + (ed ? ' editing' : '') + '" id="finForm"><div class="row"><b>' + (ed ? 'Kaydı düzenle' : 'Yeni kayıt') + '</b>' + (ed ? '<button class="link" data-act="cancelEdit">Vazgeç</button>' : '') + '</div>' + seg([{ v: 'in', t: 'Gelir' }, { v: 'out', t: 'Diğer gider' }, { v: 'must', t: 'Mecburi harcama' }], type, 'finType') +
       '<label class="lbl" for="finAmount">Tutar (TL)</label><input id="finAmount" class="inp" inputmode="decimal" placeholder="0,00"' + (ed ? ' value="' + esc(String(ed.amount).replace('.', ',')) + '"' : '') + '>' +
       '<div class="two"><div><label class="lbl" for="finCat">Kategori</label><select id="finCat" class="inp">' + catOptions(type, ed && ed.cat) + '</select></div>' +
       '<div><label class="lbl" for="finDate">Tarih</label><input id="finDate" type="date" class="inp" value="' + (ed ? Core.dateInputValue(ed.date) : today) + '" max="' + today + '"></div></div>' +
       '<label class="lbl" for="finNote">Not</label><input id="finNote" class="inp" maxlength="120" placeholder="Örn: ilk satış"' + (ed ? ' value="' + esc(ed.note) + '"' : '') + '>' +
       (S.projects.length ? '<label class="lbl" for="finSrc">Hangi iş için?</label><select id="finSrc" class="inp"><option value="">Genel</option>' + S.projects.filter(function (q) { return !Core.isArchived(q) || (ed && ed.src === q.id); }).map(function (q) { return '<option value="' + esc(q.id) + '"' + ((ed ? ed.src === q.id : q.id === S.activeProjectId) ? ' selected' : '') + '>' + esc(q.title) + (Core.isArchived(q) ? ' (arşivde)' : '') + '</option>'; }).join('') + '</select>' : '') +
       '<button class="btn" data-act="addFin">' + (ed ? 'Güncelle' : 'Kaydet') + '</button></div>' +
-      '<p class="fine">Gerçek rakamlarını yaz. Amaç kendini kandırmadan ilerlemeyi görmek.</p>';
+      '<p class="fine">Gerçek rakamlarını yaz. Amaç kendini kandırmadan ilerlemeyi görmek. Kira, fatura ve zorunlu ödemeleri <b>Mecburi harcama</b> olarak gir; eski giderlerin “Diğer gider” olarak durur, istersen düzenleyip türünü değiştirebilirsin.</p>';
     const flt = ui.finFilter || 'all';
     if (S.finance.length > 4) html += '<div class="searchbox">' + icon('search', 18) + '<input id="finSearch" class="inp" type="search" placeholder="Kayıtlarda ara (not, kategori)" autocomplete="off"></div>';
-    html += '<div class="row"><h3>Kayıtlar</h3>' + seg([{ v: 'all', t: 'Tümü' }, { v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }], flt, 'finFilter') + '</div><ul class="list">';
+    html += '<div class="row"><h3>Kayıtlar</h3>' + seg([{ v: 'all', t: 'Tümü' }, { v: 'in', t: 'Gelir' }, { v: 'out', t: 'Gider' }, { v: 'must', t: 'Mecburi' }], flt, 'finFilter') + '</div><ul class="list">';
     const rows = S.finance.slice().sort(function (a, b) { return b.date - a.date || (b.at || 0) - (a.at || 0); })
-      .filter(function (r) { return flt === 'all' || r.type === flt; });
+      .filter(function (r) { return flt === 'all' || (flt === 'must' ? Core.kindOf(r) === 'must' : r.type === flt); });
     if (!rows.length) html += '<li class="card muted">' + (S.finance.length ? 'Bu filtrede kayıt yok.' : 'Henüz kayıt yok. İlk kaydını yukarıdan ekleyebilirsin.') + '</li>';
     rows.forEach(function (r) {
-      html += '<li class="fin ' + r.type + '" data-q="' + esc((Core.categoryName(r.type, r.cat) + ' ' + r.note).toLocaleLowerCase('tr')) + '"><span>' + Core.formatDate(r.date) + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.note ? '<br><small class="muted">' + nt(r.note) + '</small>' : '') + (r.auto ? '<br><small class="muted">otomatik · tekrarlayan</small>' : '') + '</span>' +
+      html += '<li class="fin ' + r.type + '" data-q="' + esc((Core.categoryName(r.type, r.cat) + ' ' + r.note).toLocaleLowerCase('tr')) + '"><span>' + Core.formatDate(r.date) + ' · <span>' + esc(Core.categoryName(r.type, r.cat)) + '</span>' + (r.kind === 'must' ? ' <span class="chip mute">Mecburi</span>' : '') + (r.note ? '<br><small class="muted">' + nt(r.note) + '</small>' : '') + (r.auto ? '<br><small class="muted">otomatik · tekrarlayan</small>' : '') + '</span>' +
         '<b>' + (r.type === 'in' ? '+' : '−') + tl(r.amount) + '</b><button class="x" data-act="editFin" data-id="' + esc(r.id) + '" aria-label="Kaydı düzenle">' + icon('edit', 18) + '</button><button class="x" data-act="delFin" data-id="' + esc(r.id) + '" aria-label="Kaydı sil">' + icon('trash', 18) + '</button></li>';
     });
     html += '</ul>';
@@ -648,7 +688,7 @@
 
   const WD = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
   views.plans = function (S, ui, now) {
-    const type = ui.recType === 'in' ? 'in' : 'out', today = Core.dateInputValue(now);
+    const type = ui.recType === 'in' || ui.recType === 'must' ? ui.recType : 'out', today = Core.dateInputValue(now);
     const tr = Core.taxReserve(S, now);
     let html = '<h2>Planlar ve Birikim</h2>';
     // Birikim hedefleri
@@ -678,7 +718,7 @@
         '<button class="link danger-link" data-act="recDel" data-id="' + esc(r.id) + '">Sil</button></div></div>';
     });
     html += '<details class="card"><summary class="link">' + icon('plus', 16) + ' Yeni tekrarlayan kayıt</summary>' +
-      seg([{ v: 'out', t: 'Gider' }, { v: 'in', t: 'Gelir' }], type, 'recType') +
+      seg([{ v: 'out', t: 'Diğer gider' }, { v: 'must', t: 'Mecburi harcama' }, { v: 'in', t: 'Gelir' }], type, 'recType') +
       '<label class="lbl" for="recAmount">Tutar (TL)</label><input id="recAmount" class="inp" inputmode="decimal" placeholder="0,00">' +
       '<div class="two"><div><label class="lbl" for="recCat">Kategori</label><select id="recCat" class="inp">' + catOptions(type) + '</select></div>' +
       '<div><label class="lbl" for="recFreq">Sıklık</label><select id="recFreq" class="inp"><option value="monthly">Her ay</option><option value="weekly">Her hafta</option></select></div></div>' +
@@ -799,7 +839,7 @@
       '<div class="row"><b class="ptitle">' + esc(x.title) + '</b>' + (x.active ? '<span class="chip">Aktif proje</span>' : '') + '</div>' +
       (x.desc ? '<p class="muted small">' + nt(x.desc) + '</p>' : '') +
       '<div class="pchips">' + statusChip(x) + pkgLine(S, p) + '</div>' +
-      bar(x.pct) + '<p class="muted small">' + x.done + ' / ' + x.total + ' görev tamamlandı</p>' +
+      pgm(x.pct, x.done + ' / ' + x.total + ' görev tamamlandı') +
       '<div class="irow"><span>Gelir</span><b class="pos">' + tl(x.income) + '</b></div>' +
       '<div class="irow"><span>Gider</span><b>' + tl(x.expense) + '</b></div>' +
       '<div class="irow"><span>Bu projenin neti</span><b class="' + (x.net < 0 ? 'neg' : 'pos') + '">' + signed(x.net) + '</b></div>' +
@@ -837,7 +877,7 @@
     h += '<div class="grid3"><div class="stat in"><small>Gelir</small><b>' + tl(x.income) + '</b></div><div class="stat out"><small>Gider</small><b>' + tl(x.expense) + '</b></div>' +
       '<div class="stat"><small>Net</small><b class="' + (x.net < 0 ? 'neg' : '') + '">' + tl(x.net) + '</b></div></div>';
     if (x.goal > 0) h += '<div class="card"><div class="irow"><span>Proje hedefi (gelir)</span><b>' + tl(x.goal) + '</b></div>' + bar(x.goalPct) + '<p class="muted small">%' + x.goalPct + ' · Hedefe ' + tl(Math.max(0, Math.round((x.goal - x.income) * 100) / 100)) + ' kaldı</p></div>';
-    h += '<div class="card"><div class="row"><b>Görevler</b><span class="muted small">' + x.done + ' / ' + x.total + '</span></div>' + bar(x.pct) +
+    h += '<div class="card"><div class="row"><b>Görevler</b></div>' + pgm(x.pct, x.done + ' / ' + x.total + ' görev tamamlandı') +
       (x.next && !x.archived ? '<p class="muted small"><span>Sıradaki görev:</span> <span>' + esc(x.next) + '</span></p>' : '') +
       (x.archived ? '' : '<button class="btn slim" data-act="go" data-route="tasks">Görevlere git</button>') + '</div>';
     const ws = Core.workSummary(S, p.id);
@@ -913,6 +953,7 @@
         '<div class="row wrap"><button class="btn slim" data-act="wkSave" data-id="' + id + '">Kaydet</button><button class="btn slim ghost" data-act="wkEditCancel">Vazgeç</button></div></div>';
       return h;
     }
+    h += '<div class="stp-card">' + stepper(t, true) + '</div>';
     if (t.desc) h += '<p>' + esc(t.desc) + '</p>';
     const bl = Core.blockers(p, t);
     if (t.deps.length) h += '<p class="small"><b>Bağımlı olduğu görevler:</b> ' + t.deps.map(function (d) { const x = Core.tasksOf(S, p.id).find(function (y) { return y.id === d; }); return x ? '<span class="chip ' + (x.status === 'done' ? 'ok' : '') + '">' + esc(x.title) + '</span>' : ''; }).join(' ') + '</p>';
@@ -963,7 +1004,7 @@
     groups.forEach(function (g) {
       const l = tasks.filter(function (t) { return t.status === g[0]; }); if (!l.length) return;
       h += '<h3 class="sec"><span>' + g[1] + '</span> <span class="muted">(' + l.length + ')</span></h3><ul class="list">' + l.map(function (t) {
-        return '<li><button class="task ' + (t.status === 'done' ? 'done' : '') + '" data-act="wkOpen" data-id="' + esc(t.id) + '"><span class="chk">' + (t.status === 'done' ? icon('check', 16) : t.priority === 'high' ? '!' : '•') + '</span><span>' + esc(t.title) + '</span>' + (t.snoozeUntil > now && t.status === 'planned' ? '<small class="muted">ertelendi</small>' : '') + '</button></li>';
+        return '<li><button class="task ' + (t.status === 'done' ? 'done' : '') + '" data-act="wkOpen" data-id="' + esc(t.id) + '"><span class="chk">' + (t.status === 'done' ? icon('check', 16) : t.priority === 'high' ? '!' : '•') + '</span><span class="tk-main"><span class="tk-t">' + esc(t.title) + '</span>' + stepper(t, false) + '</span>' + (t.snoozeUntil > now && t.status === 'planned' ? '<small class="muted">ertelendi</small>' : '') + '</button></li>';
       }).join('') + '</ul>';
     });
     h += '<div class="card"><b>Yeni görev</b><label class="lbl" for="wkNewTitle">Görev adı</label><input id="wkNewTitle" class="inp" maxlength="80" placeholder="Örn. İlk ürün taslağını çiz"><label class="lbl" for="wkNewPri">Öncelik</label><select id="wkNewPri" class="inp"><option value="normal">Normal</option><option value="high">Yüksek</option><option value="low">Düşük</option></select><button class="btn" data-act="wkAdd">Ekle</button></div>';

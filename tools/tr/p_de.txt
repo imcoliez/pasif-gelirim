@@ -1,0 +1,31 @@
+0|Diesen Monat
+1|# Mon.
+2|In diesem Zeitraum gibt es keine Einträge. Sobald du Einnahmen, sonstige Ausgaben oder Pflichtausgaben erfasst, wird das Diagramm aus deinen echten Daten gezeichnet.
+3|Sonstige Ausgabe
+4|Pflichtausgabe
+5|Schreibe deine echten Zahlen. Das Ziel ist, deinen Fortschritt zu sehen, ohne dich selbst zu täuschen. Erfasse Miete, Rechnungen und Pflichtzahlungen als
+6|; deine bisherigen Ausgaben bleiben „Sonstige Ausgabe“, du kannst sie bearbeiten und den Typ ändern.
+7|Pflicht
+8|Verteilung von Einnahmen, sonstigen Ausgaben und Pflichtausgaben
+9|des Ziels erreicht
+10|Tatsächlich
+11|Verbleibend
+12|+# Tsd.
+13|Sonstige Ausgaben
+14|Pflichtausgaben
+15|Nettogewinn
+16|Pflichtausgaben werden nicht ein zweites Mal zu den sonstigen Ausgaben addiert; jeder Eintrag gehört nur zu einem Segment.
+17|Plan
+18|Vorbereitung
+19|Freigabe
+20|Ergebnis
+21|Miete
+22|Rechnungen
+23|Darüber
+24|Du hast das Ziel übertroffen. Die echte Quote ist %#; der Balken endet optisch bei %#.
+25|Miete · # TL
+26|Sonstige Pflicht
+27|Pflichtzahlung
+28|Pflichtzahlung · # TL
+29|Rechnungen · # TL
+30|Sonstige Pflicht · # TL

@@ -110,12 +110,16 @@
     ['projects', 'finance', 'chat', 'plans', 'decisions', 'recurring', 'savings'].forEach(function (k) {
       out[k] = out[k].filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); });
     });
-    out.finance.forEach(function (f) { if (!f.cat) f.cat = 'diger'; if (!f.at) f.at = f.date; });
+    out.finance.forEach(function (f) {
+      if (!f.cat) f.cat = 'diger'; if (!f.at) f.at = f.date;
+      // Tür belirtilmemiş eski giderler olduğu gibi kalır ("diğer gider"); asla mecburi diye tahmin edilmez.
+      if (f.kind !== 'must' || f.type !== 'out') delete f.kind;
+    });
     out.recurring = out.recurring.filter(function (r) {
       return (r.type === 'in' || r.type === 'out') && isFinite(r.amount) && r.amount > 0 && (r.freq === 'weekly' || r.freq === 'monthly') && isFinite(r.next);
     }).slice(0, 50).map(function (r) {
       return { id: String(r.id || uid('rec')), type: r.type, amount: +r.amount, cat: r.cat || 'diger', note: String(r.note || '').slice(0, 120), freq: r.freq,
-        dom: Math.min(31, Math.max(1, +r.dom || new Date(+r.next).getDate())), next: +r.next, active: r.active !== false };
+        dom: Math.min(31, Math.max(1, +r.dom || new Date(+r.next).getDate())), next: +r.next, active: r.active !== false, kind: r.kind === 'must' && r.type === 'out' ? 'must' : undefined };
     });
     out.savings = out.savings.filter(function (v) { return v.name && isFinite(v.target) && v.target > 0 && isFinite(v.saved); }).slice(0, 50).map(function (v) {
       return { id: String(v.id || uid('sav')), name: String(v.name).slice(0, 40), target: +v.target, saved: Math.max(0, +v.saved), at: +v.at || 0 };
@@ -416,12 +420,20 @@
     out: [
       { id: 'arac', name: 'Araç / abonelik' }, { id: 'reklam', name: 'Reklam gideri' },
       { id: 'malzeme', name: 'Malzeme / ürün' }, { id: 'diger', name: 'Diğer' }
+    ],
+    // Mecburi harcamalar (Aşama 10): gider kaydının bir alt türüdür (type:'out', kind:'must'); kimlikleri 'out' listesiyle çakışmaz.
+    must: [
+      { id: 'kira', name: 'Kira' }, { id: 'fatura', name: 'Faturalar' },
+      { id: 'zorunlu', name: 'Zorunlu ödeme' }, { id: 'mdiger', name: 'Diğer mecburi' }
     ]
   };
   function categoryName(type, id) {
-    const c = CATEGORIES[type === 'out' ? 'out' : 'in'].find(function (x) { return x.id === id; });
-    return c ? c.name : 'Diğer';
+    const c = CATEGORIES[type === 'out' ? 'out' : 'in'].find(function (x) { return x.id === id; }) ||
+      (type === 'out' ? CATEGORIES.must.find(function (x) { return x.id === id; }) : null);
+    return c ? c.name : (CATEGORIES.must.some(function (x) { return x.id === id; }) ? 'Diğer mecburi' : 'Diğer');
   }
+  // Kayıt türü: 'in' (gelir) | 'out' (diğer gider; eski ve türü belirtilmemiş tüm giderler) | 'must' (mecburi harcama)
+  function kindOf(f) { return f.type === 'in' ? 'in' : (f.kind === 'must' ? 'must' : 'out'); }
   function startOfDay(ts) { const d = new Date(ts); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
   function endOfDay(ts) { const d = new Date(ts); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime() - 1; }
   // "2026-10-23" -> o günün öğlen 12:00'si (yerel saat). Geçersizse null.
@@ -445,10 +457,13 @@
       if (date == null) return null;
       if (date > endOfDay(now)) return null;       // gelecek tarihe kayıt girilmez
     }
-    const cat = CATEGORIES[type].some(function (c) { return c.id === entry.cat; }) ? entry.cat : 'diger';
+    const must = type === 'out' && entry.kind === 'must';
+    const list = must ? CATEGORIES.must : CATEGORIES[type];
+    const cat = list.some(function (c) { return c.id === entry.cat; }) ? entry.cat : (must ? 'mdiger' : 'diger');
     const src = state.projects && state.projects.some(function (p) { return p.id === entry.src; }) ? entry.src : '';
     const rec = { id: uid('fin'), type: type, amount: Math.round(amount * 100) / 100, cat: cat, note: String(entry.note || '').slice(0, 120), date: date, at: now };
     if (src) rec.src = src;
+    if (must) rec.kind = 'must';                    // yalnızca mecburi harcamada saklanır; alan yoksa "diğer gider"
     state.finance.push(rec);
     return rec;
   }
@@ -459,12 +474,16 @@
   }
   function financeSummary(state, now) {
     const mk = monthKey(now);
-    const sum = { totalIn: 0, totalOut: 0, net: 0, monthIn: 0, monthOut: 0, monthNet: 0 };
+    const sum = { totalIn: 0, totalOut: 0, net: 0, monthIn: 0, monthOut: 0, monthNet: 0, totalMust: 0, totalOther: 0, monthMust: 0, monthOther: 0 };
     state.finance.forEach(function (f) {
-      if (f.type === 'in') { sum.totalIn += f.amount; if (monthKey(f.date) === mk) sum.monthIn += f.amount; }
-      else { sum.totalOut += f.amount; if (monthKey(f.date) === mk) sum.monthOut += f.amount; }
+      const cur = monthKey(f.date) === mk;
+      if (f.type === 'in') { sum.totalIn += f.amount; if (cur) sum.monthIn += f.amount; }
+      else {                                            // toplam gider = diğer + mecburi; her kayıt tam bir türe aittir (çift sayım yok)
+        sum.totalOut += f.amount; if (cur) sum.monthOut += f.amount;
+        if (f.kind === 'must') { sum.totalMust += f.amount; if (cur) sum.monthMust += f.amount; } else { sum.totalOther += f.amount; if (cur) sum.monthOther += f.amount; }
+      }
     });
-    ['totalIn', 'totalOut', 'monthIn', 'monthOut'].forEach(function (k) { sum[k] = Math.round(sum[k] * 100) / 100; });
+    ['totalIn', 'totalOut', 'monthIn', 'monthOut', 'totalMust', 'totalOther', 'monthMust', 'monthOther'].forEach(function (k) { sum[k] = Math.round(sum[k] * 100) / 100; });
     sum.net = Math.round((sum.totalIn - sum.totalOut) * 100) / 100;
     sum.monthNet = Math.round((sum.monthIn - sum.monthOut) * 100) / 100;
     return sum;
@@ -526,6 +545,25 @@
     };
   }
 
+  // Üç dilimli dağılım (Aşama 10): gelir / diğer giderler / mecburi harcamalar. period: 'month' | '7d' | '30d' | '12m'.
+  // Her kayıt yalnızca bir dilime girer; yüzdeler üç dilimin toplamına göre hesaplanır. Net = gelir − (diğer + mecburi).
+  function financeBreakdown(state, period, now) {
+    let r;
+    if (period === 'month') { const d = new Date(now); r = { start: new Date(d.getFullYear(), d.getMonth(), 1).getTime(), end: endOfDay(now) }; }
+    else r = periodRange(PERIODS[period] ? period : '30d', now);
+    let inc = 0, oth = 0, must = 0;
+    state.finance.forEach(function (f) {
+      if (f.date < r.start || f.date > r.end) return;
+      if (f.type === 'in') inc += f.amount; else if (f.kind === 'must') must += f.amount; else oth += f.amount;
+    });
+    const rd = function (n) { return Math.round(n * 100) / 100; };
+    inc = rd(inc); oth = rd(oth); must = rd(must);
+    const total = rd(inc + oth + must);
+    const mk = function (id, name, amount) { return { id: id, name: name, amount: amount, pct: total > 0 ? amount / total * 100 : 0 }; };
+    return { period: period, income: inc, other: oth, must: must, totalOut: rd(oth + must), net: rd(inc - oth - must), total: total, empty: total === 0,
+      slices: [mk('income', 'Gelir', inc), mk('other', 'Diğer giderler', oth), mk('must', 'Mecburi harcamalar', must)] };
+  }
+
   // Dönem içindeki gelir veya giderin kategorilere dağılımı (büyükten küçüğe).
   function categorySplit(state, type, period, now) {
     const r = periodRange(period, now);
@@ -554,7 +592,10 @@
     const target = state.goal.monthly || 0;
     const got = financeSummary(state, now).monthIn;
     const pct = target > 0 ? Math.min(100, Math.round(got / target * 100)) : 0;
-    return { target: target, got: got, pct: pct, reached: target > 0 && got >= target, left: Math.max(0, Math.round((target - got) * 100) / 100) };
+    // rawPct: sınırlandırılmamış gerçek oran (hedef aşılırsa >100). Yalnızca gerçekleşen gelirden hesaplanır; giderler katılmaz.
+    const rawPct = target > 0 ? Math.round(got / target * 100) : 0;
+    return { target: target, got: got, pct: pct, rawPct: rawPct, reached: target > 0 && got >= target, left: Math.max(0, Math.round((target - got) * 100) / 100),
+      over: target > 0 && got > target ? Math.round((got - target) * 100) / 100 : 0 };
   }
 
 
@@ -566,6 +607,7 @@
     const fresh = addFinance(tmp, entry, now);
     if (!fresh) return null;
     rec.type = fresh.type; rec.amount = fresh.amount; rec.cat = fresh.cat; rec.note = fresh.note; rec.date = fresh.date;
+    if (fresh.kind) rec.kind = fresh.kind; else delete rec.kind;
     if (fresh.src) rec.src = fresh.src; else delete rec.src;
     return rec;
   }
@@ -637,7 +679,7 @@
   }
   function addRecurring(state, e, now) {
     if (state.recurring.length >= 50) return null;
-    const probe = addFinance({ finance: [], projects: [] }, { type: e.type, amount: e.amount, cat: e.cat, note: e.note }, now);
+    const probe = addFinance({ finance: [], projects: [] }, { type: e.type, kind: e.kind, amount: e.amount, cat: e.cat, note: e.note }, now);
     if (!probe) return null;
     const start = parseDateInput(e.date || dateInputValue(now));
     if (start == null) return null;
@@ -645,6 +687,7 @@
     if (start < now - 400 * 86400000) return null;           // en fazla ~13 ay geriye
     const freq = e.freq === 'weekly' ? 'weekly' : 'monthly';
     const rec = { id: uid('rec'), type: probe.type, amount: probe.amount, cat: probe.cat, note: probe.note, freq: freq, dom: new Date(start).getDate(), next: start, active: true };
+    if (probe.kind) rec.kind = probe.kind;
     state.recurring.push(rec);
     return rec;
   }
@@ -670,7 +713,9 @@
       if (!r.active) return;
       let guard = 0;
       while (r.next <= limit && guard < 60) {
-        state.finance.push({ id: uid('fin'), type: r.type, amount: r.amount, cat: r.cat, note: r.note, date: r.next, at: now, auto: true, recId: r.id });
+        const nf = { id: uid('fin'), type: r.type, amount: r.amount, cat: r.cat, note: r.note, date: r.next, at: now, auto: true, recId: r.id };
+        if (r.kind === 'must' && r.type === 'out') nf.kind = 'must';
+        state.finance.push(nf);
         made++; guard++;
         r.next = r.freq === 'weekly' ? r.next + 7 * 86400000 : monthlyNext(r.next, r.dom, 1);
       }
@@ -846,7 +891,7 @@
     st.finance = st.finance.filter(function (f) {
       return f && (f.type === 'in' || f.type === 'out') && isFinite(f.amount) && f.amount > 0 && f.amount <= 1e9 && isFinite(f.date);
     }).slice(-5000).map(function (f) {
-      return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date, src: f.src && st.projects.some(function (p) { return p.id === f.src; }) ? f.src : undefined, auto: f.auto ? true : undefined };
+      return { id: String(f.id || uid('fin')), type: f.type, amount: Math.round(f.amount * 100) / 100, cat: f.cat || 'diger', note: String(f.note || '').slice(0, 120), date: +f.date, at: +f.at || +f.date, src: f.src && st.projects.some(function (p) { return p.id === f.src; }) ? f.src : undefined, auto: f.auto ? true : undefined, kind: f.kind === 'must' && f.type === 'out' ? 'must' : undefined };
     });
     st.projects = st.projects.filter(function (p) { return p && modelById(p.modelId) && p.tasks && typeof p.tasks === 'object'; }).slice(0, 200);
     trimChat(st);
@@ -1384,6 +1429,32 @@
   }
   function pendingApprovals(state, pid) {
     return tasksOf(state, pid).filter(function (t) { return t.status === 'awaiting' && t.approval && t.approval.state === 'pending'; });
+  }
+  // Görev aşama göstergesi (Aşama 10): YALNIZCA görevin gerçek durumundan türetilir, hiçbir durumu değiştirmez.
+  // Onay gerektirmeyen görevde "Onay" aşaması hiç gösterilmez. Başarısız/iptal: ulaşılan aşama "durdu" olarak işaretlenir.
+  function taskStages(t) {
+    const hasA = !!t.approval;
+    const labels = hasA ? ['Plan', 'Hazırlık', 'Onay', 'Sonuç'] : ['Plan', 'Hazırlık', 'Sonuç'];
+    const last = labels.length - 1, apv = hasA ? 2 : -1, st = t.status;
+    let cur = 0, stopped = false, allDone = false;
+    if (st === 'planned') cur = 0;
+    else if (st === 'preparing') cur = 1;
+    else if (st === 'awaiting') cur = hasA ? apv : 1;
+    else if (st === 'active') cur = last;
+    else if (st === 'done') allDone = true;
+    else {                                              // failed | cancelled
+      stopped = true;
+      if (hasA && t.approval.state === 'approved') cur = last;
+      else if (t.result) cur = hasA ? apv : last;
+      else cur = 0;
+    }
+    const steps = labels.map(function (label, i) {
+      let state = 'todo';
+      if (allDone || i < cur) state = 'done'; else if (i === cur) state = stopped ? 'stop' : 'cur';
+      return { n: i + 1, label: label, state: state };
+    });
+    const done = steps.filter(function (x) { return x.state === 'done'; }).length;
+    return { steps: steps, done: done, total: steps.length, current: allDone ? last : cur, stopped: stopped, complete: allDone };
   }
   function workSummary(state, pid) {
     const c = { planned: 0, preparing: 0, awaiting: 0, active: 0, done: 0, failed: 0, cancelled: 0 };
@@ -2029,7 +2100,7 @@
     const cur = state.settings && state.settings.currency, unit = !cur || cur === 'TRY' ? 'TL' : cur;
     const rows = ['Tarih;Tür;Kategori;Tutar (' + unit + ');Not'];
     state.finance.slice().sort(function (a, b) { return a.date - b.date; }).forEach(function (f) {
-      rows.push([formatDate(f.date), f.type === 'in' ? 'Gelir' : 'Gider', categoryName(f.type, f.cat), String(f.amount).replace('.', ','), f.note].map(csvCell).join(';'));
+      rows.push([formatDate(f.date), f.type === 'in' ? 'Gelir' : (f.kind === 'must' ? 'Mecburi harcama' : 'Gider'), categoryName(f.type, f.cat), String(f.amount).replace('.', ','), f.note].map(csvCell).join(';'));
     });
     return '﻿' + rows.join('\r\n');
   }
@@ -2053,7 +2124,7 @@
     addFinance: addFinance, removeFinance: removeFinance, financeSummary: financeSummary,
     CATEGORIES: CATEGORIES, categoryName: categoryName, parseDateInput: parseDateInput, dateInputValue: dateInputValue,
     PERIODS: PERIODS, periodRange: periodRange, financeSeries: financeSeries, categorySplit: categorySplit,
-    setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
+    taskStages: taskStages, kindOf: kindOf, financeBreakdown: financeBreakdown, setGoal: setGoal, goalProgress: goalProgress, streak: streak, badges: badges,
     THEMES: THEMES, setTheme: setTheme, LANG_CODES: LANG_CODES, CURRENCIES: CURRENCIES, LANG_CURRENCY: LANG_CURRENCY, setLanguage: setLanguage, setCurrency: setCurrency, exportCsv: exportCsv, chatSuggestions: chatSuggestions,
     insights: insights, setReminder: setReminder, isValidPin: isValidPin, setLock: setLock, clearLock: clearLock,
     importData: importData, APP_VERSION: APP_VERSION,

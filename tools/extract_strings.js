@@ -73,6 +73,13 @@ function states() {
   Core.assignPackage(pm, pm.projects[0].id, T); Core.archiveProject(pm, pm.projects[1].id, T); Core.setActiveProject(pm, pm.projects[0].id); out.push(['projMix', pm, T]);
   const pn = mk('ceo'); Core.startProject(pn, 'freelance', T); Core.startProject(pn, 'blog-affiliate', T + 1); Core.assignPackage(pn, pn.projects[0].id, T); Core.setPackage(pn, 'free', T); Core.setActiveProject(pn, pn.projects[0].id); out.push(['projInactive', pn, T]);
   const man = mk('manual'); man.addonNarration = true; out.push(['manualNarr', man, T]);
+  // Aşama 10: mecburi harcama, hedef aşımı, eski (türsüz) giderler
+  const u10 = mk('ceo');
+  Core.addFinance(u10, { type: 'out', kind: 'must', amount: 900, cat: 'kira', date: '2026-10-05', note: 'zzmust' }, T);
+  Core.addFinance(u10, { type: 'out', kind: 'must', amount: 120, cat: 'fatura', date: '2026-10-06' }, T);
+  Core.addRecurring(u10, { type: 'out', kind: 'must', amount: 50, freq: 'monthly', note: 'Zzmrec', date: '2026-08-05' }, T);
+  Core.setGoal(u10, 500);
+  out.push(['ui10', u10, T]);
   return out;
 }
 

@@ -1003,14 +1003,15 @@
     send: function () { sendChat(val('chatInput')); },
     suggest: function (el) { sendChat(el.getAttribute('data-t')); },
     finType: function (el) {
-      ui.finType = el.getAttribute('data-v') === 'out' ? 'out' : 'in';
+      var fv = el.getAttribute('data-v'); ui.finType = fv === 'out' || fv === 'must' ? fv : 'in';
       var btns = elMain.querySelectorAll('[data-act=finType]');
       for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-v') === ui.finType);
       var cat = document.getElementById('finCat'); if (cat) cat.innerHTML = App.catOptions(ui.finType);
     },
+    pieP: function (el) { var v = el.getAttribute('data-v'); ui.pieP = v === '30d' || v === '12m' ? v : 'month'; ui.enter = 'fade'; render(); },
     finFilter: function (el) { ui.finFilter = el.getAttribute('data-v'); render(); },
     addFin: function () {
-      var entry = { type: ui.finType, amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote'), src: val('finSrc') };
+      var entry = { type: ui.finType === 'in' ? 'in' : 'out', kind: ui.finType === 'must' ? 'must' : '', amount: val('finAmount'), cat: val('finCat'), date: val('finDate'), note: val('finNote'), src: val('finSrc') };
       var editing = !!ui.editId;
       var rec = withRewards(function () {
         return editing ? Core.updateFinance(S, ui.editId, entry, now()) : Core.addFinance(S, entry, now());
@@ -1020,7 +1021,7 @@
     },
     editFin: function (el) {
       var r = S.finance.find(function (x) { return x.id === el.getAttribute('data-id'); }); if (!r) return;
-      ui.editId = r.id; ui.finType = r.type; ui.noDraft = true; ui.enter = 'fade'; render();
+      ui.editId = r.id; ui.finType = Core.kindOf(r); ui.noDraft = true; ui.enter = 'fade'; render();
       var f = document.getElementById('finForm'); if (f) { try { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { } }
     },
     cancelEdit: function () { ui.editId = null; ui.noDraft = true; render(); },
@@ -1029,13 +1030,13 @@
       ui.noDraft = true; save(); toast('Bütçe kaydedildi.'); render();
     },
     recType: function (el) {
-      ui.recType = el.getAttribute('data-v') === 'in' ? 'in' : 'out';
+      var rv = el.getAttribute('data-v'); ui.recType = rv === 'in' || rv === 'must' ? rv : 'out';
       var btns = elMain.querySelectorAll('[data-act=recType]');
       for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-v') === ui.recType);
       var cat = document.getElementById('recCat'); if (cat) cat.innerHTML = App.catOptions(ui.recType);
     },
     recAdd: function () {
-      var r = Core.addRecurring(S, { type: ui.recType === 'in' ? 'in' : 'out', amount: val('recAmount'), cat: val('recCat'), freq: val('recFreq'), date: val('recDate'), note: val('recNote') }, now());
+      var r = Core.addRecurring(S, { type: ui.recType === 'in' ? 'in' : 'out', kind: ui.recType === 'must' ? 'must' : '', amount: val('recAmount'), cat: val('recCat'), freq: val('recFreq'), date: val('recDate'), note: val('recNote') }, now());
       if (!r) { toast('Tutarı ve tarihi kontrol et.'); return; }
       var made = Core.applyRecurring(S, now());
       ui.noDraft = true; save(); toast(made ? 'Kaydedildi, ' + made + ' kayıt eklendi.' : 'Tekrarlayan kayıt eklendi.'); render();

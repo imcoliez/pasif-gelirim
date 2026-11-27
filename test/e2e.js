@@ -132,7 +132,7 @@ function sameMonth(daysAgo) { const d = new Date(); d.setDate(d.getDate() - days
   ok(await has('Aylık gelir hedefi'), 'hedef alanı var');
   await page.fill('#goalInput', '1000');
   await click('[data-act=saveGoal]');
-  ok(await has('Aylık hedef: 1.000,00 TL'), 'aylık hedef kaydedildi');
+  ok(await has('1.000,00 TL') && (await page.innerText('.goalc')).includes('Hedef') && (await page.innerText('.goalc')).includes('%0'), 'aylık hedef kaydedildi (Aşama 10: bağımsız hedef kartında hedef tutarı ve gerçek %0)');
   // gelir 300 (bugün)
   await page.fill('#finAmount', '300');
   await page.selectOption('#finCat', 'satis');

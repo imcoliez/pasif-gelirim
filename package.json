@@ -4,8 +4,8 @@
   "private": true,
   "description": "Pasif Gelirim - kendi dijital işini adım adım kur",
   "scripts": {
-    "test": "node test/core.test.js && node test/worker.test.js && node test/market.test.js && node test/notes.test.js && node test/i18n.test.js",
-    "test:e2e": "node test/e2e.js && node test/e2e-lang.js && node test/e2e-live.js && node test/e2e-memory.js && node test/e2e-work.js && node test/e2e-nora.js && node test/e2e-notes.js && node test/e2e-capture.js",
+    "test": "node test/core.test.js && node test/worker.test.js && node test/market.test.js && node test/notes.test.js && node test/ui10.test.js && node test/i18n.test.js",
+    "test:e2e": "node test/e2e.js && node test/e2e-lang.js && node test/e2e-live.js && node test/e2e-memory.js && node test/e2e-work.js && node test/e2e-nora.js && node test/e2e-notes.js && node test/e2e-capture.js && node test/e2e-ui10.js",
     "serve": "npx --yes serve www -l 5173",
     "android:add": "npx cap add android",
     "android:sync": "npx cap sync android",
